@@ -4,6 +4,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const bcrypt = require('bcryptjs')
 const pool = require('../db')
 
 const MIGRATIONS_DIR = path.join(__dirname, '..', '..', 'migrations')
@@ -224,10 +225,53 @@ const runMigrations = async () => {
       }
     }
     console.log('✅ Barcha migration\'lar yangi')
+
+    // 3. Admin foydalanuvchi yaratish (faqat birinchi marta)
+    await ensureAdminUser()
   } catch (err) {
     console.error('Migration runner xatosi:', err.message)
     throw err
   }
 }
 
-module.exports = { runMigrations }
+const ensureAdminUser = async () => {
+  const email = (process.env.ADMIN_EMAIL || 'admin@idrokai.uz').toLowerCase()
+  const password = process.env.ADMIN_PASSWORD
+
+  if (!password) {
+    console.warn('⚠️  ADMIN_PASSWORD .env da yo\'q — admin yaratilmaydi')
+    return
+  }
+
+  // Mavjud adminni tekshirish
+  const existing = await pool.query(
+    'SELECT id, role, email_verified FROM users WHERE email = $1',
+    [email]
+  )
+
+  if (existing.rows.length > 0) {
+    const u = existing.rows[0]
+    // Mavjud lekin admin emas yoki tasdiqlanmagan — tuzatamiz
+    if (u.role !== 'admin' || !u.email_verified) {
+      await pool.query(
+        `UPDATE users SET role = 'admin', email_verified = TRUE WHERE id = $1`,
+        [u.id]
+      )
+      console.log('🔧 Admin roli tiklandi:', email)
+    } else {
+      console.log('👤 Admin allaqachon mavjud:', email)
+    }
+    return
+  }
+
+  // Admin yo'q — yaratamiz
+  const hash = await bcrypt.hash(password, 12)
+  await pool.query(
+    `INSERT INTO users (name, email, password, role, email_verified)
+     VALUES ($1, $2, $3, 'admin', TRUE)`,
+    ['Admin', email, hash]
+  )
+  console.log('✅ Admin yaratildi:', email)
+}
+
+module.exports = { runMigrations, ensureAdminUser }
