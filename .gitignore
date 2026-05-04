@@ -1,0 +1,52 @@
+# Loyiha root .gitignore — har ikki tarafga ham qo'llanadi
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+.cache/
+
+# Environment files (XAVFLI — git'ga ketmasin!)
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+!.env.example
+!**/.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Backend uploads (statik fayllar — kelajakda S3'ga ko'chiriladi)
+backend/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Claude
+.claude/
+
+# Test/temp files
+_*.cjs
+_*.js
+*.test.local.*

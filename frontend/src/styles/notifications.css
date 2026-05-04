@@ -1,0 +1,198 @@
+/* Notification konteyner — sahifaning o'ng yuqori burchagida */
+.notif-wrap {
+  position: fixed;
+  top: 84px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  pointer-events: none;
+}
+
+.notif-wrap > * {
+  pointer-events: auto;
+}
+
+/* Bitta notification kartasi */
+.notif {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  padding-right: 36px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.15),
+    0 4px 10px -3px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-left: 4px solid var(--notif-accent, #6366f1);
+  overflow: hidden;
+  animation: notif-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 280px;
+}
+
+.notif-exit {
+  animation: notif-out 0.25s ease forwards;
+}
+
+@keyframes notif-in {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes notif-out {
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* Variantlar */
+.notif-success {
+  --notif-accent: #16a34a;
+  --notif-bg: #f0fdf4;
+  --notif-icon: #16a34a;
+}
+.notif-error {
+  --notif-accent: #dc2626;
+  --notif-bg: #fef2f2;
+  --notif-icon: #dc2626;
+}
+.notif-warning {
+  --notif-accent: #d97706;
+  --notif-bg: #fffbeb;
+  --notif-icon: #d97706;
+}
+.notif-info {
+  --notif-accent: #2563eb;
+  --notif-bg: #eff6ff;
+  --notif-icon: #2563eb;
+}
+
+.notif-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--notif-bg);
+  color: var(--notif-icon);
+  flex-shrink: 0;
+}
+
+.notif-msg {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #111827;
+  word-break: break-word;
+  padding-top: 4px;
+}
+
+.notif-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.notif-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #4b5563;
+}
+
+/* Progress bar (qancha vaqt qoldi) */
+.notif-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--notif-accent);
+  opacity: 0.5;
+  transform-origin: left center;
+  animation: notif-progress linear forwards;
+}
+
+@keyframes notif-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+/* Dark mode */
+[data-theme="dark"] .notif {
+  background: #1f2937;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.5),
+    0 4px 10px -3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .notif-msg {
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .notif-close {
+  color: #6b7280;
+}
+
+[data-theme="dark"] .notif-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .notif-success {
+  --notif-bg: rgba(34, 197, 94, 0.15);
+  --notif-icon: #4ade80;
+  --notif-accent: #22c55e;
+}
+[data-theme="dark"] .notif-error {
+  --notif-bg: rgba(239, 68, 68, 0.15);
+  --notif-icon: #f87171;
+  --notif-accent: #ef4444;
+}
+[data-theme="dark"] .notif-warning {
+  --notif-bg: rgba(245, 158, 11, 0.15);
+  --notif-icon: #fbbf24;
+  --notif-accent: #f59e0b;
+}
+[data-theme="dark"] .notif-info {
+  --notif-bg: rgba(59, 130, 246, 0.15);
+  --notif-icon: #60a5fa;
+  --notif-accent: #3b82f6;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .notif-wrap {
+    top: 70px;
+    left: 12px;
+    right: 12px;
+    max-width: none;
+  }
+  .notif {
+    min-width: 0;
+  }
+}
