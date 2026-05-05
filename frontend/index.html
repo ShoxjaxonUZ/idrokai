@@ -66,6 +66,18 @@
       gtag('js', new Date());
       gtag('config', 'G-KZXJV41SWK');
     </script>
+    <!-- Theme — React yuklangunga qadar to'g'ri rangni o'rnatish (FOUC oldini olish) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('theme');
+          var theme = saved === 'light' || saved === 'dark' ? saved : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch(e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

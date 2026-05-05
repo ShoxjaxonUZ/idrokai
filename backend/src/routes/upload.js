@@ -5,7 +5,8 @@ const path = require('path')
 const fs = require('fs')
 const { auth, teacherOrAdmin } = require('../middleware/auth')
 
-const PUBLIC_BASE = process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 5000}`
+// Relative URL qaytaramiz — frontend o'zi API_URL bilan birlashtiradi.
+// Bu lokal va production'da bir xil ishlaydi (PUBLIC_BASE_URL ga muhtoj emas).
 
 // Magic byte signatures — fayl haqiqatan o'sha turdaligini tekshiradi.
 // MIME spoofing'dan himoya: hujumchi `image/png` deb yozsa-da, agar fayl PNG bo'lmasa, rad etiladi.
@@ -100,7 +101,7 @@ router.post('/image', auth, teacherOrAdmin, imageUpload.single('image'), (req, r
     return res.status(400).json({ message: 'Fayl haqiqiy rasm emas (magic bytes mos kelmadi)' })
   }
 
-  const url = `${PUBLIC_BASE}/uploads/images/${req.file.filename}`
+  const url = `/uploads/images/${req.file.filename}`
   res.json({ url, filename: req.file.filename, size: req.file.size })
 })
 
@@ -139,7 +140,7 @@ router.post('/video', auth, teacherOrAdmin, videoUpload.single('video'), (req, r
     return res.status(400).json({ message: 'Fayl haqiqiy MP4 video emas' })
   }
 
-  const url = `${PUBLIC_BASE}/uploads/videos/${req.file.filename}`
+  const url = `/uploads/videos/${req.file.filename}`
   res.json({
     url,
     filename: req.file.filename,
@@ -194,7 +195,7 @@ router.post('/material', auth, teacherOrAdmin, materialUpload.single('material')
     }
   }
 
-  const url = `${PUBLIC_BASE}/uploads/materials/${req.file.filename}`
+  const url = `/uploads/materials/${req.file.filename}`
   res.json({
     url,
     filename: req.file.filename,

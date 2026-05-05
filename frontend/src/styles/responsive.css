@@ -219,6 +219,96 @@
   }
 }
 
+/* Notification mobile fix — yangi class nomi */
+@media (max-width: 640px) {
+  .notif-wrap {
+    top: 70px !important;
+    left: 12px !important;
+    right: 12px !important;
+    max-width: none !important;
+  }
+  .notif {
+    min-width: 0 !important;
+  }
+}
+
+/* Umumiy mobile fixlar — barcha yangi sahifalar uchun */
+@media (max-width: 768px) {
+  /* Body horizontal scroll oldini olish */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Karta va konteyner padding */
+  .ait-header,
+  .dly-hero-bar,
+  .battle-page,
+  .leaderboard-page,
+  .ai-teacher-page,
+  .dly-page {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Sarlavha o'lchami */
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+
+  /* Tugmalar */
+  button {
+    min-height: 40px;
+  }
+
+  /* Inputlar va textarea — iOS zoom oldini olish (font 16+) */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Code editor — mobile uchun gorizontal scroll */
+  .code-editor-wrapper {
+    font-size: 12px !important;
+  }
+  .code-textarea, .code-highlight {
+    overflow-x: auto;
+  }
+
+  /* Tablitsalar — overflow scroll */
+  .admin-table,
+  .leaderboard-table {
+    font-size: 13px;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* AI Teacher — chat messages */
+  .ait-message {
+    max-width: 100% !important;
+  }
+  .msg-image {
+    max-width: 280px !important;
+    max-height: 280px !important;
+  }
+
+  /* Battle — masala matni overflow */
+  .battle-problem,
+  .dly-problem-text {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Modal'lar — to'liq enlik */
+  .modal,
+  .battle-modal,
+  .quiz-modal {
+    width: calc(100vw - 24px) !important;
+    max-width: 100% !important;
+    margin: 12px !important;
+  }
+}
+
+/* Juda kichik ekranlar */
 @media (max-width: 480px) {
   .hero h2 {
     font-size: 22px;

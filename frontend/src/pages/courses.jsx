@@ -4,7 +4,7 @@ import {
   Search, GraduationCap, BookOpen, Clock, Users,
   Star, Play, BarChart3, Tag, TrendingUp, Sparkles, X
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import '../styles/courses.css'
@@ -160,7 +160,7 @@ function Courses() {
               <div key={kurs.id} className="course-card" onClick={() => navigate(`/courses/${kurs.id}`)}>
                 <div className="course-thumb">
                   {kurs.image ? (
-                    <img src={kurs.image} alt={kurs.title} className="course-thumb-img" />
+                    <img src={assetUrl(kurs.image)} alt={kurs.title} className="course-thumb-img" />
                   ) : (
                     <div className="course-thumb-empty">
                       <BookOpen size={48} />

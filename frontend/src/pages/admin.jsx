@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Upload, Video, Loader2, X, Save,
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import { useNotification } from '../context/NotificationContext'
@@ -391,7 +391,7 @@ function Admin() {
                     <div key={c.id} className="admin-recent-item">
                       <div className="admin-recent-thumb">
                         {c.image ? (
-                          <img src={c.image} alt={c.title} />
+                          <img src={assetUrl(c.image)} alt={c.title} />
                         ) : (
                           <BookOpen size={20} />
                         )}
@@ -515,7 +515,7 @@ function Admin() {
                     <label>Kurs rasmi (max 5MB)</label>
                     {form.image ? (
                       <div className="image-uploaded">
-                        <img src={form.image} alt="Preview" />
+                        <img src={assetUrl(form.image)} alt="Preview" />
                         <button
                           type="button"
                           className="btn-outline btn-small"
@@ -606,7 +606,7 @@ function Admin() {
                                       <div className="video-size">{lesson.videoSize} MB</div>
                                     </div>
                                   </div>
-                                  <video src={lesson.videoUrl} controls className="video-preview" />
+                                  <video src={assetUrl(lesson.videoUrl)} controls className="video-preview" />
                                   <button
                                     type="button"
                                     className="btn-outline btn-small"
@@ -720,7 +720,7 @@ function Admin() {
                       <div key={c.id} className="admin-course-card">
                         <div className="admin-course-thumb">
                           {c.image ? (
-                            <img src={c.image} alt={c.title} />
+                            <img src={assetUrl(c.image)} alt={c.title} />
                           ) : (
                             <BookOpen size={32} />
                           )}

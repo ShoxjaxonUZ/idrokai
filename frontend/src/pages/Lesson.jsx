@@ -5,7 +5,7 @@ import {
     PlayCircle, BookOpen, Flag, Download, Paperclip,
     Lock, FileText
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
 import Navbar from '../components/Navbar'
 import '../styles/lesson.css'
@@ -249,11 +249,11 @@ function Lesson() {
                         {lesson.videoUrl ? (
                             <video
     key={lesson.videoUrl}
-    src={safeUrl(lesson.videoUrl)}
+    src={safeUrl(assetUrl(lesson.videoUrl))}
     controls
     controlsList="nodownload"
     className="lesson-video"
-    poster={course.image}
+    poster={assetUrl(course.image)}
     onEnded={async () => {
         setVideoEnded(true)
         await markLessonDone()
@@ -310,7 +310,7 @@ function Lesson() {
                                     <div className="material-name">{lesson.materialName || 'Fayl'}</div>
                                 </div>
                                 <a
-                                    href={safeUrl(lesson.materialUrl)}
+                                    href={safeUrl(assetUrl(lesson.materialUrl))}
                                     download
                                     target="_blank"
                                     rel="noopener noreferrer nofollow"

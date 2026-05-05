@@ -4,7 +4,7 @@ import {
   BookOpen, BarChart3, Target, Play, Rocket, Check,
   Lock, Award, Globe, Clock, CheckCircle2, FileText
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Comments from '../components/Comments'
 import Loading from '../components/Loading'
@@ -167,7 +167,7 @@ function CourseDetail() {
         {/* Hero */}
         <div className="detail-hero">
           {course.image ? (
-            <img src={course.image} alt={course.title} className="detail-hero-img" />
+            <img src={assetUrl(course.image)} alt={course.title} className="detail-hero-img" />
           ) : (
             <div className="detail-hero-placeholder">
               <BookOpen size={80} />

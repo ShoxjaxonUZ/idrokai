@@ -1,5 +1,24 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
+// Backend yuklangan rasm/video/fayl URL'i bilan ishlash:
+// - Backend `/uploads/...` (relative) qaytaradi
+// - Frontend uni API_URL bilan birlashtiradi
+// - Tashqi URL bo'lsa (https://...) o'zgartirilmaydi
+// - Eski yozuvlarda http://localhost:5000 bo'lishi mumkin — uni ham almashtiramiz
+export const assetUrl = (path) => {
+  if (!path || typeof path !== 'string') return ''
+  // Tashqi URL (Cloudflare R2, S3, YouTube va h.k.) — to'g'ri o'tkazish
+  if (/^https?:\/\//i.test(path)) {
+    // Eski cache'da `http://localhost:5000/uploads/...` bo'lishi mumkin — almashtiramiz
+    return path
+      .replace(/^https?:\/\/localhost:\d+/i, API_URL)
+      .replace(/^http:\/\/127\.0\.0\.1:\d+/i, API_URL)
+  }
+  // Relative path — API_URL ga ulaymiz
+  if (path.startsWith('/')) return API_URL + path
+  return API_URL + '/' + path
+}
+
 export const getToken = () => {
   try { return localStorage.getItem('token') } catch { return null }
 }

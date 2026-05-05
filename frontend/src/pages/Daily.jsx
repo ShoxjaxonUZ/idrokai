@@ -6,7 +6,7 @@ import {
   Sparkles, Award, TrendingUp, Code2, Lock, Lightbulb,
   ChevronDown, RefreshCw, BookOpen, X
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import { useNotification } from '../context/NotificationContext'
@@ -462,7 +462,7 @@ function Daily() {
                   >
                     <div className="dly-course-thumb">
                       {c.image ? (
-                        <img src={c.image} alt={c.title} />
+                        <img src={assetUrl(c.image)} alt={c.title} />
                       ) : (
                         <BookOpen size={24} />
                       )}

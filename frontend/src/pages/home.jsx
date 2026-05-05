@@ -7,7 +7,7 @@ import {
   Trophy, CheckCircle2, ChevronDown, Shield, Zap,
   Quote, Globe, Code2, Lightbulb
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/home.css'
@@ -252,7 +252,7 @@ function Home() {
                 <div key={kurs.id} className="home-course-card" onClick={() => navigate(`/courses/${kurs.id}`)}>
                   <div className="home-course-thumb">
                     {kurs.image ? (
-                      <img src={kurs.image} alt={kurs.title} />
+                      <img src={assetUrl(kurs.image)} alt={kurs.title} />
                     ) : (
                       <div className="home-course-empty">
                         <BookOpen size={48} />

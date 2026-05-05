@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import '../styles/teacher.css'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 
 const emptyLesson = { title: '', video: '', desc: '', isUploading: false }
 const emptyForm = {
@@ -304,7 +304,7 @@ function TeacherDashboard() {
                       {lesson.video ? (
                         <div className="teacher-video-preview">
                           <video
-                            src={lesson.video}
+                            src={assetUrl(lesson.video)}
                             controls
                             style={{ width: '100%', maxHeight: '200px', borderRadius: '8px' }}
                           />

@@ -5,7 +5,7 @@ import {
   Code2, Lightbulb, BookOpen, Calculator, Atom, Languages,
   AlertCircle, Zap, Image as ImageIcon, X
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import { useNotification } from '../context/NotificationContext'
 import '../styles/aiteacher.css'
@@ -363,7 +363,7 @@ function AITeacher() {
                       <div className={`msg-content ${m.error ? 'msg-error' : ''}`}>
                         {m.image && (
                           <img
-                            src={m.image}
+                            src={assetUrl(m.image)}
                             alt="yuborilgan rasm"
                             className="msg-image"
                           />
