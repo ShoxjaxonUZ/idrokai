@@ -294,14 +294,46 @@
   .navbar {
     padding: 6px 6px 6px 14px;
   }
-  .nav-dashboard, .btn-outline, .btn-primary {
+  /* Faqat dashboard tugmasini bekitamiz, kirish/ro'yxatdan o'tish qoladi */
+  .nav-dashboard {
     display: none;
+  }
+  .nav-right .btn-outline,
+  .nav-right .btn-primary {
+    padding: 7px 12px;
+    font-size: 13px;
   }
   .hamburger {
     display: flex;
   }
   .logo-text {
     font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-wrap {
+    padding: 8px 8px 0;
+  }
+  .navbar {
+    padding: 5px 5px 5px 12px;
+    gap: 8px;
+  }
+  /* Juda kichik ekranda faqat hamburger qoldiramiz */
+  .nav-right .btn-outline {
+    display: none;
+  }
+  .nav-right .btn-primary {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .logo-text {
+    font-size: 15px;
+  }
+  .nav-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
   }
 }
 
