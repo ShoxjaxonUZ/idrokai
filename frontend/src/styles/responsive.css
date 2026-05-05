@@ -2,35 +2,7 @@
   box-sizing: border-box;
 }
 @media (max-width: 768px) {
-
-  /* Navbar */
-  .navbar {
-    padding: 0 16px;
-    height: 56px;
-  }
-
-  .nav-links {
-    display: none;
-  }
-
-  .logo {
-    font-size: 18px;
-  }
-
-  .nav-buttons {
-    gap: 8px;
-  }
-
-  .btn-primary, .btn-outline {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .nav-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
+  /* Navbar uchun barcha mobile qoidalar `navbar.css` da — bu yerda dublikat YO'Q */
 
   /* Bosh sahifa */
   .hero {
