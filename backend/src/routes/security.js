@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require('../db')
 const { auth, adminOnly } = require('../middleware/auth')
 const telegram = require('../lib/telegram')
+const email = require('../lib/email')
 
 // So'nggi N hujum log'lari
 router.get('/logs', auth, adminOnly, async (req, res) => {
@@ -116,6 +117,35 @@ router.get('/ip/:ip', auth, adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Xatolik' })
   }
+})
+
+// SMTP/Email test
+router.post('/email-test', auth, adminOnly, async (req, res) => {
+  const to = req.body?.to
+  if (typeof to !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    return res.status(400).json({ message: 'Email manzilini kiriting' })
+  }
+  if (!email.isConfigured()) {
+    return res.status(400).json({
+      message: 'Email provayder sozlanmagan',
+      hint: 'Render Environment\'da RESEND_API_KEY yoki SMTP_USER+SMTP_PASS o\'rnating'
+    })
+  }
+  const result = await email.sendTestEmail(to)
+  res.json({
+    ok: result.ok,
+    provider: email.getProvider(),
+    message: result.ok ? `Test xabar ${to} ga yuborildi` : `Xato: ${result.reason}`,
+    details: result
+  })
+})
+
+// Email holati
+router.get('/email-status', auth, adminOnly, (req, res) => {
+  res.json({
+    configured: email.isConfigured(),
+    provider: email.getProvider()
+  })
 })
 
 // Telegram test xabari
