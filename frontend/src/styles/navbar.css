@@ -300,64 +300,62 @@
   }
 }
 
-/* ─── MOBILE NAVBAR — toza, chiroyli, ishlaydigan ─── */
+/* ─── MOBILE NAVBAR ─── */
+/* Mobile'da FAQAT logo + hamburger ko'rinadi.
+   Theme toggle, Login/Register, Dashboard, Avatar — hammasi hamburger menyusi ichida.
+   Bu eng toza va chiroyli ko'rinishni beradi. */
 @media (max-width: 768px) {
   .navbar-wrap {
-    padding: 10px 10px 0;
+    padding: 10px 12px 0;
   }
   .navbar {
     max-width: 100%;
-    padding: 6px 6px 6px 14px;
+    padding: 6px 6px 6px 16px;
     gap: 8px;
     border-radius: 999px;
   }
   .nav-logo { gap: 8px; }
   .logo-icon { width: 32px; height: 32px; }
   .logo-text { font-size: 16px; }
-  .nav-right { gap: 6px; }
-  .theme-toggle,
-  .nav-avatar {
-    width: 34px;
-    height: 34px;
+
+  /* Mobile'da nav-right ichidagi hamma narsa yashiriladi, faqat hamburger qoladi */
+  .nav-right {
+    gap: 0;
   }
-  /* Dashboard tugmasi mobile'da yashirin (hamburger menyusida bor) */
-  .nav-dashboard { display: none; }
-  /* Login/Register tugmalari kichikroq */
-  .nav-right .btn-outline,
-  .nav-right .btn-primary {
-    padding: 7px 14px;
-    font-size: 13px;
-    border-radius: 999px;
+  .nav-right > .theme-toggle,
+  .nav-right > .nav-dashboard,
+  .nav-right > .nav-avatar-wrap,
+  .nav-right > .btn-outline,
+  .nav-right > .btn-primary {
+    display: none;
   }
+
   .hamburger {
     display: flex;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 50%;
+    color: var(--text);
+  }
+  :root[data-theme="light"] .hamburger {
+    background: rgba(124, 58, 237, 0.08);
+  }
+  .hamburger:hover,
+  .hamburger:active {
+    background: rgba(139, 92, 246, 0.18);
   }
 }
 
-/* ─── KICHIK telefonlar (iPhone SE va kichikroq) ─── */
+/* ─── KICHIK telefonlar ─── */
 @media (max-width: 420px) {
   .navbar-wrap { padding: 8px 8px 0; }
-  .navbar {
-    padding: 5px 5px 5px 12px;
-    gap: 6px;
-  }
+  .navbar { padding: 5px 5px 5px 14px; }
   .logo-icon { width: 30px; height: 30px; }
   .logo-text { font-size: 15px; }
-  .theme-toggle,
-  .nav-avatar,
   .hamburger {
-    width: 32px;
-    height: 32px;
-  }
-  /* Juda kichik ekranda faqat "Kirish" tugmasi (Register hamburger ichida) */
-  .nav-right .btn-outline {
-    display: none;
-  }
-  .nav-right .btn-primary {
-    padding: 6px 12px;
-    font-size: 12px;
+    width: 34px;
+    height: 34px;
   }
 }
 
