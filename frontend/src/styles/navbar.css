@@ -302,19 +302,19 @@
 
 /* ─── MOBILE NAVBAR ─── */
 /* Mobile'da FAQAT logo + hamburger ko'rinadi.
-   Theme toggle, Login/Register, Dashboard, Avatar — hammasi hamburger menyusi ichida.
-   Bu eng toza va chiroyli ko'rinishni beradi. */
+   Boshqa hammasi hamburger menyusi ichida. */
 @media (max-width: 768px) {
+  /* Sahifa bilan blend bo'lishi uchun padding kichik */
   .navbar-wrap {
-    padding: 10px 12px 0;
+    padding: 10px 12px 10px;
   }
   .navbar {
     max-width: 100%;
-    padding: 6px 6px 6px 16px;
+    padding: 6px 8px 6px 16px;
     gap: 8px;
     border-radius: 999px;
   }
-  .nav-logo { gap: 8px; }
+  .nav-logo { gap: 10px; }
   .logo-icon { width: 32px; height: 32px; }
   .logo-text { font-size: 16px; }
 
@@ -330,27 +330,28 @@
     display: none;
   }
 
+  /* Hamburger — toza, oddiy, ortiqcha fon yo'q */
   .hamburger {
     display: flex;
     width: 36px;
     height: 36px;
-    background: rgba(139, 92, 246, 0.1);
-    border-radius: 50%;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     color: var(--text);
-  }
-  :root[data-theme="light"] .hamburger {
-    background: rgba(124, 58, 237, 0.08);
+    padding: 0;
   }
   .hamburger:hover,
   .hamburger:active {
-    background: rgba(139, 92, 246, 0.18);
+    background: transparent;
+    color: var(--primary);
   }
 }
 
 /* ─── KICHIK telefonlar ─── */
 @media (max-width: 420px) {
-  .navbar-wrap { padding: 8px 8px 0; }
-  .navbar { padding: 5px 5px 5px 14px; }
+  .navbar-wrap { padding: 8px 10px 8px; }
+  .navbar { padding: 5px 7px 5px 14px; }
   .logo-icon { width: 30px; height: 30px; }
   .logo-text { font-size: 15px; }
   .hamburger {
