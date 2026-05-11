@@ -1,15 +1,25 @@
 /* ========== HERO ========== */
+/* Hero spacer'ni o'rab navbar ostidan boshlanadi — gradient frosted strip orqali ko'rinadi */
 .hero-new {
   position: relative;
-  padding: 40px 24px 80px;  /* body padding-top: 80px navbar uchun joy beradi */
+  margin-top: -76px;
+  padding: calc(76px + 40px) 24px 80px;
   overflow: hidden;
-  min-height: calc(90vh - 80px);
+  min-height: 90vh;
   display: flex;
   align-items: center;
   background:
     radial-gradient(ellipse 900px 700px at 50% 0%, rgba(139, 92, 246, 0.22), transparent 65%),
     radial-gradient(ellipse 600px 500px at 15% 40%, rgba(14, 165, 233, 0.15), transparent 60%),
     radial-gradient(ellipse 500px 400px at 85% 70%, rgba(236, 72, 153, 0.08), transparent 60%);
+}
+
+@media (max-width: 768px) {
+  .hero-new {
+    margin-top: -64px;
+    padding: calc(64px + 24px) 16px 60px;
+    min-height: auto;
+  }
 }
 
 .hero-bg-glow {
@@ -799,7 +809,8 @@
 
 @media (max-width: 640px) {
   .hero-new {
-    padding: 30px 16px 60px;  /* body padding-top: 64px navbar uchun joy beradi */
+    margin-top: -60px;
+    padding: calc(60px + 20px) 16px 60px;
     min-height: auto;
   }
 

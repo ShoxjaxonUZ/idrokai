@@ -52,6 +52,8 @@ function Navbar() {
   return (
     <>
       <header className="navbar-wrap">
+        {/* frosted glass strip — fixed navbar orqasida blur effekti uchun */}
+        <div className="navbar-backdrop" aria-hidden="true" />
         <nav className="navbar">
 
           {/* Logo */}
@@ -136,6 +138,9 @@ function Navbar() {
           </div>
         </nav>
       </header>
+      {/* Spacer — body padding-top o'rniga: fixed navbar uchun joy ajratadi.
+          Hero sahifalar negativ margin orqali bu joyni o'rab oladi (gradient extension) */}
+      <div className="navbar-spacer" aria-hidden="true" />
 
       {/* Mobile menu */}
       {menuOpen && (
