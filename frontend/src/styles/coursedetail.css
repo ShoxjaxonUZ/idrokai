@@ -435,14 +435,8 @@
 }
 
 @media (max-width: 768px) {
-  .detail-hero-img,
-  .detail-hero-placeholder {
-    width: 160px;
-    height: 160px;
-    margin: 0 auto;
-  }
-
+  /* aspect-ratio: 16/9 yuqorida o'rnatilgan — bu yerda override qilmaymiz */
   .detail-hero-info h1 {
-    font-size: 26px;
+    font-size: 22px;
   }
 }

@@ -651,8 +651,8 @@
   }
 
   .dly-textarea {
-    font-size: 12px;
-    min-height: 280px;
+    font-size: 14px;  /* iOS zoom responsive.css'da 16px ga ko'tariladi */
+    min-height: 240px;
   }
 
   .dly-tomorrow-banner {

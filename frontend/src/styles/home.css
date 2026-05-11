@@ -812,6 +812,12 @@
     font-size: 15px;
   }
 
+  /* Juda kichik telefonlar (iPhone SE, ba'zi Android) */
+  @media (max-width: 380px) {
+    .hero-title { font-size: 26px; }
+    .hero-subtitle { font-size: 14px; }
+  }
+
   .hero-stats-grid {
     grid-template-columns: 1fr;
   }

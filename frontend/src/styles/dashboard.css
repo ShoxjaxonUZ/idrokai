@@ -350,6 +350,12 @@
   .dash-results-grid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 380px) {
+  /* Juda kichik telefonlarda statlar bittadan ko'rsatiladi */
+  .dash-stats,
+  .dash-quick-links { grid-template-columns: 1fr; }
+}
+
 .profile-badge {
   display: inline-flex !important;
   align-items: center;

@@ -1,6 +1,32 @@
-*{
+* {
   box-sizing: border-box;
 }
+
+/* ─── GLOBAL: horizontal scroll oldini olish ─── */
+/* Decorative blob'lar va katta gradientlar viewport'ni kesib chiqishidan saqlash */
+html, body {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+/* Hero containerlari ichidagi katta decorative element'lar (::before/::after blobs)
+   viewport'dan tashqari oqib chiqmasligi uchun overflow-x: clip */
+.hero-new,
+.courses-hero,
+.auth-page,
+.dly-hero-bar,
+.lb-hero,
+.battle-hero,
+.detail-hero,
+.aiquiz-generate,
+.aiquiz-result,
+.profile-hero-card,
+.dash-profile,
+.cta-box-new,
+.footer-new {
+  overflow-x: clip;
+}
+
 @media (max-width: 768px) {
   /* Navbar uchun barcha mobile qoidalar `navbar.css` da — bu yerda dublikat YO'Q */
 
@@ -233,7 +259,12 @@
   }
 
   /* Inputlar va textarea — iOS zoom oldini olish (font 16+) */
-  input, textarea, select {
+  input, textarea, select,
+  .search-input-new,
+  .dly-textarea,
+  .battle-textarea,
+  .ait-input,
+  .onb-input {
     font-size: 16px !important;
   }
 

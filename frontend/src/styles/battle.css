@@ -926,14 +926,20 @@
   }
 
   .battle-id-display {
-    font-size: 24px;
-    letter-spacing: 4px;
-    padding: 14px 20px;
+    font-size: 22px;
+    letter-spacing: 2px;
+    padding: 12px 16px;
+    word-break: break-all;
   }
 
   .modal-input {
-    font-size: 22px;
-    letter-spacing: 4px;
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .battle-textarea {
+    font-size: 14px;
+    min-height: 240px;
   }
 
   .result-banner h2 {

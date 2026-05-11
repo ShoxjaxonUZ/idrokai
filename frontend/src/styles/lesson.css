@@ -268,8 +268,11 @@
   .lesson-sidebar {
     position: static;
     height: auto;
-    max-height: 300px;
+    max-height: 400px;
     order: 2;
+  }
+  .lesson-list-title {
+    white-space: normal;
   }
 
   .lesson-content {

@@ -198,6 +198,13 @@
   .battle-rating-header { flex-direction: column; gap: 12px; }
 }
 
+@media (max-width: 420px) {
+  /* Juda kichik telefonlarda 4 ta katta raqam sig'maydi */
+  .battle-stat-value { font-size: 22px; }
+  .battle-stat-item { padding: 12px; }
+  .profile-mini-label { font-size: 12px; }
+}
+
 .profile-badge {
   display: inline-flex !important;
   align-items: center;
