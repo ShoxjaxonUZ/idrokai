@@ -34,6 +34,11 @@ services:
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
+      # Email — Resend (tavsiya) yoki SMTP. Bittasini sozlang.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: "IdrokAI <onboarding@resend.dev>"
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT

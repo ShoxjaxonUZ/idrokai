@@ -11,10 +11,10 @@ import Navbar from '../components/Navbar'
 import '../styles/lesson.css'
 
 function getYouTubeId(url) {
-    if (!url) return null
+    if (!url || typeof url !== 'string') return null
     const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/
     const match = url.match(regExp)
-    return match && match[7].length === 11 ? match[7] : null
+    return match && match[7] && match[7].length === 11 ? match[7] : null
 }
 
 function Lesson() {
@@ -30,57 +30,61 @@ function Lesson() {
 
     useEffect(() => {
         setVideoEnded(false)
+        let cancelled = false
+
         const loadCourse = async () => {
             try {
                 const res = await fetch(`${API_URL}/api/teacher/all-courses`)
                 const data = await res.json()
-                if (Array.isArray(data)) {
-                    localStorage.setItem('courses', JSON.stringify(data))
-                    const found = data.find(c => String(c.id) === String(courseId))
-                    if (found) {
-                        const normalizedLessons = (found.lessons || []).map((l, i) => {
-                            if (!l) return { title: `${i + 1}-dars`, videoUrl: '', description: '', materialUrl: '', materialName: '' }
-                            if (typeof l === 'string') return { title: l, videoUrl: '', description: '', materialUrl: '', materialName: '' }
-                            if (typeof l === 'object') return {
-                                title: l.title || `${i + 1}-dars`,
-                                videoUrl: l.videoUrl || l.video || '',
-                                description: l.description || l.desc || '',
-                                materialUrl: l.materialUrl || l.material || '',
-                                materialName: l.materialName || l.material_name || ''
-                            }
-                            return { title: `${i + 1}-dars`, videoUrl: '', description: '', materialUrl: '', materialName: '' }
-                        })
-                        setCourse({ ...found, lessons: normalizedLessons })
-                        setLesson(normalizedLessons[index] || null)
-                        document.title = normalizedLessons[index]
-                            ? `${normalizedLessons[index].title} — IdrokAI`
-                            : 'Dars — IdrokAI'
+                if (cancelled || !Array.isArray(data)) return
+                const found = data.find(c => String(c.id) === String(courseId))
+                if (!found) return
+
+                const normalizedLessons = (found.lessons || []).map((l, i) => {
+                    if (!l) return { title: `${i + 1}-dars`, videoUrl: '', description: '', materialUrl: '', materialName: '' }
+                    if (typeof l === 'string') return { title: l, videoUrl: '', description: '', materialUrl: '', materialName: '' }
+                    if (typeof l === 'object') return {
+                        title: l.title || `${i + 1}-dars`,
+                        videoUrl: l.videoUrl || l.video || '',
+                        description: l.description || l.desc || '',
+                        materialUrl: l.materialUrl || l.material || '',
+                        materialName: l.materialName || l.material_name || ''
+                    }
+                    return { title: `${i + 1}-dars`, videoUrl: '', description: '', materialUrl: '', materialName: '' }
+                })
+
+                setCourse({ ...found, lessons: normalizedLessons })
+                setLesson(normalizedLessons[index] || null)
+                document.title = normalizedLessons[index]
+                    ? `${normalizedLessons[index].title} — IdrokAI`
+                    : 'Dars — IdrokAI'
+
+                // Modul testlar holatini local normalizedLessons asosida yuklash (course state'iga bog'liq emas)
+                if (token) {
+                    const totalModules = Math.ceil(normalizedLessons.length / 5)
+                    for (let i = 0; i < totalModules; i++) {
+                        if (!cancelled) checkModuleTest(i)
                     }
                 }
             } catch (err) {
                 console.error(err)
             }
 
-            if (token) {
+            if (token && !cancelled) {
                 fetch(`${API_URL}/api/courses/progress/${courseId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                     .then(r => r.json())
                     .then(data => {
-                        if (Array.isArray(data)) {
-                            const done = data.filter(l => l.completed).map(l => l.lesson_index)
-                            setCompletedLessons(done)
-                        }
+                        if (cancelled || !Array.isArray(data)) return
+                        const done = data.filter(l => l.completed).map(l => l.lesson_index)
+                        setCompletedLessons(done)
                     })
                     .catch(console.error)
             }
         }
         loadCourse()
-        if (!course) return
-        const totalModules = Math.ceil(course.lessons.length / 5)
-        for (let i = 0; i < totalModules; i++) {
-            checkModuleTest(i)
-        }
+        return () => { cancelled = true }
     }, [courseId, lessonIndex])
 
     const markLessonDone = async () => {
@@ -201,7 +205,7 @@ function Lesson() {
     )
 
     const isDone = completedLessons.includes(index)
-    const videoId = getYouTubeId(lesson.video)
+    const youTubeId = getYouTubeId(lesson.videoUrl)
 
     return (
         <div>
@@ -246,33 +250,46 @@ function Lesson() {
                 {/* Main */}
                 <div className="lesson-main">
                     <div className="lesson-video-wrap">
-                        {lesson.videoUrl ? (
+                        {youTubeId ? (
+                            <iframe
+                                key={youTubeId}
+                                className="lesson-video"
+                                src={`https://www.youtube.com/embed/${youTubeId}`}
+                                title={lesson.title}
+                                frameBorder="0"
+                                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                onLoad={() => {
+                                    // YouTube oynasida tugaganini bilish qiyin — ko'rish bilanoq "tugagan" deb belgilash mumkin emas.
+                                    // Vaqtinchalik: foydalanuvchi qo'lda "Bajarildi" tugmasini bossa, markLessonDone ishlaydi.
+                                    setVideoEnded(true)
+                                }}
+                            />
+                        ) : lesson.videoUrl ? (
                             <video
-    key={lesson.videoUrl}
-    src={safeUrl(assetUrl(lesson.videoUrl))}
-    controls
-    controlsList="nodownload"
-    className="lesson-video"
-    poster={assetUrl(course.image)}
-    onEnded={async () => {
-        setVideoEnded(true)
-        await markLessonDone()
+                                key={lesson.videoUrl}
+                                src={safeUrl(assetUrl(lesson.videoUrl))}
+                                controls
+                                controlsList="nodownload"
+                                className="lesson-video"
+                                poster={assetUrl(course.image)}
+                                onEnded={async () => {
+                                    setVideoEnded(true)
+                                    await markLessonDone()
 
-        // 5-dars (oxirgi modul darsi) bo'lsa — testga yo'naltirish
-        const isLastInModule = (index + 1) % 5 === 0
-        const hasMoreLessons = (index + 1) < course.lessons.length
-        const currentModule = Math.floor(index / 5)
+                                    const isLastInModule = (index + 1) % 5 === 0
+                                    const hasMoreLessons = (index + 1) < course.lessons.length
+                                    const currentModule = Math.floor(index / 5)
 
-        if (isLastInModule && hasMoreLessons && !moduleTestStatus[currentModule]?.passed) {
-            // 2 sekund kutib testga yuborish
-            setTimeout(() => {
-                navigate(`/courses/${courseId}/module-test/${currentModule}`)
-            }, 2000)
-        }
-    }}
->
-    Brauzer video formatini qo'llab-quvvatlamaydi
-</video>
+                                    if (isLastInModule && hasMoreLessons && !moduleTestStatus[currentModule]?.passed) {
+                                        setTimeout(() => {
+                                            navigate(`/courses/${courseId}/module-test/${currentModule}`)
+                                        }, 2000)
+                                    }
+                                }}
+                            >
+                                Brauzer video formatini qo'llab-quvvatlamaydi
+                            </video>
                         ) : (
                             <div className="lesson-no-video">
                                 <PlayCircle size={64} style={{ opacity: 0.5, marginRight: '12px' }} />

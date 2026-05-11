@@ -62,13 +62,15 @@ router.post('/generate-quiz', auth, async (req, res) => {
       [req.user.id, today]
     )
 
-    const prompt = `Sen ta'lim platformasi uchun test savollari yaratuvchi assistentsan to'g'ri javobni A variyantga qo'yma.
+    const prompt = `Sen ta'lim platformasi uchun test savollari yaratuvchi assistentsan. To'g'ri javoblar TASODIFIY taqsimlangan bo'lsin — A, B, C, D barchasi har xil savollarda to'g'ri bo'lib chiqsin (faqat bir variantga to'plama).
 
 Mavzu: "${safeTopic}"
 Savollar soni: ${safeCount}
 
 Quyidagi JSON formatda ${safeCount} ta test savoli yarat. Faqat sof JSON qaytargin, boshqa hech narsa yozma:
-{"questions":[{"question":"Savol matni","options":["A variant","B variant","C variant","D variant"],"correct":0}]}`
+{"questions":[{"question":"Savol matni","options":["A variant","B variant","C variant","D variant"],"correct":0}]}
+
+"correct" — to'g'ri javob indeksi (0=A, 1=B, 2=C, 3=D).`
 
     let response
     try {
@@ -89,7 +91,11 @@ Quyidagi JSON formatda ${safeCount} ta test savoli yarat. Faqat sof JSON qaytarg
       return res.status(502).json({ message: 'AI xizmatida xatolik' })
     }
 
-    let text = data.choices[0].message.content
+    let text = data.choices?.[0]?.message?.content
+    if (typeof text !== 'string') {
+      console.error('Groq javobida content yo\'q:', data)
+      return res.status(502).json({ message: 'AI noto\'g\'ri javob qaytardi' })
+    }
     text = text.replace(/```json|```/g, '').trim()
 
     const firstBrace = text.indexOf('{')

@@ -13,6 +13,9 @@ const telegram = require('../lib/telegram')
 // ESLATMA: regexlar o'zlarida ReDoS bo'lmasligi uchun cheklangan.
 
 // 1. SQL injection naqshlari
+// ESLATMA: oddiy SQL kalit so'zlar (DROP/DELETE/UPDATE) yolg'iz tekshirilmaydi —
+// chunki ular dars/izoh matnida normal uchrashi mumkin. Faqat injection sintaksisini
+// (UNION SELECT, OR 1=1, ; DROP ...) tekshiramiz.
 const SQL_PATTERNS = [
   { re: /\bunion\s+(all\s+)?select\b/i,                  name: 'UNION SELECT' },
   { re: /(\b|')or\s+['"]?\d+['"]?\s*=\s*['"]?\d+/i,      name: 'OR 1=1' },
@@ -22,8 +25,13 @@ const SQL_PATTERNS = [
   { re: /\binformation_schema\b/i,                       name: 'information_schema' },
   { re: /\bsleep\s*\(\s*\d+/i,                           name: 'SLEEP() injection' },
   { re: /\bbenchmark\s*\(/i,                             name: 'BENCHMARK injection' },
-  { re: /--\s|#\s|\/\*[\s\S]*?\*\//,                     name: 'SQL comment' },
   { re: /\bload_file\s*\(/i,                             name: 'LOAD_FILE()' }
+]
+
+// URL/query'da SQL comment'lar — bu yerda ular legitim sabab uchun bo'lmaydi.
+// Body'da emas (chunki foydalanuvchi izohida `// kod` yoki `-- TODO` yozishi mumkin).
+const SQL_COMMENT_PATTERNS = [
+  { re: /(--\s|#\s|\/\*[\s\S]*?\*\/)/, name: 'SQL comment in URL' }
 ]
 
 // 2. XSS naqshlari
@@ -133,6 +141,10 @@ const detect = (req) => {
   // SQL injection
   const sqli = matchAny(surface, SQL_PATTERNS)
   if (sqli) return { category: 'sqli', severity: 'critical', pattern: sqli }
+
+  // SQL comment — faqat URL/query'da (body izohlarda false positive bermaslik uchun)
+  const sqlComment = matchAny(url + ' ' + queryStr, SQL_COMMENT_PATTERNS)
+  if (sqlComment) return { category: 'sqli', severity: 'high', pattern: sqlComment }
 
   // XSS
   const xss = matchAny(surface, XSS_PATTERNS)

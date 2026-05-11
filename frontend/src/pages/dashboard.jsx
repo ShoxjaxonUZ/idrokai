@@ -5,17 +5,23 @@ import {
   GraduationCap, BarChart3, PlayCircle, Pause, Bot, User,
   Edit, ArrowRight, Award, Target
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import '../styles/dashboard.css'
 
+const initial = (name) => {
+  if (!name || typeof name !== 'string') return '?'
+  const c = name.trim()[0]
+  return c ? c.toUpperCase() : '?'
+}
+
 function Dashboard() {
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user'))
-  const token = localStorage.getItem('token')
+  const user = getUser()
+  const token = getToken()
   const [enrolledCourses, setEnrolledCourses] = useState([])
-  const [allCoursesList, setAllCoursesList] = useState([])
+  const [certifiedCourseIds, setCertifiedCourseIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
 
@@ -23,42 +29,55 @@ function Dashboard() {
     if (!user) { navigate('/login'); return }
     document.title = "Dashboard — IdrokAI"
 
+    let cancelled = false
+
     const loadAll = async () => {
       try {
-        const coursesRes = await fetch(`${API_URL}/api/teacher/all-courses`)
-        const coursesData = await coursesRes.json()
-        const allCourses = Array.isArray(coursesData) ? coursesData : []
-        setAllCoursesList(allCourses)
-        localStorage.setItem('courses', JSON.stringify(allCourses))
+        const [coursesRes, myRes] = await Promise.all([
+          fetch(`${API_URL}/api/teacher/all-courses`).then(r => r.json()).catch(() => []),
+          fetch(`${API_URL}/api/courses/my`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(r => r.json()).catch(() => [])
+        ])
+        if (cancelled) return
 
-        const myRes = await fetch(`${API_URL}/api/courses/my`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        const myData = await myRes.json()
-        if (Array.isArray(myData)) {
-          const courses = myData.map(e => {
-            const course = allCourses.find(c => String(c.id) === String(e.course_id))
-            return { ...course, progress: e.progress, course_id: e.course_id }
-          }).filter(c => c && c.title && c.title.trim() !== '')
-          setEnrolledCourses(courses)
+        const allCourses = Array.isArray(coursesRes) ? coursesRes : []
+        const courses = Array.isArray(myRes)
+          ? myRes.map(e => {
+              const course = allCourses.find(c => String(c.id) === String(e.course_id))
+              return { ...course, progress: e.progress, course_id: e.course_id }
+            }).filter(c => c && c.title && c.title.trim() !== '')
+          : []
+        setEnrolledCourses(courses)
+
+        // Har bir kurs uchun server tomondagi sertifikat eligibility'ni tekshirish
+        const certResults = await Promise.all(courses.map(c =>
+          fetch(`${API_URL}/api/courses/certificate-status/${c.course_id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => (d?.eligible ? c.course_id : null))
+            .catch(() => null)
+        ))
+        if (!cancelled) {
+          setCertifiedCourseIds(new Set(certResults.filter(Boolean)))
         }
       } catch (err) { console.error(err) }
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     }
     loadAll()
+
+    return () => { cancelled = true }
   }, [])
 
   if (loading) return (
     <div><Navbar /><Loading text="Dashboard yuklanmoqda..." /></div>
   )
 
-  const certCount = enrolledCourses.filter(k => {
-    const state = localStorage.getItem(`quiz_${user?.id}_${k.course_id}`)
-    return state ? JSON.parse(state)?.passed : false
-  }).length
+  const certCount = certifiedCourseIds.size
 
   const totalLessons = enrolledCourses.reduce((acc, k) =>
-    acc + Math.round(((k.progress || 0) / 100) * (k.lessons?.length || 8)), 0)
+    acc + Math.round(((k.progress || 0) / 100) * (k.lessons?.length || 0)), 0)
 
   const avgProgress = enrolledCourses.length > 0
     ? Math.round(enrolledCourses.reduce((a, k) => a + (k.progress || 0), 0) / enrolledCourses.length)
@@ -74,7 +93,7 @@ function Dashboard() {
 
         {/* Profil */}
         <div className="dash-profile">
-          <div className="dash-avatar">{user.name[0].toUpperCase()}</div>
+          <div className="dash-avatar">{initial(user.name)}</div>
           <div className="dash-profile-info">
             <h2>{user.name}</h2>
             <p>{user.email}</p>
@@ -236,8 +255,7 @@ function Dashboard() {
           <div className="dash-content">
             <div className="dash-results-grid">
               {enrolledCourses.filter(k => k.progress === 100).map((kurs, i) => {
-                const quizState = localStorage.getItem(`quiz_${user?.id}_${kurs.course_id}`)
-                const passed = quizState ? JSON.parse(quizState)?.passed : false
+                const passed = certifiedCourseIds.has(kurs.course_id)
                 return (
                   <div key={i} className="dash-result-card">
                     <div style={{ fontSize: '36px', marginBottom: '10px' }}>{kurs.emoji || '📚'}</div>

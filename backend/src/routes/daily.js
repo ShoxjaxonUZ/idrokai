@@ -348,26 +348,36 @@ router.post('/submit/:id', auth, async (req, res) => {
   if (code.length > MAX_CODE_LEN) return res.status(400).json({ message: 'Kod juda uzun' })
   if (code.trim().length < 10) return res.status(400).json({ message: 'Kod juda qisqa' })
 
-  const client = await pool.connect()
+  // 1-bosqich: challenge'ni 'judging' ga olib qo'yish — bu yana submit qilishni bloklaydi.
+  // Server qulamasa, 60 soniyada AI tugaydi. Stuck 'judging' bo'lsa, 60s dan keyin qayta olishga ruxsat beriladi.
+  let challenge
   try {
-    await client.query('BEGIN')
-    const challengeRes = await client.query(
-      'SELECT * FROM daily_challenges WHERE id = $1 AND user_id = $2 AND challenge_date = $3 FOR UPDATE',
+    const claim = await pool.query(
+      `UPDATE daily_challenges
+       SET status = 'judging', completed_at = NOW()
+       WHERE id = $1 AND user_id = $2 AND challenge_date = $3
+         AND status != 'completed'
+         AND (status != 'judging' OR completed_at < NOW() - INTERVAL '60 seconds')
+       RETURNING id, problem_title, problem_text, language`,
       [challengeId, req.user.id, today]
     )
-
-    if (challengeRes.rows.length === 0) {
-      await client.query('ROLLBACK')
-      return res.status(404).json({ message: 'Topilmadi' })
+    if (claim.rows.length === 0) {
+      const existing = await pool.query(
+        'SELECT status FROM daily_challenges WHERE id = $1 AND user_id = $2 AND challenge_date = $3',
+        [challengeId, req.user.id, today]
+      )
+      if (existing.rows.length === 0) return res.status(404).json({ message: 'Topilmadi' })
+      if (existing.rows[0].status === 'completed') return res.status(400).json({ message: 'Allaqachon yechgansiz' })
+      return res.status(409).json({ message: 'Tahlil hali tugamagan, kuting' })
     }
+    challenge = claim.rows[0]
+  } catch (err) {
+    console.error('Submit claim error:', err)
+    return res.status(500).json({ message: 'Xatolik' })
+  }
 
-    const challenge = challengeRes.rows[0]
-    if (challenge.status === 'completed') {
-      await client.query('ROLLBACK')
-      return res.status(400).json({ message: 'Allaqachon yechgansiz' })
-    }
-
-    const aiPrompt = `Kod baholovchi AI. QATTIQ baholang.
+  // 2-bosqich: AI baholash (DB lock ushlanmaydi)
+  const aiPrompt = `Kod baholovchi AI. QATTIQ baholang.
 MASALA: ${challenge.problem_title}
 ${challenge.problem_text}
 
@@ -379,73 +389,82 @@ ${code}
 Tekshirish: Kod masala yechadimi? Placeholder bormi?
 JAVOB JSON: {"score": 0-100, "feedback": "qisqa o'zbek tahlil"}`
 
-    let score = 0
-    let feedback = 'Tahlil bekor qilindi'
+  let score = 0
+  let feedback = 'Tahlil bekor qilindi'
 
-    try {
-      const groqRes = await groqFetch({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: aiPrompt }],
-        temperature: 0.2,
-        max_tokens: 300
-      })
-      const data = await groqRes.json()
-      const text = data.choices?.[0]?.message?.content || ''
-      const match = text.match(/\{[\s\S]*?\}/)
-      if (match) {
-        const parsed = JSON.parse(match[0])
-        score = Math.min(100, Math.max(0, parseInt(parsed.score) || 0))
-        feedback = String(parsed.feedback || 'Tahlil qilindi').slice(0, 1000)
-      }
-    } catch (err) {
-      console.error('AI scoring error:', err)
+  try {
+    const groqRes = await groqFetch({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: aiPrompt }],
+      temperature: 0.2,
+      max_tokens: 300
+    })
+    const data = await groqRes.json()
+    const text = data.choices?.[0]?.message?.content || ''
+    const match = text.match(/\{[\s\S]*?\}/)
+    if (match) {
+      const parsed = JSON.parse(match[0])
+      score = Math.min(100, Math.max(0, parseInt(parsed.score) || 0))
+      feedback = String(parsed.feedback || 'Tahlil qilindi').slice(0, 1000)
     }
+  } catch (err) {
+    console.error('AI scoring error:', err)
+  }
 
-    const passed = score >= 60
+  const passed = score >= 60
 
+  // 3-bosqich: natijani yozish + streak yangilash (qisqa tranzaksiya)
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
     await client.query(`
       UPDATE daily_challenges
       SET user_code = $1, score = $2, feedback = $3, status = $4, completed_at = NOW()
       WHERE id = $5
     `, [code, score, feedback, passed ? 'completed' : 'failed', challenge.id])
 
-    if (passed) {
-      const streakRes = await client.query(
-        'SELECT * FROM user_streaks WHERE user_id = $1 FOR UPDATE',
-        [req.user.id]
-      )
-      const streak = streakRes.rows[0]
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayStr = yesterday.toISOString().split('T')[0]
-
-      let newStreak = 1
-      if (streak.last_completed_date) {
-        const lastDate = new Date(streak.last_completed_date).toISOString().split('T')[0]
-        if (lastDate === yesterdayStr) newStreak = streak.current_streak + 1
-        else if (lastDate === today) newStreak = streak.current_streak
-      }
-
-      const longestStreak = Math.max(newStreak, streak.longest_streak)
-      const pointsEarned = 10 + (newStreak * 2)
-
-      await client.query(`
-        UPDATE user_streaks
-        SET current_streak = $1, longest_streak = $2, last_completed_date = $3,
-            total_completed = total_completed + 1, total_points = total_points + $4,
-            updated_at = NOW()
-        WHERE user_id = $5
-      `, [newStreak, longestStreak, today, pointsEarned, req.user.id])
-
+    if (!passed) {
       await client.query('COMMIT')
-      res.json({ passed: true, score, feedback, pointsEarned, newStreak, longestStreak })
-    } else {
-      await client.query('COMMIT')
-      res.json({ passed: false, score, feedback, pointsEarned: 0 })
+      return res.json({ passed: false, score, feedback, pointsEarned: 0 })
     }
+
+    const streakRes = await client.query(
+      'SELECT * FROM user_streaks WHERE user_id = $1 FOR UPDATE',
+      [req.user.id]
+    )
+    const streak = streakRes.rows[0]
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
+
+    let newStreak = 1
+    if (streak.last_completed_date) {
+      const lastDate = new Date(streak.last_completed_date).toISOString().split('T')[0]
+      if (lastDate === yesterdayStr) newStreak = streak.current_streak + 1
+      else if (lastDate === today) newStreak = streak.current_streak
+    }
+
+    const longestStreak = Math.max(newStreak, streak.longest_streak)
+    const pointsEarned = 10 + (newStreak * 2)
+
+    await client.query(`
+      UPDATE user_streaks
+      SET current_streak = $1, longest_streak = $2, last_completed_date = $3,
+          total_completed = total_completed + 1, total_points = total_points + $4,
+          updated_at = NOW()
+      WHERE user_id = $5
+    `, [newStreak, longestStreak, today, pointsEarned, req.user.id])
+
+    await client.query('COMMIT')
+    res.json({ passed: true, score, feedback, pointsEarned, newStreak, longestStreak })
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {})
-    console.error('Submit error:', err)
+    console.error('Submit write error:', err)
+    // 'judging' holatidan qaytarish — foydalanuvchi qayta urinishi mumkin
+    await pool.query(
+      `UPDATE daily_challenges SET status = 'pending' WHERE id = $1 AND status = 'judging'`,
+      [challenge.id]
+    ).catch(() => {})
     res.status(500).json({ message: 'Xatolik' })
   } finally {
     client.release()

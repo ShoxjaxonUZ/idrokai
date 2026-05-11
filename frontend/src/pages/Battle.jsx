@@ -59,105 +59,24 @@ function Battle() {
     }
   }, [])
 
-  // BATTLE HIMOYASI — sahifani bloklash
-  // Battle paytida sahifani himoya qilish
-  // ESLATMA: Brauzer hammasi ham serverga bog'liq — Ctrl+T, Alt+Tab kabi
-  // OS-level shortcut'larni JS bloklay olmaydi. Lekin eng ko'p ishlatiladigan
-  // shortcut'lar bloklanadi va vizibility'ni kuzatamiz.
+  // BATTLE — yengilroq himoya
+  // Haqiqiy himoya server tomonida: bir foydalanuvchi bir battle'ga faqat bir marta yuboradi.
+  // Bu yerda faqat foydalanuvchini ogohlantiramiz va tashqi oynaga o'tishni signal sifatida belgilaymiz.
+  // F12/right-click/Ctrl+R kabi bloklar texnik ravishda chetlab o'tiladi va normal UX'ni buzadi —
+  // ularni olib tashladik.
   useEffect(() => {
     const isPlaying = view === 'playing' && !submitted
     isLockedRef.current = isPlaying
-
     if (!isPlaying) return
 
-    // Kod yozayotgan paytda shortcut'lar bloklanmasligi kerak — input/textarea
-    // ichida bo'lsa o'tkazib yuboramiz.
-    const isInEditor = (e) => {
-      const t = e.target
-      const tag = t?.tagName
-      return tag === 'INPUT' || tag === 'TEXTAREA' || t?.isContentEditable
-    }
-
-    // 1. Refresh/yopish ogohlantirish
+    // Refresh/yopish — ogohlantirish (saqlanmagan kod uchun)
     const handleBeforeUnload = (e) => {
       e.preventDefault()
       e.returnValue = 'Battle davom etmoqda! Sahifani yopsangiz natija saqlanmaydi.'
       return e.returnValue
     }
 
-    // 2. Back tugma — har doim /battle ga qaytarish
-    const handlePopState = () => {
-      window.history.pushState(null, '', '/battle')
-      addNotification('Battle paytida sahifa almashtirib bo\'lmaydi!', 'error')
-    }
-
-    // 3. Tashqi link/navigatsiya bloklash
-    const handleClick = (e) => {
-      const link = e.target.closest('a')
-      if (link && link.getAttribute('href') && !link.getAttribute('href').includes('/battle')) {
-        e.preventDefault()
-        e.stopPropagation()
-        addNotification('Battle paytida sahifa almashtirib bo\'lmaydi!', 'error')
-      }
-    }
-
-    // 4. Tezkor tugmalarni bloklash (yechim joyidagi textarea'ga ta'sir qilmaydi)
-    const handleKeyDown = (e) => {
-      const k = (e.key || '').toLowerCase()
-      const ctrl = e.ctrlKey || e.metaKey
-
-      // F5 — refresh
-      if (e.key === 'F5') { e.preventDefault(); e.stopPropagation(); return false }
-      // F11 — fullscreen
-      if (e.key === 'F11') { e.preventDefault(); e.stopPropagation(); return false }
-      // F12 — DevTools (yumshoq blok — tajribali user ochib yuboradi)
-      if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); return false }
-
-      // Ctrl-kombinatsiyalari (textarea'da kerakli ba'zilari o'tkaziladi)
-      if (ctrl) {
-        const inEditor = isInEditor(e)
-        // Editor'da kerakli: Ctrl+A/C/V/X/Z/Y, Ctrl+Home/End — tegmaymiz
-        if (inEditor && ['a','c','v','x','z','y','home','end','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) {
-          return
-        }
-        // Bloklanadigan: R (refresh), W (close tab), T (new tab), N (new window),
-        // Shift+N (incognito), Tab (switch), L (URL bar), U (view source),
-        // Shift+I/J/C (DevTools), P (print), S (save), F (find)
-        if (['r','w','t','n','l','u','p','s','f'].includes(k)) {
-          e.preventDefault(); e.stopPropagation()
-          if (k === 'r' || k === 'w') addNotification('Battle paytida sahifani yangilash mumkin emas', 'error')
-          return false
-        }
-        if (e.shiftKey && ['n','i','j','c','r'].includes(k)) {
-          e.preventDefault(); e.stopPropagation()
-          return false
-        }
-        if (k === 'tab') {
-          e.preventDefault(); e.stopPropagation()
-          return false
-        }
-      }
-
-      // Alt+F4, Alt+Tab — bloklab bo'lmaydi (OS), lekin urinib ko'ramiz
-      if (e.altKey && (k === 'f4' || k === 'tab')) {
-        e.preventDefault(); e.stopPropagation()
-        return false
-      }
-
-      // Backspace browser-back (input emas joyda)
-      if (e.key === 'Backspace' && !isInEditor(e)) {
-        e.preventDefault(); e.stopPropagation()
-        return false
-      }
-    }
-
-    // 5. O'ng tugma menyusini bloklash (kontekst menyu — Inspect uchun ham)
-    const handleContextMenu = (e) => {
-      e.preventDefault()
-      return false
-    }
-
-    // 6. Tab/oyna almashtirish (visibility) — agar boshqa tabga o'tsa, ogohlantirish
+    // Tab/oyna almashtirilsa anti-cheat signali (server'ga yuborilmaydi, faqat foydalanuvchini ogohlantiradi)
     let hiddenAt = null
     const handleVisibility = () => {
       if (document.hidden) {
@@ -174,70 +93,14 @@ function Battle() {
       }
     }
 
-    // 7. Window blur/focus — fokus boshqa oynaga ketsa
-    const handleBlur = () => {
-      hiddenAt = Date.now()
-    }
-    const handleFocus = () => {
-      if (hiddenAt) {
-        const awayMs = Date.now() - hiddenAt
-        hiddenAt = null
-        if (awayMs > 1500) {
-          addNotification(
-            'Diqqat! Battle oynasini tark etmang',
-            'warning'
-          )
-        }
-      }
-    }
-
-    // 8. Matn nusxalash/joylashtirish bloklash (anti-cheat)
-    const handleCopy = (e) => {
-      if (!isInEditor(e)) {
-        e.preventDefault()
-        return false
-      }
-    }
-    const handleCut = handleCopy
-    const handlePaste = (e) => {
-      // Boshqa joydan yopishtirilishni cheklash mumkin, lekin code editor uchun
-      // foydalanuvchi uchun ham qulay — shu sabab faqat URL bar/tashqi joydan
-      // bo'lishini tekshirib o'tirmaymiz
-      if (!isInEditor(e)) {
-        e.preventDefault()
-        return false
-      }
-    }
-
-    // URL doim /battle bo'lib turishi uchun
-    window.history.pushState(null, '', '/battle')
-
     window.addEventListener('beforeunload', handleBeforeUnload)
-    window.addEventListener('popstate', handlePopState)
-    window.addEventListener('keydown', handleKeyDown, true)
-    window.addEventListener('contextmenu', handleContextMenu)
-    window.addEventListener('blur', handleBlur)
-    window.addEventListener('focus', handleFocus)
     document.addEventListener('visibilitychange', handleVisibility)
-    document.addEventListener('click', handleClick, true)
-    document.addEventListener('copy', handleCopy)
-    document.addEventListener('cut', handleCut)
-    document.addEventListener('paste', handlePaste)
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
-      window.removeEventListener('popstate', handlePopState)
-      window.removeEventListener('keydown', handleKeyDown, true)
-      window.removeEventListener('contextmenu', handleContextMenu)
-      window.removeEventListener('blur', handleBlur)
-      window.removeEventListener('focus', handleFocus)
       document.removeEventListener('visibilitychange', handleVisibility)
-      document.removeEventListener('click', handleClick, true)
-      document.removeEventListener('copy', handleCopy)
-      document.removeEventListener('cut', handleCut)
-      document.removeEventListener('paste', handlePaste)
     }
-  }, [view, submitted])
+  }, [view, submitted, addNotification])
 
   // Code real-time saqlash
   useEffect(() => {

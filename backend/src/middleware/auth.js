@@ -19,19 +19,20 @@ const auth = async (req, res, next) => {
     return res.status(401).json({ message: 'Token noto\'g\'ri yoki muddati o\'tgan' })
   }
 
-  // Token versiyasini tekshirish — DB'dagi joriy versiya bilan moslik
-  // (parol o'zgarganda yoki rol o'zgarganda eski tokenlar bekor qilinadi)
+  // Token versiyasi + role — bitta query'da olib kelinadi.
+  // requireRole keyinchalik req.user.role'ni qayta DB'dan o'qimaydi.
   try {
-    const r = await pool.query('SELECT id, token_version FROM users WHERE id = $1', [decoded.id])
+    const r = await pool.query('SELECT id, token_version, role FROM users WHERE id = $1', [decoded.id])
     if (r.rows.length === 0) {
       return res.status(401).json({ message: 'Foydalanuvchi topilmadi' })
     }
-    const dbVersion = r.rows[0].token_version || 0
+    const row = r.rows[0]
+    const dbVersion = row.token_version || 0
     const tokenVersion = decoded.tv || 0
     if (dbVersion !== tokenVersion) {
       return res.status(401).json({ message: 'Sessiya tugagan, qayta kiring' })
     }
-    req.user = decoded
+    req.user = { ...decoded, role: row.role || 'student' }
     next()
   } catch (err) {
     console.error('Auth DB error:', err.message)
@@ -39,18 +40,11 @@ const auth = async (req, res, next) => {
   }
 }
 
-const requireRole = (...roles) => async (req, res, next) => {
-  try {
-    const result = await pool.query('SELECT role FROM users WHERE id = $1', [req.user.id])
-    const role = result.rows[0]?.role || 'student'
-    req.user.role = role
-    if (!roles.includes(role)) {
-      return res.status(403).json({ message: 'Ruxsat yo\'q' })
-    }
-    next()
-  } catch (err) {
-    res.status(500).json({ message: 'Auth tekshiruvida xato' })
+const requireRole = (...roles) => (req, res, next) => {
+  if (!roles.includes(req.user?.role)) {
+    return res.status(403).json({ message: 'Ruxsat yo\'q' })
   }
+  next()
 }
 
 const adminOnly = requireRole('admin')

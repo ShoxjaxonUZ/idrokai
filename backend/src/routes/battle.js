@@ -534,59 +534,51 @@ router.post('/submit/:id', auth, async (req, res) => {
   if (code.length > MAX_CODE_LEN) return res.status(400).json({ message: 'Kod juda uzun' })
   const timeTaken = Math.max(0, Math.min(86400, parseInt(time_taken, 10) || 0))
 
-  const client = await pool.connect()
+  // 1-bosqich: tekshiruvlar (qisqa, tranzaksiyasiz)
+  let battle
   try {
-    await client.query('BEGIN')
-    const battleRes = await client.query('SELECT * FROM battles WHERE id = $1 FOR UPDATE', [battleId])
-    if (battleRes.rows.length === 0) {
-      await client.query('ROLLBACK')
-      return res.status(404).json({ message: 'Topilmadi' })
-    }
-    const battle = battleRes.rows[0]
-    if (battle.status === 'finished') {
-      await client.query('ROLLBACK')
-      return res.status(400).json({ message: 'Battle tugagan' })
-    }
+    const battleRes = await pool.query('SELECT * FROM battles WHERE id = $1', [battleId])
+    if (battleRes.rows.length === 0) return res.status(404).json({ message: 'Topilmadi' })
+    battle = battleRes.rows[0]
+    if (battle.status === 'finished') return res.status(400).json({ message: 'Battle tugagan' })
 
-    const playerCheck = await client.query(
+    const playerCheck = await pool.query(
       'SELECT 1 FROM battle_players WHERE battle_id = $1 AND user_id = $2',
       [battleId, req.user.id]
     )
-    if (playerCheck.rows.length === 0) {
-      await client.query('ROLLBACK')
-      return res.status(403).json({ message: 'Siz ishtirokchi emassiz' })
-    }
+    if (playerCheck.rows.length === 0) return res.status(403).json({ message: 'Siz ishtirokchi emassiz' })
 
-    const existing = await client.query(
+    const existing = await pool.query(
       'SELECT 1 FROM battle_submissions WHERE battle_id = $1 AND user_id = $2',
       [battleId, req.user.id]
     )
-    if (existing.rows.length > 0) {
-      await client.query('ROLLBACK')
-      return res.status(400).json({ message: 'Allaqachon yuborgansiz' })
-    }
+    if (existing.rows.length > 0) return res.status(400).json({ message: 'Allaqachon yuborgansiz' })
+  } catch (err) {
+    console.error('Submit precheck error:', err)
+    return res.status(500).json({ message: 'Xatolik' })
+  }
 
-    const { score, feedback } = await evaluateCode(
-      code,
-      { title: battle.problem_title, text: battle.problem_text, template: battle.template },
-      battle.language
-    )
+  // 2-bosqich: AI baholash (DB lock ushlanmaydi)
+  const { score, feedback } = await evaluateCode(
+    code,
+    { title: battle.problem_title, text: battle.problem_text, template: battle.template },
+    battle.language
+  )
 
-    await client.query(`
+  // 3-bosqich: natijani yozish (qisqa tranzaksiya, INSERT UNIQUE constraint
+  // birgalik race'larni tutadi — bir foydalanuvchi bir battle'ga 1 marta)
+  try {
+    await pool.query(`
       INSERT INTO battle_submissions (battle_id, user_id, code, language, score, time_taken, feedback)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (battle_id, user_id) DO NOTHING
     `, [battleId, req.user.id, code, battle.language, score, timeTaken, feedback])
-
-    await client.query('COMMIT')
 
     await finishBattle(battleId)
     res.json({ score, feedback })
   } catch (err) {
-    await client.query('ROLLBACK').catch(() => {})
-    console.error('Submit error:', err)
+    console.error('Submit write error:', err)
     res.status(500).json({ message: 'Xatolik' })
-  } finally {
-    client.release()
   }
 })
 

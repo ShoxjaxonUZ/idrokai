@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Upload, Video, Loader2, X, Save,
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles
 } from 'lucide-react'
-import { API_URL, assetUrl } from '../lib/api'
+import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import { useNotification } from '../context/NotificationContext'
@@ -14,8 +14,8 @@ import '../styles/admin.css'
 function Admin() {
   const navigate = useNavigate()
   const { addNotification } = useNotification()
-  const user = JSON.parse(localStorage.getItem('user'))
-  const token = localStorage.getItem('token')
+  const user = getUser()
+  const token = getToken()
 
   const [activeTab, setActiveTab] = useState('dashboard')
   const [loading, setLoading] = useState(true)
@@ -47,7 +47,7 @@ function Admin() {
   const [uploadingMaterial, setUploadingMaterial] = useState({})
 
   useEffect(() => {
-    if (!user || user.email !== 'admin@idrokai.uz') {
+    if (!user || user.role !== 'admin') {
       navigate('/')
       return
     }
