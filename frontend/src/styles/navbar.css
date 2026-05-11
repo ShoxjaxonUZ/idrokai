@@ -301,28 +301,26 @@
 }
 
 /* ─── MOBILE NAVBAR ─── */
-/* Mobile'da FAQAT logo + hamburger ko'rinadi.
-   Boshqa hammasi hamburger menyusi ichida. */
+/* Mobile'da: logo + theme toggle + hamburger (reference dizayn kabi).
+   Boshqa hammasi (Login/Register/Dashboard/Avatar) hamburger menyusi ichida. */
 @media (max-width: 768px) {
-  /* Sahifa bilan blend bo'lishi uchun padding kichik */
   .navbar-wrap {
-    padding: 10px 12px 10px;
+    padding: 12px 12px 10px;
   }
   .navbar {
     max-width: 100%;
-    padding: 6px 8px 6px 16px;
+    padding: 7px 7px 7px 16px;
     gap: 8px;
     border-radius: 999px;
   }
   .nav-logo { gap: 10px; }
-  .logo-icon { width: 32px; height: 32px; }
-  .logo-text { font-size: 16px; }
+  .logo-icon { width: 34px; height: 34px; }
+  .logo-text { font-size: 17px; }
 
-  /* Mobile'da nav-right ichidagi hamma narsa yashiriladi, faqat hamburger qoladi */
+  /* nav-right: theme toggle + hamburger ko'rinsin, qolganlari hamburger menyusida */
   .nav-right {
-    gap: 0;
+    gap: 8px;
   }
-  .nav-right > .theme-toggle,
   .nav-right > .nav-dashboard,
   .nav-right > .nav-avatar-wrap,
   .nav-right > .btn-outline,
@@ -330,30 +328,54 @@
     display: none;
   }
 
-  /* Hamburger — toza, oddiy, ortiqcha fon yo'q */
+  /* Theme toggle — kichikroq, chiroyli doira */
+  .nav-right > .theme-toggle {
+    width: 36px;
+    height: 36px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    color: var(--text);
+  }
+  :root[data-theme="light"] .nav-right > .theme-toggle {
+    background: rgba(255, 200, 60, 0.12);
+    border-color: rgba(255, 200, 60, 0.25);
+    color: #f59e0b;
+  }
+
+  /* Hamburger — chiroyli doira (reference rasmdek) */
   .hamburger {
     display: flex;
     width: 36px;
     height: 36px;
-    background: transparent;
-    border: none;
-    border-radius: 0;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 50%;
     color: var(--text);
     padding: 0;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  :root[data-theme="light"] .hamburger {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.08);
   }
   .hamburger:hover,
   .hamburger:active {
-    background: transparent;
-    color: var(--primary);
+    background: rgba(139, 92, 246, 0.18);
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: scale(0.96);
   }
 }
 
 /* ─── KICHIK telefonlar ─── */
 @media (max-width: 420px) {
-  .navbar-wrap { padding: 8px 10px 8px; }
-  .navbar { padding: 5px 7px 5px 14px; }
-  .logo-icon { width: 30px; height: 30px; }
-  .logo-text { font-size: 15px; }
+  .navbar-wrap { padding: 10px 10px 8px; }
+  .navbar { padding: 6px 6px 6px 14px; gap: 6px; }
+  .logo-icon { width: 32px; height: 32px; }
+  .logo-text { font-size: 16px; }
+  .nav-right { gap: 6px; }
+  .nav-right > .theme-toggle,
   .hamburger {
     width: 34px;
     height: 34px;
