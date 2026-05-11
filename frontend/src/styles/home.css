@@ -1,12 +1,11 @@
 /* ========== HERO ========== */
 .hero-new {
   position: relative;
-  padding: 100px 24px 80px;
+  padding: 40px 24px 80px;  /* body padding-top: 80px navbar uchun joy beradi */
   overflow: hidden;
-  min-height: 90vh;
+  min-height: calc(90vh - 80px);
   display: flex;
   align-items: center;
-  /* Gradient sahifa tepasidan boshlab — navbar atrofida hech qanday qora bo'shliq yo'q */
   background:
     radial-gradient(ellipse 900px 700px at 50% 0%, rgba(139, 92, 246, 0.22), transparent 65%),
     radial-gradient(ellipse 600px 500px at 15% 40%, rgba(14, 165, 233, 0.15), transparent 60%),
@@ -800,7 +799,7 @@
 
 @media (max-width: 640px) {
   .hero-new {
-    padding: 80px 16px 60px;  /* mobile'da navbar (~60px) uchun joy */
+    padding: 30px 16px 60px;  /* body padding-top: 64px navbar uchun joy beradi */
     min-height: auto;
   }
 

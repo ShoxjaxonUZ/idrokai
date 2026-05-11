@@ -74,6 +74,13 @@ body {
   color: var(--text);
   line-height: 1.6;
   transition: background 0.3s, color 0.3s;
+  padding-top: 80px; /* fixed navbar uchun joy */
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-top: 64px; /* mobile'da navbar kichikroq */
+  }
 }
 
 /* Buttons */
