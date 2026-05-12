@@ -4,24 +4,24 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const { auth, teacherOrAdmin } = require('../middleware/auth')
+const r2 = require('../lib/r2')
 
-// Relative URL qaytaramiz — frontend o'zi API_URL bilan birlashtiradi.
-// Bu lokal va production'da bir xil ishlaydi (PUBLIC_BASE_URL ga muhtoj emas).
+// STRATEGIYA: R2 sozlangan bo'lsa — Cloudflare R2 ga yuklanadi (production).
+// Aks holda — lokal disk (development).
+// Ikkala holatda ham magic byte verification ishlaydi.
 
 // Magic byte signatures — fayl haqiqatan o'sha turdaligini tekshiradi.
-// MIME spoofing'dan himoya: hujumchi `image/png` deb yozsa-da, agar fayl PNG bo'lmasa, rad etiladi.
 const MAGIC_BYTES = {
   'image/jpeg':  [[0xFF, 0xD8, 0xFF]],
   'image/jpg':   [[0xFF, 0xD8, 0xFF]],
   'image/png':   [[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]],
   'image/gif':   [[0x47, 0x49, 0x46, 0x38, 0x37, 0x61], [0x47, 0x49, 0x46, 0x38, 0x39, 0x61]],
-  'image/webp':  [[0x52, 0x49, 0x46, 0x46]], // RIFF (WEBP konteyneri)
-  'video/mp4':   [[0x66, 0x74, 0x79, 0x70]], // 'ftyp' (4-baytdan keyin)
+  'image/webp':  [[0x52, 0x49, 0x46, 0x46]],
+  'video/mp4':   [[0x66, 0x74, 0x79, 0x70]],
   'application/pdf': [[0x25, 0x50, 0x44, 0x46]],
   'application/zip': [[0x50, 0x4B, 0x03, 0x04], [0x50, 0x4B, 0x05, 0x06], [0x50, 0x4B, 0x07, 0x08]]
 }
 
-// docx/pptx/xlsx aslida ZIP konteyneri — ulardan biri bo'ladi
 const ZIP_BASED = ['.docx', '.pptx', '.xlsx']
 
 const matchesMagic = (buf, signatures, offset = 0) => {
@@ -34,54 +34,50 @@ const matchesMagic = (buf, signatures, offset = 0) => {
   })
 }
 
-const verifyMagicBytes = (filePath, declaredMime, ext) => {
-  let fd
-  try {
-    fd = fs.openSync(filePath, 'r')
-    const buf = Buffer.alloc(16)
-    fs.readSync(fd, buf, 0, 16, 0)
-
-    // MP4 uchun magic '4-7' baytlarda
-    if (declaredMime === 'video/mp4') {
-      return matchesMagic(buf, MAGIC_BYTES['video/mp4'], 4)
-    }
-
-    // ZIP-asosli office hujjatlar
-    if (ZIP_BASED.includes(ext)) {
-      return matchesMagic(buf, MAGIC_BYTES['application/zip'])
-    }
-
-    const sigs = MAGIC_BYTES[declaredMime]
-    if (!sigs) return false
-    return matchesMagic(buf, sigs)
-  } catch {
-    return false
-  } finally {
-    if (fd) try { fs.closeSync(fd) } catch {}
+// Buffer'dan tekshirish (memory storage uchun)
+const verifyMagicBytesBuffer = (buf, declaredMime, ext) => {
+  if (declaredMime === 'video/mp4') {
+    return matchesMagic(buf, MAGIC_BYTES['video/mp4'], 4)
   }
+  if (ZIP_BASED.includes(ext)) {
+    return matchesMagic(buf, MAGIC_BYTES['application/zip'])
+  }
+  const sigs = MAGIC_BYTES[declaredMime]
+  if (!sigs) return false
+  return matchesMagic(buf, sigs)
 }
 
-const safeUnlink = (p) => {
-  try { fs.unlinkSync(p) } catch {}
+// Memory storage — fayl bufferda saqlanadi, keyin R2'ga yuborilad yoki diskka yoziladi
+const memoryStorage = multer.memoryStorage()
+
+// Faylga noyob nom berish
+const generateFilename = (originalname, prefix, defaultExt) => {
+  const unique = Date.now() + '-' + Math.round(Math.random() * 1E9)
+  let ext = path.extname(originalname || '').toLowerCase().slice(0, 8)
+  if (!ext || !/^\.[a-z0-9]+$/.test(ext)) ext = defaultExt || '.bin'
+  return `${prefix}-${unique}${ext}`
+}
+
+// Faylni R2'ga yoki lokal diskka saqlash
+const persistFile = async ({ buffer, filename, contentType, subdir }) => {
+  if (r2.isConfigured()) {
+    // R2 — production
+    const key = `${subdir}/${filename}`
+    const url = await r2.uploadBuffer({ key, body: buffer, contentType })
+    return { url, filename, key }
+  }
+
+  // Lokal disk — development
+  const dir = path.join(__dirname, '../../uploads', subdir)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  const filepath = path.join(dir, filename)
+  fs.writeFileSync(filepath, buffer)
+  return { url: `/uploads/${subdir}/${filename}`, filename, key: null }
 }
 
 // =========== IMAGE UPLOAD ===========
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../../uploads/images')
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    cb(null, dir)
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    const ext = path.extname(file.originalname).toLowerCase().slice(0, 8) || '.jpg'
-    if (!/^\.[a-z0-9]+$/.test(ext)) return cb(new Error('Fayl kengaytmasi noto\'g\'ri'))
-    cb(null, 'img-' + unique + ext)
-  }
-})
-
 const imageUpload = multer({
-  storage: imageStorage,
+  storage: memoryStorage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg', 'image/gif']
@@ -92,34 +88,33 @@ const imageUpload = multer({
   }
 })
 
-router.post('/image', auth, teacherOrAdmin, imageUpload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ message: 'Rasm yuklanmadi' })
+router.post('/image', auth, teacherOrAdmin, imageUpload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'Rasm yuklanmadi' })
 
-  const ext = path.extname(req.file.filename).toLowerCase()
-  if (!verifyMagicBytes(req.file.path, req.file.mimetype, ext)) {
-    safeUnlink(req.file.path)
-    return res.status(400).json({ message: 'Fayl haqiqiy rasm emas (magic bytes mos kelmadi)' })
+    const ext = path.extname(req.file.originalname || '').toLowerCase()
+    if (!verifyMagicBytesBuffer(req.file.buffer.slice(0, 16), req.file.mimetype, ext)) {
+      return res.status(400).json({ message: 'Fayl haqiqiy rasm emas (magic bytes mos kelmadi)' })
+    }
+
+    const filename = generateFilename(req.file.originalname, 'img', '.jpg')
+    const result = await persistFile({
+      buffer: req.file.buffer,
+      filename,
+      contentType: req.file.mimetype,
+      subdir: 'images'
+    })
+
+    res.json({ url: result.url, filename: result.filename, size: req.file.size })
+  } catch (err) {
+    console.error('Image upload error:', err.message)
+    res.status(500).json({ message: 'Yuklashda xatolik' })
   }
-
-  const url = `/uploads/images/${req.file.filename}`
-  res.json({ url, filename: req.file.filename, size: req.file.size })
 })
 
 // =========== VIDEO UPLOAD (FAQAT MP4) ===========
-const videoStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../../uploads/videos')
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    cb(null, dir)
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, 'video-' + unique + '.mp4')
-  }
-})
-
 const videoUpload = multer({
-  storage: videoStorage,
+  storage: memoryStorage,
   limits: { fileSize: 500 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype !== 'video/mp4') {
@@ -132,40 +127,37 @@ const videoUpload = multer({
   }
 })
 
-router.post('/video', auth, teacherOrAdmin, videoUpload.single('video'), (req, res) => {
-  if (!req.file) return res.status(400).json({ message: 'Video yuklanmadi' })
+router.post('/video', auth, teacherOrAdmin, videoUpload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'Video yuklanmadi' })
 
-  if (!verifyMagicBytes(req.file.path, 'video/mp4', '.mp4')) {
-    safeUnlink(req.file.path)
-    return res.status(400).json({ message: 'Fayl haqiqiy MP4 video emas' })
+    if (!verifyMagicBytesBuffer(req.file.buffer.slice(0, 16), 'video/mp4', '.mp4')) {
+      return res.status(400).json({ message: 'Fayl haqiqiy MP4 video emas' })
+    }
+
+    const filename = generateFilename(req.file.originalname, 'video', '.mp4')
+    const result = await persistFile({
+      buffer: req.file.buffer,
+      filename,
+      contentType: 'video/mp4',
+      subdir: 'videos'
+    })
+
+    res.json({
+      url: result.url,
+      filename: result.filename,
+      size: req.file.size,
+      sizeMB: (req.file.size / (1024 * 1024)).toFixed(2)
+    })
+  } catch (err) {
+    console.error('Video upload error:', err.message)
+    res.status(500).json({ message: 'Yuklashda xatolik' })
   }
-
-  const url = `/uploads/videos/${req.file.filename}`
-  res.json({
-    url,
-    filename: req.file.filename,
-    size: req.file.size,
-    sizeMB: (req.file.size / (1024 * 1024)).toFixed(2)
-  })
 })
 
 // =========== MATERIAL UPLOAD ===========
-const materialStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../../uploads/materials')
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    cb(null, dir)
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    const ext = path.extname(file.originalname).toLowerCase().slice(0, 8)
-    if (!/^\.[a-z0-9]+$/.test(ext)) return cb(new Error('Fayl kengaytmasi noto\'g\'ri'))
-    cb(null, 'mat-' + unique + ext)
-  }
-})
-
 const materialUpload = multer({
-  storage: materialStorage,
+  storage: memoryStorage,
   limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.zip', '.rar', '.pdf', '.docx', '.pptx', '.xlsx', '.7z']
@@ -177,31 +169,42 @@ const materialUpload = multer({
   }
 })
 
-router.post('/material', auth, teacherOrAdmin, materialUpload.single('material'), (req, res) => {
-  if (!req.file) return res.status(400).json({ message: 'Material yuklanmadi' })
+router.post('/material', auth, teacherOrAdmin, materialUpload.single('material'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'Material yuklanmadi' })
 
-  const ext = path.extname(req.file.filename).toLowerCase()
-  // Faqat magic bytes bilan tekshira oladiganlarini tekshiramiz
-  // (.rar/.7z signaturlari mavjud-u, lekin ko'plab variantlar bor; oddiyligi uchun tashlab ketildi)
-  if (ext === '.pdf') {
-    if (!verifyMagicBytes(req.file.path, 'application/pdf', ext)) {
-      safeUnlink(req.file.path)
-      return res.status(400).json({ message: 'Fayl haqiqiy PDF emas' })
+    const ext = path.extname(req.file.originalname).toLowerCase()
+    const head = req.file.buffer.slice(0, 16)
+
+    if (ext === '.pdf') {
+      if (!verifyMagicBytesBuffer(head, 'application/pdf', ext)) {
+        return res.status(400).json({ message: 'Fayl haqiqiy PDF emas' })
+      }
+    } else if (ZIP_BASED.includes(ext) || ext === '.zip') {
+      if (!verifyMagicBytesBuffer(head, 'application/zip', ext)) {
+        return res.status(400).json({ message: 'Fayl haqiqiy ZIP/Office hujjat emas' })
+      }
     }
-  } else if (ZIP_BASED.includes(ext) || ext === '.zip') {
-    if (!verifyMagicBytes(req.file.path, 'application/zip', ext)) {
-      safeUnlink(req.file.path)
-      return res.status(400).json({ message: 'Fayl haqiqiy ZIP/Office hujjat emas' })
-    }
+    // .rar, .7z — magic byte tekshirilmaydi (turli xil variantlar bor)
+
+    const filename = generateFilename(req.file.originalname, 'mat', '.bin')
+    const result = await persistFile({
+      buffer: req.file.buffer,
+      filename,
+      contentType: req.file.mimetype || 'application/octet-stream',
+      subdir: 'materials'
+    })
+
+    res.json({
+      url: result.url,
+      filename: result.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    })
+  } catch (err) {
+    console.error('Material upload error:', err.message)
+    res.status(500).json({ message: 'Yuklashda xatolik' })
   }
-
-  const url = `/uploads/materials/${req.file.filename}`
-  res.json({
-    url,
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    size: req.file.size
-  })
 })
 
 // Multer xatolarini ushlash

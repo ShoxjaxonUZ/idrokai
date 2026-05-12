@@ -49,3 +49,14 @@ services:
         sync: false
       - key: SMTP_FROM
         value: "IdrokAI <noreply@idrokai.uz>"
+      # Cloudflare R2 — production fayl saqlash (image, video, material)
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
