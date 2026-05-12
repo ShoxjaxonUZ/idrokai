@@ -33,7 +33,11 @@ if (isConfigured()) {
     credentials: {
       accessKeyId: ACCESS_KEY_ID,
       secretAccessKey: SECRET_ACCESS_KEY
-    }
+    },
+    // R2 va AWS SDK v3 mosligi uchun: SDK avtomatik checksum header'larini
+    // qo'shmasligi kerak (R2 ba'zi qo'shimcha header'lar uchun 401 qaytaradi).
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED'
   })
   console.log(`📦 Object storage yoqildi (bucket: ${BUCKET}, endpoint: ${ENDPOINT})`)
 } else {
