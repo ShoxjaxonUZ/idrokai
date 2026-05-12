@@ -114,7 +114,18 @@ router.post('/image', auth, teacherOrAdmin, imageUpload.single('image'), async (
     console.error('Code:', err.Code || err.code)
     console.error('Status:', err.$metadata?.httpStatusCode)
     console.error('RequestId:', err.$metadata?.requestId)
-    if (err.$response?.body) console.error('Body:', err.$response.body)
+
+    // Response body'ni o'qib XML xato matnini ko'rsatish
+    try {
+      if (err.$response?.body && typeof err.$response.body[Symbol.asyncIterator] === 'function') {
+        const chunks = []
+        for await (const chunk of err.$response.body) chunks.push(chunk)
+        const body = Buffer.concat(chunks).toString('utf-8')
+        console.error('Response body:', body)
+      }
+    } catch (readErr) {
+      console.error('Body read failed:', readErr.message)
+    }
     console.error('==========================')
     res.status(500).json({ message: 'Yuklashda xatolik', detail: err.message })
   }
