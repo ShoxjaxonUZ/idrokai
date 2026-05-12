@@ -17,6 +17,14 @@ function getYouTubeId(url) {
     return match && match[7] && match[7].length === 11 ? match[7] : null
 }
 
+function getVimeoId(url) {
+    if (!url || typeof url !== 'string') return null
+    // Vimeo URL formatlari: vimeo.com/123456, player.vimeo.com/video/123456,
+    // vimeo.com/channels/staffpicks/123456, vimeo.com/groups/name/videos/123456
+    const m = url.match(/vimeo\.com(?:\/(?:channels\/[^/]+|groups\/[^/]+\/videos|video|album\/\d+\/video|))?\/(\d+)/i)
+    return m && m[1] ? m[1] : null
+}
+
 function Lesson() {
     const { courseId, lessonIndex } = useParams()
     const navigate = useNavigate()
@@ -206,6 +214,7 @@ function Lesson() {
 
     const isDone = completedLessons.includes(index)
     const youTubeId = getYouTubeId(lesson.videoUrl)
+    const vimeoId = getVimeoId(lesson.videoUrl)
 
     return (
         <div>
@@ -250,7 +259,18 @@ function Lesson() {
                 {/* Main */}
                 <div className="lesson-main">
                     <div className="lesson-video-wrap">
-                        {youTubeId ? (
+                        {vimeoId ? (
+                            <iframe
+                                key={vimeoId}
+                                className="lesson-video"
+                                src={`https://player.vimeo.com/video/${vimeoId}`}
+                                title={lesson.title}
+                                frameBorder="0"
+                                allow="autoplay; fullscreen; picture-in-picture"
+                                allowFullScreen
+                                onLoad={() => setVideoEnded(true)}
+                            />
+                        ) : youTubeId ? (
                             <iframe
                                 key={youTubeId}
                                 className="lesson-video"
@@ -259,11 +279,7 @@ function Lesson() {
                                 frameBorder="0"
                                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
-                                onLoad={() => {
-                                    // YouTube oynasida tugaganini bilish qiyin — ko'rish bilanoq "tugagan" deb belgilash mumkin emas.
-                                    // Vaqtinchalik: foydalanuvchi qo'lda "Bajarildi" tugmasini bossa, markLessonDone ishlaydi.
-                                    setVideoEnded(true)
-                                }}
+                                onLoad={() => setVideoEnded(true)}
                             />
                         ) : lesson.videoUrl ? (
                             <video
