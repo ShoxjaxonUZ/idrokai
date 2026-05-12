@@ -36,7 +36,12 @@ if (RESEND_API_KEY) {
     port: SMTP_PORT,
     secure: SMTP_PORT === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
-    tls: { rejectUnauthorized: true }
+    tls: { rejectUnauthorized: true },
+    // Render bepul rejada IPv6 ishlamaydi — IPv4 ga majburlash
+    family: 4,
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000
   })
   provider = 'smtp'
 
