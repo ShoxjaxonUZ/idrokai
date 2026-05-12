@@ -1,6 +1,7 @@
-// Email yuborish — 2 ta provayder qo'llab-quvvatlanadi:
-// 1. Resend (tavsiya etiladi — production uchun) — RESEND_API_KEY
-// 2. SMTP (Gmail va h.k.) — SMTP_USER + SMTP_PASS
+// Email yuborish — 3 ta provayder qo'llab-quvvatlanadi (prioritet bo'yicha):
+// 1. Brevo (BREVO_API_KEY) — HTTPS API, har qanday emailga yuboradi, 300/kun bepul
+// 2. Resend (RESEND_API_KEY) — HTTPS API, bepul rejada faqat o'z emailga
+// 3. SMTP (Gmail va h.k.) — SMTP_HOST + SMTP_USER + SMTP_PASS
 // Hech qaysi sozlanmasa: dev rejimda console'ga yoziladi
 
 const nodemailer = require('nodemailer')
@@ -10,6 +11,8 @@ const SMTP_PORT = parseInt(process.env.SMTP_PORT, 10) || 587
 const SMTP_USER = process.env.SMTP_USER
 const SMTP_PASS = process.env.SMTP_PASS
 const RESEND_API_KEY = process.env.RESEND_API_KEY
+const BREVO_API_KEY = process.env.BREVO_API_KEY
+const BREVO_FROM = process.env.BREVO_FROM || process.env.SMTP_FROM || 'IdrokAI <noreply@idrokai.uz>'
 const APP_URL = process.env.APP_URL || 'http://localhost:5173'
 
 // Gmail uchun From address SMTP_USER bilan mos kelishi shart (aks holda block qiladi)
@@ -27,7 +30,10 @@ const RESEND_FROM = process.env.RESEND_FROM || 'IdrokAI <onboarding@resend.dev>'
 let transporter = null
 let provider = 'none'
 
-if (RESEND_API_KEY) {
+if (BREVO_API_KEY) {
+  provider = 'brevo'
+  console.log('📧 Email provayder: Brevo (BREVO_API_KEY topildi)')
+} else if (RESEND_API_KEY) {
   provider = 'resend'
   console.log('📧 Email provayder: Resend (RESEND_API_KEY topildi)')
 } else if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
@@ -68,6 +74,44 @@ const escapeHtml = (s) => {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+// Brevo "from" maydonini parse qiladi: "Name <email@host.com>" -> {name, email}
+const parseFrom = (str) => {
+  if (!str) return { name: 'IdrokAI', email: 'noreply@idrokai.uz' }
+  const m = String(str).match(/^(.*?)\s*<([^>]+)>$/)
+  if (m) return { name: m[1].trim() || 'IdrokAI', email: m[2].trim() }
+  return { name: 'IdrokAI', email: String(str).trim() }
+}
+
+const sendViaBrevo = async ({ to, subject, html, text, from }) => {
+  try {
+    const sender = parseFrom(from || BREVO_FROM)
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+        'api-key': BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        sender,
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text
+      })
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      console.error('[Brevo] xato:', res.status, data)
+      return { ok: false, reason: data.message || data.code || `Brevo ${res.status}` }
+    }
+    return { ok: true, messageId: data.messageId }
+  } catch (err) {
+    console.error('[Brevo] tarmoq xatosi:', err.message)
+    return { ok: false, reason: err.message }
+  }
 }
 
 const sendViaResend = async ({ to, subject, html, text, from }) => {
@@ -118,6 +162,7 @@ const sendViaSmtp = async ({ to, subject, html, text, from }) => {
 const sendMail = async ({ to, subject, html, text, from }) => {
   const args = { to, subject, html, text, from }
 
+  if (provider === 'brevo') return sendViaBrevo(args)
   if (provider === 'resend') return sendViaResend(args)
   if (provider === 'smtp') return sendViaSmtp(args)
 
