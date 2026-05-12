@@ -1112,3 +1112,44 @@
     display: none;
   }
 }
+
+/* Juda kichik telefonlar — kompaktroq */
+@media (max-width: 420px) {
+  .hero-new {
+    margin-top: calc(var(--navbar-h) * -1);
+    padding: calc(var(--navbar-h) + 16px) 14px 48px;
+  }
+  .hero-title { font-size: 26px; }
+  .hero-subtitle { font-size: 13px; margin-bottom: 22px; }
+  .hero-actions { flex-direction: column; gap: 8px; }
+  .hero-actions button { width: 100%; }
+
+  .home-section { padding: 48px 14px; }
+  .section-header { margin-bottom: 32px; }
+  .section-header h2 { font-size: 24px; }
+  .section-header p { font-size: 14px; }
+
+  .home-course-body h3 { font-size: 15px; min-height: auto; }
+  .home-course-body p { min-height: auto; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .feature-card { padding: 22px 18px; }
+  .feature-icon { width: 48px; height: 48px; border-radius: 14px; }
+
+  .step-card { padding: 28px 20px; }
+  .step-icon { width: 60px; height: 60px; border-radius: 16px; }
+  .step-num { font-size: 36px; top: 16px; right: 18px; }
+  .step-card h4 { font-size: 17px; }
+
+  .cta-box-new { padding: 36px 18px; border-radius: 22px; }
+  .cta-box-new h2 { font-size: 22px; }
+  .cta-box-new p { font-size: 14px; }
+  .cta-actions { flex-direction: column; gap: 8px; }
+  .cta-actions button { width: 100%; }
+  .cta-features { gap: 14px; }
+  .cta-features span { font-size: 12px; }
+
+  .hero-illustration { height: 260px; }
+  .illu-main-card { width: 240px; }
+  .illu-code { font-size: 10px; padding: 12px; }
+  .illu-float-2 { display: none; }
+}

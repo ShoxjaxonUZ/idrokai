@@ -234,16 +234,52 @@
 /* Responsive */
 @media (max-width: 640px) {
   .comments-section {
-    padding: 20px;
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+  .comments-section h3 {
+    font-size: 17px;
   }
 
   .comment-form {
     gap: 10px;
   }
 
+  .comment-form textarea {
+    font-size: 16px; /* iOS zoom oldini olish */
+    padding: 12px;
+  }
+
   .comment-avatar {
     width: 36px;
     height: 36px;
     font-size: 16px;
+  }
+
+  .comment-item {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .comment-user {
+    font-size: 13px;
+  }
+
+  .comment-text {
+    font-size: 13.5px;
+  }
+}
+
+@media (max-width: 420px) {
+  .comments-section {
+    padding: 16px 12px;
+  }
+  .comment-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .comment-text {
+    font-size: 13px;
   }
 }

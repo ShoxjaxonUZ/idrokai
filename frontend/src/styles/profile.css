@@ -191,18 +191,41 @@
 .btn-danger:hover { opacity: 0.9; }
 
 @media (max-width: 768px) {
-  .profile-hero-card { flex-direction: column; text-align: center; }
-  .profile-hero-left { flex-direction: column; }
-  .profile-hero-stats { justify-content: center; }
-  .battle-stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .battle-rating-header { flex-direction: column; gap: 12px; }
+  .profile-page { padding: 20px 14px; gap: 16px; }
+  .profile-hero-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 18px;
+    border-radius: 22px;
+    gap: 16px;
+  }
+  .profile-hero-left { flex-direction: column; gap: 12px; }
+  .profile-avatar-big { width: 72px; height: 72px; font-size: 28px; }
+  .profile-hero-name { font-size: 20px; }
+  .profile-hero-email { font-size: 13px; }
+  .profile-hero-stats { justify-content: center; gap: 18px; flex-wrap: wrap; }
+  .profile-mini-value { font-size: 22px; }
+  .battle-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .battle-stat-item { padding: 14px; }
+  .battle-rating-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  /* Inputlar — iOS zoom oldini olish */
+  .profile-card input,
+  .profile-card textarea {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 420px) {
+  .profile-page { padding: 14px 10px; }
+  .profile-hero-card { padding: 20px 14px; border-radius: 18px; }
+  .profile-avatar-big { width: 64px; height: 64px; font-size: 24px; }
+  .profile-hero-name { font-size: 18px; }
+  .profile-hero-stats { gap: 14px; }
+  .profile-mini-value { font-size: 20px; }
+  .profile-mini-label { font-size: 10px; }
   /* Juda kichik telefonlarda 4 ta katta raqam sig'maydi */
-  .battle-stat-value { font-size: 22px; }
+  .battle-stat-value { font-size: 20px; }
   .battle-stat-item { padding: 12px; }
-  .profile-mini-label { font-size: 12px; }
 }
 
 .profile-badge {

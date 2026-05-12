@@ -263,13 +263,16 @@
   .lesson-layout {
     grid-template-columns: 1fr;
     padding: 16px;
+    gap: 14px;
   }
 
   .lesson-sidebar {
     position: static;
     height: auto;
-    max-height: 400px;
+    max-height: 320px;
     order: 2;
+    padding: 16px;
+    border-radius: 16px;
   }
   .lesson-list-title {
     white-space: normal;
@@ -285,7 +288,67 @@
 
   .lesson-top {
     flex-direction: column;
+    gap: 12px;
   }
+}
+
+@media (max-width: 768px) {
+  .lesson-layout {
+    padding: 12px;
+    gap: 12px;
+  }
+  .lesson-video-wrap {
+    border-radius: 14px;
+  }
+  .lesson-content {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+  .lesson-title {
+    font-size: 19px;
+  }
+  .lesson-desc {
+    font-size: 14px;
+  }
+  .lesson-nav {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .lesson-nav .btn-outline,
+  .lesson-nav .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  .lesson-sidebar {
+    max-height: 260px;
+  }
+  .lesson-sidebar-header h3 {
+    font-size: 15px;
+  }
+  .lesson-list-item {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .lesson-material {
+    padding: 14px;
+    gap: 12px;
+  }
+  .material-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+  .material-title { font-size: 14px; }
+  .material-name { font-size: 12px; }
+}
+
+@media (max-width: 420px) {
+  .lesson-layout { padding: 10px; gap: 10px; }
+  .lesson-content { padding: 14px 12px; }
+  .lesson-title { font-size: 17px; }
+  .lesson-sidebar { padding: 14px; }
+  .lesson-badge { font-size: 11px; padding: 4px 10px; }
+  .lesson-done-badge { font-size: 12px; padding: 6px 12px; }
 }
 
 .lesson-badge {

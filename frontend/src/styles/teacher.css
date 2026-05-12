@@ -283,8 +283,14 @@
 }
 
 @media (max-width: 768px) {
+  .teacher-dashboard,
+  .teacher-apply-page {
+    padding: 20px 14px;
+  }
+
   .teacher-courses-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .teacher-dash-header {
@@ -292,9 +298,39 @@
     gap: 16px;
     text-align: center;
   }
+  .teacher-dash-header h1 { font-size: 24px; }
+  .teacher-dash-header p { font-size: 13px; }
+
+  .teacher-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 
   .teacher-video-upload {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .teacher-form-card {
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  /* iOS zoom oldini olish */
+  .teacher-form-card input,
+  .teacher-form-card textarea,
+  .teacher-form-card select {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .teacher-dashboard,
+  .teacher-apply-page {
+    padding: 14px 10px;
+  }
+  .teacher-dash-header h1 { font-size: 20px; }
+  .teacher-stats { grid-template-columns: 1fr; }
+  .teacher-course-card { padding: 16px; }
+  .teacher-form-card { padding: 18px 14px; }
 }

@@ -923,6 +923,7 @@
   .battle-topbar {
     flex-wrap: wrap;
     padding: 10px 14px;
+    gap: 8px;
   }
 
   .battle-id-display {
@@ -933,13 +934,14 @@
   }
 
   .modal-input {
-    font-size: 20px;
+    font-size: 16px; /* iOS zoom oldini olish */
     letter-spacing: 2px;
   }
 
   .battle-textarea {
     font-size: 14px;
     min-height: 240px;
+    padding: 14px;
   }
 
   .result-banner h2 {
@@ -949,6 +951,24 @@
   .result-banner {
     padding: 32px 20px;
   }
+}
+
+@media (max-width: 420px) {
+  .battle-hero h1 { font-size: 24px; }
+  .battle-hero p { font-size: 13px; }
+  .battle-id-display { font-size: 18px; padding: 10px 12px; }
+  .battle-textarea { font-size: 13px; padding: 12px; min-height: 220px; }
+  .battle-problem { padding: 14px; max-height: 240px; }
+  .battle-problem h3 { font-size: 15px; }
+  .battle-problem-text { font-size: 13px; }
+  .battle-topbar { padding: 8px 10px; font-size: 12px; }
+  .result-banner h2 { font-size: 22px; padding: 0 8px; }
+  .result-banner { padding: 24px 14px; }
+  /* Lobby kartochkalari */
+  .battle-lobby-card { padding: 18px; border-radius: 16px; }
+  .battle-lobby-icon { width: 48px; height: 48px; }
+  .battle-lobby-card h3 { font-size: 16px; }
+  .battle-lobby-card p { font-size: 12px; }
 }
 
 .battle-textarea {

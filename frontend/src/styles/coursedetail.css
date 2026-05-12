@@ -439,4 +439,27 @@
   .detail-hero-info h1 {
     font-size: 22px;
   }
+  .detail-body { padding: 16px 0; gap: 16px; }
+  .detail-section { padding: 20px 16px; border-radius: 14px; }
+  .detail-section h3 { font-size: 17px; margin-bottom: 14px; }
+  .sidebar-card { padding: 20px; border-radius: 16px; }
+  .sidebar-price { font-size: 28px; }
+  .lesson-group { padding: 14px; }
+  .lesson-group-header strong { font-size: 13px; }
+  .lessons-list .lesson-item { padding: 10px 12px; font-size: 13px; }
+}
+
+@media (max-width: 420px) {
+  .detail-page { padding: 12px 10px; }
+  .detail-hero { padding: 12px; border-radius: 14px; gap: 12px; }
+  .detail-hero-info h1 { font-size: 19px !important; }
+  .detail-hero-info p { font-size: 13px; }
+  .detail-section { padding: 16px 12px; }
+  .sidebar-card { padding: 16px; }
+  .sidebar-price { font-size: 24px; }
+  .lessons-list .lesson-item { font-size: 12.5px; padding: 8px 10px; }
+  .lesson-num { width: 24px; height: 24px; font-size: 11px; }
+  .group-badge { font-size: 11px; padding: 4px 10px; }
+  .group-progress { font-size: 12px; }
+  .test-btn { font-size: 13px; padding: 8px 14px; }
 }

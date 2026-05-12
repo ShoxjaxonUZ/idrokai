@@ -651,8 +651,9 @@
   }
 
   .dly-textarea {
-    font-size: 14px;  /* iOS zoom responsive.css'da 16px ga ko'tariladi */
+    font-size: 16px; /* iOS zoom oldini olish */
     min-height: 240px;
+    padding: 14px;
   }
 
   .dly-tomorrow-banner {
@@ -667,6 +668,20 @@
   .dly-streak-emoji {
     font-size: 36px;
   }
+}
+
+@media (max-width: 420px) {
+  .dly-page { padding: 12px 10px; }
+  .dly-hero-bar { padding: 16px; border-radius: 16px; }
+  .dly-level-progress strong { font-size: 20px; }
+  .dly-textarea { font-size: 14px; padding: 12px; min-height: 220px; }
+  .dly-problem { padding: 16px 14px; }
+  .dly-problem h3 { font-size: 16px; }
+  .dly-problem-text { font-size: 13px; }
+  .dly-streak-num { font-size: 24px; }
+  .dly-streak-emoji { font-size: 32px; }
+  .dly-result-banner { padding: 20px 14px; }
+  .dly-result-score { font-size: 36px; }
 }
 
 /* ============ COURSE PICKER BAR ============ */

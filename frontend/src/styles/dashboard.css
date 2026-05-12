@@ -342,18 +342,45 @@
 }
 
 @media (max-width: 768px) {
-  .dash-profile { flex-direction: column; text-align: center; }
-  .dash-stats { grid-template-columns: repeat(2, 1fr); }
-  .dash-quick-links { grid-template-columns: repeat(2, 1fr); }
-  .dash-course-item { flex-direction: column; align-items: flex-start; }
+  .dashboard-page { padding: 20px 14px; gap: 14px; }
+  .dash-profile {
+    flex-direction: column;
+    text-align: center;
+    padding: 22px 18px;
+    border-radius: 20px;
+    gap: 12px;
+  }
+  .dash-avatar { width: 64px; height: 64px; font-size: 28px; }
+  .dash-profile-info h2 { font-size: 20px; }
+  .dash-profile-info p { font-size: 13px; }
+  .dash-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dash-stat-card { padding: 16px; }
+  .dash-stat-icon { width: 40px; height: 40px; }
+  .dash-stat-value { font-size: 22px; }
+  .dash-stat-label { font-size: 12px; }
+  .dash-tabs { gap: 6px; }
+  .dash-tab { padding: 8px 14px; font-size: 13px; }
+  .dash-section { padding: 18px 16px; }
+  .dash-section h3 { font-size: 16px; margin-bottom: 14px; }
+  .dash-quick-links { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dash-quick-card { padding: 20px 12px; }
+  .dash-quick-card .quick-icon { width: 48px; height: 48px; }
+  .dash-course-item { flex-direction: column; align-items: flex-start; padding: 14px; }
   .dash-course-right { width: 100%; min-width: unset; }
-  .dash-results-grid { grid-template-columns: 1fr; }
+  .dash-results-grid { grid-template-columns: 1fr; gap: 12px; }
+  .dash-result-card { padding: 20px 16px; }
 }
 
-@media (max-width: 380px) {
-  /* Juda kichik telefonlarda statlar bittadan ko'rsatiladi */
+@media (max-width: 420px) {
+  .dashboard-page { padding: 14px 10px; }
+  /* Juda kichik telefonlarda statlar bittadan */
   .dash-stats,
   .dash-quick-links { grid-template-columns: 1fr; }
+  .dash-profile { padding: 18px 14px; border-radius: 18px; }
+  .dash-avatar { width: 56px; height: 56px; font-size: 24px; }
+  .dash-profile-info h2 { font-size: 18px; }
+  .dash-section { padding: 16px 12px; border-radius: 14px; }
+  .dash-tab { padding: 7px 12px; font-size: 12px; }
 }
 
 .profile-badge {

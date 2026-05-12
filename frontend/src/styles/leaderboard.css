@@ -481,6 +481,29 @@
   }
 }
 
+/* Juda kichik telefonlar */
+@media (max-width: 420px) {
+  .lb-hero { padding: 28px 14px; border-radius: 18px; }
+  .lb-hero h1 { font-size: 22px; }
+  .lb-hero p { font-size: 13px; }
+  .lb-podium { min-height: 240px; gap: 6px; }
+  .podium-avatar { width: 48px; height: 48px; font-size: 18px; }
+  .podium-avatar-1 { width: 60px; height: 60px; font-size: 24px; }
+  .podium-pillar { width: 64px; }
+  .podium-num { font-size: 26px; }
+  .podium-name { font-size: 11px; }
+  .podium-points { font-size: 14px; }
+  .lb-item {
+    grid-template-columns: 32px 36px 1fr auto;
+    gap: 8px;
+    padding: 10px;
+    font-size: 13px;
+  }
+  .lb-avatar { width: 32px; height: 32px; font-size: 12px; }
+  .lb-name { font-size: 13px; }
+  .lb-stats { font-size: 11px; }
+}
+
 /* TABLE */
 .lb-table-wrap {
   background: var(--card);

@@ -409,12 +409,20 @@
 }
 
 @media (max-width: 768px) {
+  .courses-hero {
+    padding: 40px 16px 28px;
+  }
   .courses-hero h1 {
     font-size: 32px;
   }
 
   .courses-hero p {
     font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  .search-input-new {
+    font-size: 16px; /* iOS zoom oldini olish */
   }
 
   .filter-bar {
@@ -435,6 +443,28 @@
 
   .course-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .courses-hero {
+    padding: 28px 12px 20px;
+  }
+  .courses-hero h1 {
+    font-size: 24px;
+  }
+  .courses-hero p {
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  .courses-hero-badge {
+    font-size: 11px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+  .courses-hero::before {
+    width: 600px;
+    height: 400px;
   }
 }
 

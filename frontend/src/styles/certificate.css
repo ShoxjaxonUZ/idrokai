@@ -278,44 +278,81 @@
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 768px) {
+  .cert-wrapper { padding: 16px 12px; }
+  .cert-container { padding: 0; }
+  .cert-actions { flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .cert-actions button { width: 100%; justify-content: center; }
+
   .cert {
     aspect-ratio: auto;
     grid-template-columns: 1fr;
+    border-radius: 20px;
   }
 
   .cert-left {
-    padding: 32px 20px;
+    padding: 28px 20px;
   }
 
   .cert-seal {
-    width: 72px;
-    height: 72px;
+    width: 64px;
+    height: 64px;
   }
 
   .cert-brand-name {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .cert-right {
-    padding: 32px 24px;
+    padding: 28px 20px;
+  }
+
+  .cert-kicker {
+    font-size: 11px;
+    letter-spacing: 1px;
   }
 
   .cert-big-title {
-    font-size: 40px;
+    font-size: 36px;
+    letter-spacing: 2px;
   }
 
   .cert-person {
-    font-size: 28px;
+    font-size: 26px;
+  }
+
+  .cert-presented {
+    font-size: 13px;
+  }
+
+  .cert-achievement {
+    font-size: 14px;
   }
 
   .cert-bottom {
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
+  }
+
+  .cert-info-item {
+    width: 100%;
   }
 
   .cert-watermark {
     font-size: 80px;
   }
+}
+
+@media (max-width: 420px) {
+  .cert-wrapper { padding: 12px 8px; }
+  .cert { border-radius: 16px; }
+  .cert-left { padding: 22px 16px; }
+  .cert-right { padding: 22px 16px; }
+  .cert-seal { width: 56px; height: 56px; }
+  .cert-brand-name { font-size: 22px; }
+  .cert-big-title { font-size: 28px; letter-spacing: 1px; }
+  .cert-person { font-size: 22px; }
+  .cert-achievement { font-size: 13px; }
+  .cert-watermark { font-size: 60px; }
 }
 
 /* ---------- PRINT ---------- */

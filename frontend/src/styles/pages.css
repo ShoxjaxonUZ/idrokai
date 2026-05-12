@@ -444,20 +444,57 @@
 }
 
 @media (max-width: 640px) {
-  .about-grid,
-  .help-categories {
-    grid-template-columns: 1fr;
-  }
+  .static-page { padding: 0 14px 32px; }
+  .page-hero { padding: 40px 0 24px; }
+  .page-hero h1 { font-size: 26px; }
+  .page-hero p { font-size: 14px; }
 
+  .about-grid,
+  .help-categories,
   .values-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .page-hero h1 {
-    font-size: 26px;
+  .about-card,
+  .help-card,
+  .value-item {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .stats-box {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .stat-box-item { padding: 16px; }
+  .stat-num { font-size: 24px; }
+
+  .contact-card {
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+
+  /* iOS zoom oldini olish */
+  .contact-form input,
+  .contact-form textarea {
+    font-size: 16px;
   }
 
   .privacy-section {
-    padding: 24px 20px;
+    padding: 22px 16px;
+    border-radius: 14px;
   }
+  .privacy-section h2 { font-size: 18px; }
+  .privacy-section p,
+  .privacy-section li { font-size: 13px; }
+}
+
+@media (max-width: 420px) {
+  .page-hero h1 { font-size: 22px; }
+  .page-hero p { font-size: 13px; }
+  .about-card h3,
+  .help-card h3,
+  .value-item h3 { font-size: 16px; }
+  .stats-box { grid-template-columns: 1fr; }
 }
