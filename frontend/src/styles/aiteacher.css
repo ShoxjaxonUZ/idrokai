@@ -2,8 +2,8 @@
 .ai-teacher-page {
   max-width: 820px;
   margin: 0 auto;
-  padding: 20px 24px 40px;
-  min-height: calc(100vh - 80px);
+  padding: 20px 24px 24px;
+  min-height: calc(100vh - var(--navbar-h));
   display: flex;
   flex-direction: column;
 }
@@ -147,10 +147,9 @@
   background: transparent;
   border: none;
   padding: 0;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   overflow-y: auto;
-  min-height: 400px;
-  max-height: calc(100vh - 320px);
+  min-height: 300px;
 }
 
 /* ============ WELCOME ============ */
@@ -617,33 +616,220 @@
   background: var(--text-muted);
 }
 
-/* RESPONSIVE */
-@media (max-width: 640px) {
+/* RESPONSIVE — telefon */
+@media (max-width: 768px) {
   .ai-teacher-page {
-    padding: 16px;
+    padding: 12px 14px 14px;
   }
 
+  /* Header — ixcham: bitta qator */
   .ait-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    padding: 8px 0 12px;
+    margin-bottom: 10px;
+    gap: 8px;
   }
-
-  .ait-subjects-grid {
-    grid-template-columns: 1fr;
+  .ait-header-left { gap: 10px; }
+  .ait-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
   }
+  .ait-header-icon svg { width: 18px; height: 18px; }
+  .ait-header-left h1 { font-size: 16px; }
+  .ait-header-left p {
+    font-size: 11px;
+    /* Telefonda uzun tavsifni qisqartirish */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+  }
+  .ait-clear-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .ait-clear-btn svg { width: 12px; height: 12px; }
 
+  /* Limit bar — ixcham */
+  .ait-limit-bar {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+  }
+  .limit-info {
+    font-size: 11px;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .limit-info svg { width: 14px; height: 14px; }
+  .limit-remaining { font-size: 10px; }
+
+  /* Welcome — kichikroq */
+  .ait-welcome {
+    padding: 24px 8px 12px;
+  }
+  .ait-welcome-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+  .ait-welcome-icon svg { width: 32px; height: 32px; }
   .ait-welcome h2 {
     font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .ait-welcome > p {
+    font-size: 13px;
+    margin: 0 auto 20px;
+    line-height: 1.5;
   }
 
+  /* Subject cards — 1 ustun, kompakt */
+  .ait-subjects-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .ait-subject-card {
+    padding: 14px;
+  }
+  .ait-subject-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .ait-subject-icon svg { width: 18px; height: 18px; }
+  .ait-subject-card h4 { font-size: 13px; }
+  .ait-subject-card > p { font-size: 11px; margin-bottom: 8px; }
+  .ait-subject-example { font-size: 10px; }
+
+  /* Messages — kichikroq matn va padding */
+  .ait-messages {
+    gap: 18px;
+  }
+  .ait-message {
+    gap: 10px;
+  }
   .msg-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+  .msg-avatar svg { width: 14px; height: 14px; }
+  .msg-name {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .msg-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .msg-user .msg-content,
+  .msg-content.msg-error {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .msg-text { margin-bottom: 10px; }
+  .msg-code { margin: 10px 0; }
+  .msg-code pre {
+    padding: 12px;
+    font-size: 12px;
+  }
+  .msg-code-header { padding: 5px 12px; }
+  .msg-actions button {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .msg-subject-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+  .msg-image {
+    max-width: 240px;
+    max-height: 240px;
+  }
+
+  /* Input area — to'liq quyi */
+  .ait-input-wrap {
+    padding-top: 6px;
+  }
+  .ait-limit-message {
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  .ait-input-box {
+    border-radius: 12px;
+    padding: 6px;
+    gap: 6px;
+  }
+  .ait-image-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .ait-image-btn svg { width: 16px; height: 16px; }
+  .ait-input-box textarea {
+    padding: 8px 6px;
+    /* iOS zoom oldini olish — 16px minimal */
+    font-size: 16px;
+  }
+  .ait-send {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .ait-send svg { width: 16px; height: 16px; }
+  .ait-hint {
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  /* Image preview */
+  .ait-image-preview {
+    padding: 8px 10px 8px 8px;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .ait-image-preview img {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+  }
+  .ait-image-name { font-size: 12px; }
+  .ait-image-size { font-size: 10px; }
+  .ait-image-remove {
     width: 24px;
     height: 24px;
   }
+}
 
-  .limit-info {
-    flex-wrap: wrap;
+/* Juda kichik telefonlar */
+@media (max-width: 420px) {
+  .ai-teacher-page {
+    padding: 10px 10px 12px;
+  }
+  .ait-header-left p {
+    max-width: 160px;
+  }
+  .ait-welcome-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+  .ait-welcome h2 {
+    font-size: 20px;
+  }
+  .ait-welcome > p {
+    font-size: 12.5px;
+  }
+  .msg-content {
+    font-size: 13.5px;
+  }
+  .msg-image {
+    max-width: 200px;
+    max-height: 200px;
   }
 }
 /* Rasm yuklash */

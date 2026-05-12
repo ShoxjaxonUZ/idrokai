@@ -7,6 +7,17 @@
   font-family: 'Inter', sans-serif;
 }
 
+/* Universal — har sahifa uchun navbar balandligi */
+:root {
+  --navbar-h: 76px;
+}
+@media (max-width: 768px) {
+  :root { --navbar-h: 64px; }
+}
+@media (max-width: 420px) {
+  :root { --navbar-h: 60px; }
+}
+
 /* DARK THEME (default) */
 :root[data-theme="dark"] {
   --primary: #8b5cf6;

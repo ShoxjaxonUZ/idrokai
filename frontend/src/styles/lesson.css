@@ -1,7 +1,7 @@
 .lesson-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - var(--navbar-h));
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
@@ -14,9 +14,9 @@
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
-  height: calc(100vh - 128px);
+  height: calc(100vh - var(--navbar-h) - 48px);
   position: sticky;
-  top: 104px;
+  top: calc(var(--navbar-h) + 24px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

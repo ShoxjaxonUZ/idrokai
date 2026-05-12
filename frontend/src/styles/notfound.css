@@ -1,5 +1,5 @@
 .notfound-page {
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - var(--navbar-h));
   display: flex;
   align-items: center;
   justify-content: center;

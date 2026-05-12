@@ -27,16 +27,11 @@
 }
 
 /* Spacer — body padding-top o'rniga.
-   Navbar fixed bo'lgani uchun fizik joy ajratish kerak. */
+   Navbar fixed bo'lgani uchun fizik joy ajratish kerak.
+   --navbar-h universal CSS variable (index.css'da, responsive). */
 .navbar-spacer {
-  height: 76px;
+  height: var(--navbar-h);
   pointer-events: none;
-}
-@media (max-width: 768px) {
-  .navbar-spacer { height: 64px; }
-}
-@media (max-width: 420px) {
-  .navbar-spacer { height: 60px; }
 }
 
 .navbar {

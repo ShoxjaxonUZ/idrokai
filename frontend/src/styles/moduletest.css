@@ -1,5 +1,5 @@
 .mtest-page {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - var(--navbar-h));
   padding: 40px 24px;
   background: var(--bg);
 }
