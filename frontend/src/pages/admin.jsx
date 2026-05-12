@@ -46,7 +46,7 @@ function Admin() {
     id: '',
     title: '',
     category: 'Dasturlash',
-    daraja: 'Boshlovchi',
+    daraja: 'Boshlang\'ich',
     description: '',
     about: '',
     image: '',
@@ -181,7 +181,7 @@ function Admin() {
       id: '',
       title: '',
       category: 'Dasturlash',
-      daraja: 'Boshlovchi',
+      daraja: 'Boshlang\'ich',
       description: '',
       about: '',
       image: '',
@@ -197,7 +197,7 @@ function Admin() {
       id: course.id,
       title: course.title || '',
       category: course.category || 'Dasturlash',
-      daraja: course.daraja || 'Boshlovchi',
+      daraja: course.daraja || 'Boshlang\'ich',
       description: course.description || course.desc || '',
       about: course.about || '',
       image: course.image || '',
@@ -685,9 +685,9 @@ function Admin() {
                         value={form.daraja}
                         onChange={e => setForm({ ...form, daraja: e.target.value })}
                       >
-                        <option>Boshlovchi</option>
+                        <option>Boshlang'ich</option>
                         <option>O'rta</option>
-                        <option>Ilg'or</option>
+                        <option>Yuqori</option>
                       </select>
                     </div>
                   </div>

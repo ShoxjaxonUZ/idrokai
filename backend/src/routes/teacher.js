@@ -131,7 +131,7 @@ router.post('/courses', auth, teacherOrAdmin, async (req, res) => {
     await pool.query(
       `INSERT INTO courses (id, title, category, daraja, emoji, description, about, lessons, darslar, teacher_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10)`,
-      [id, title.trim().slice(0, 200), category || 'Boshqa', daraja || 'Boshlovchi',
+      [id, title.trim().slice(0, 200), category || 'Boshqa', daraja || 'Boshlang\'ich',
        emoji || '📚', String(desc || '').slice(0, 1000), String(about || '').slice(0, 5000),
        JSON.stringify(Array.isArray(lessons) ? lessons : []),
        Array.isArray(lessons) ? lessons.length : 0,
@@ -183,7 +183,7 @@ router.post('/save-course', auth, teacherOrAdmin, async (req, res) => {
           [
             title.trim().slice(0, 200),
             category || 'Boshqa',
-            daraja || 'Boshlovchi',
+            daraja || 'Boshlang\'ich',
             emoji || '📚',
             String(desc || '').slice(0, 1000),
             String(about || '').slice(0, 5000),
@@ -204,7 +204,7 @@ router.post('/save-course', auth, teacherOrAdmin, async (req, res) => {
         newId,
         title.trim().slice(0, 200),
         category || 'Boshqa',
-        daraja || 'Boshlovchi',
+        daraja || 'Boshlang\'ich',
         emoji || '📚',
         String(desc || '').slice(0, 1000),
         String(about || '').slice(0, 5000),

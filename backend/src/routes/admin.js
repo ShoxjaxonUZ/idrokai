@@ -55,7 +55,7 @@ router.post('/courses', auth, adminOnly, async (req, res) => {
       `, [
         title,
         category || 'Dasturlash',
-        daraja || 'Boshlovchi',
+        daraja || 'Boshlang\'ich',
         description || '',
         about || '',
         image || '',
@@ -72,7 +72,7 @@ router.post('/courses', auth, adminOnly, async (req, res) => {
         id,
         title,
         category || 'Dasturlash',
-        daraja || 'Boshlovchi',
+        daraja || 'Boshlang\'ich',
         description || '',
         about || '',
         image || '',
