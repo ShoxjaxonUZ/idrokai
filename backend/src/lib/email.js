@@ -32,7 +32,12 @@ let provider = 'none'
 
 if (BREVO_API_KEY) {
   provider = 'brevo'
-  console.log('📧 Email provayder: Brevo (BREVO_API_KEY topildi)')
+  // Diagnostika: kalit boshlanishi va oxirini ko'rsatish (sironi buzmaydi)
+  const keyPreview = BREVO_API_KEY.length > 12
+    ? `${BREVO_API_KEY.slice(0, 10)}...${BREVO_API_KEY.slice(-4)}`
+    : '(juda qisqa)'
+  console.log(`📧 Email provayder: Brevo (kalit: ${keyPreview}, uzunlik: ${BREVO_API_KEY.length})`)
+  console.log(`📧 Brevo sender: ${BREVO_FROM}`)
 } else if (RESEND_API_KEY) {
   provider = 'resend'
   console.log('📧 Email provayder: Resend (RESEND_API_KEY topildi)')
