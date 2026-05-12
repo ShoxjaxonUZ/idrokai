@@ -49,8 +49,10 @@ services:
         sync: false
       - key: SMTP_FROM
         value: "IdrokAI <noreply@idrokai.uz>"
-      # Cloudflare R2 — production fayl saqlash (image, video, material)
+      # S3-mos object storage (Cloudflare R2 yoki Backblaze B2)
       - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ENDPOINT
         sync: false
       - key: R2_ACCESS_KEY_ID
         sync: false
@@ -60,3 +62,5 @@ services:
         sync: false
       - key: R2_PUBLIC_URL
         sync: false
+      - key: R2_REGION
+        value: auto
