@@ -796,9 +796,11 @@ function Admin() {
                               />
                             </div>
 
-                            {/* VIDEO URL */}
+                            {/* VIDEO — 2 ta variant: URL yoki yuklash */}
                             <div className="form-group">
-                              <label>Video URL (Vimeo yoki YouTube)</label>
+                              <label>Video</label>
+
+                              {/* Variant 1: URL */}
                               <input
                                 type="url"
                                 value={lesson.videoUrl || ''}
@@ -809,21 +811,61 @@ function Admin() {
                                 }}
                                 placeholder="https://vimeo.com/123456789  yoki  https://youtube.com/watch?v=..."
                               />
-                              <small style={{ display: 'block', marginTop: 8, color: 'var(--text-muted)', fontSize: 12, lineHeight: 1.5 }}>
-                                💡 <strong>Qanday qilish:</strong>
-                                <br />
-                                1. Videoni <a href="https://vimeo.com/upload" target="_blank" rel="noopener" style={{ color: 'var(--primary-light)' }}>Vimeo</a> yoki YouTube'ga yuklang
-                                <br />
-                                2. Video sahifasi URL'ini nusxalang
-                                <br />
-                                3. Shu yerga yopishtiring (masalan: https://vimeo.com/123456789)
+                              <small style={{ display: 'block', marginTop: 6, color: 'var(--text-muted)', fontSize: 12 }}>
+                                💡 <strong>Tez yo'l:</strong> Videoni <a href="https://vimeo.com/upload" target="_blank" rel="noopener" style={{ color: 'var(--primary-light)' }}>Vimeo</a> yoki YouTube'ga yuklab, URL'ni shu yerga yopishtiring.
                               </small>
-                              {lesson.videoUrl && (
-                                <div style={{ marginTop: 10, padding: '8px 12px', background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.25)', borderRadius: 8, fontSize: 12, color: 'var(--text)' }}>
-                                  <Check size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4, color: '#22c55e' }} />
-                                  Video URL kiritildi
-                                </div>
-                              )}
+
+                              {/* Variant 2: To'g'ridan-to'g'ri yuklash (lokal MP4) */}
+                              <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px dashed var(--border)' }}>
+                                <small style={{ display: 'block', marginBottom: 8, color: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }}>
+                                  YOKI MP4 fayl yuklash (sekin internet uchun chidamli kuting)
+                                </small>
+                                {lesson.videoUrl && !/^https?:\/\//i.test(lesson.videoUrl) === false && /\.r2\.dev|onrender\.com|\.mp4$/i.test(lesson.videoUrl) ? (
+                                  <div className="video-uploaded">
+                                    <div className="video-uploaded-info">
+                                      <Video size={20} color="#22c55e" />
+                                      <div>
+                                        <div className="video-filename">{lesson.videoFile || 'video.mp4'}</div>
+                                        <div className="video-size">{lesson.videoSize ? `${lesson.videoSize} MB` : ''}</div>
+                                      </div>
+                                    </div>
+                                    <video src={assetUrl(lesson.videoUrl)} controls className="video-preview" />
+                                    <button
+                                      type="button"
+                                      className="btn-outline btn-small"
+                                      onClick={() => removeLessonVideo(idx)}
+                                    >
+                                      <X size={14} /> Videoni o'chirish
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="upload-box">
+                                    <input
+                                      type="file"
+                                      accept="video/mp4,.mp4"
+                                      id={`video-upload-${idx}`}
+                                      onChange={e => uploadVideo(idx, e.target.files[0])}
+                                      disabled={uploadingVideo[idx]}
+                                      style={{ display: 'none' }}
+                                    />
+                                    <label htmlFor={`video-upload-${idx}`} className="upload-label">
+                                      {uploadingVideo[idx] ? (
+                                        <>
+                                          <Loader2 size={32} className="spin-icon" />
+                                          <span>Video yuklanmoqda...</span>
+                                          <small>Iltimos kuting, sekin internet bilan vaqt olishi mumkin</small>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Upload size={32} />
+                                          <span>MP4 fayl tanlash</span>
+                                          <small>max 500 MB</small>
+                                        </>
+                                      )}
+                                    </label>
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
                             <div className="form-group">
