@@ -107,8 +107,16 @@ router.post('/image', auth, teacherOrAdmin, imageUpload.single('image'), async (
 
     res.json({ url: result.url, filename: result.filename, size: req.file.size })
   } catch (err) {
-    console.error('Image upload error:', err.message)
-    res.status(500).json({ message: 'Yuklashda xatolik' })
+    // Batafsil xato — R2/S3 xatolarini diagnostika qilish uchun
+    console.error('=== Image upload error ===')
+    console.error('Message:', err.message)
+    console.error('Name:', err.name)
+    console.error('Code:', err.Code || err.code)
+    console.error('Status:', err.$metadata?.httpStatusCode)
+    console.error('RequestId:', err.$metadata?.requestId)
+    if (err.$response?.body) console.error('Body:', err.$response.body)
+    console.error('==========================')
+    res.status(500).json({ message: 'Yuklashda xatolik', detail: err.message })
   }
 })
 
