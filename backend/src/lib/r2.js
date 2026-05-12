@@ -34,10 +34,12 @@ if (isConfigured()) {
       accessKeyId: ACCESS_KEY_ID,
       secretAccessKey: SECRET_ACCESS_KEY
     },
-    // R2 va AWS SDK v3 mosligi uchun: SDK avtomatik checksum header'larini
-    // qo'shmasligi kerak (R2 ba'zi qo'shimcha header'lar uchun 401 qaytaradi).
+    // R2 va AWS SDK v3 mosligi:
+    // 1) Checksum header'lari avtomatik qo'shilmasin (R2 401 qaytarmasligi uchun)
     requestChecksumCalculation: 'WHEN_REQUIRED',
-    responseChecksumValidation: 'WHEN_REQUIRED'
+    responseChecksumValidation: 'WHEN_REQUIRED',
+    // 2) Path-style URL — virtual-hosted bilan ba'zi R2 token'lar 401 berishi mumkin
+    forcePathStyle: true
   })
   console.log(`📦 Object storage yoqildi (bucket: ${BUCKET}, endpoint: ${ENDPOINT})`)
 } else {
