@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Users, Plus, Trash2, Edit3,
   Image as ImageIcon, Upload, Video, Loader2, X, Save,
-  TrendingUp, GraduationCap, BarChart3, Eye, Sparkles
+  TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
+  Search, Shield, Mail, UserCheck, AlertTriangle, Check,
+  XCircle, Send, ArrowLeft, Globe, Activity, Clock
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -24,6 +26,20 @@ function Admin() {
   const [users, setUsers] = useState([])
   const [showCourseForm, setShowCourseForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
+  const [userSearch, setUserSearch] = useState('')
+
+  // Teacher requests
+  const [teacherRequests, setTeacherRequests] = useState([])
+  const [reqAction, setReqAction] = useState({}) // {id: 'approving'|'rejecting'}
+
+  // Security
+  const [securityStats, setSecurityStats] = useState(null)
+  const [securityLogs, setSecurityLogs] = useState([])
+  const [securityFilter, setSecurityFilter] = useState({ category: '', severity: '' })
+
+  // Settings — email test
+  const [emailTestTo, setEmailTestTo] = useState('')
+  const [emailTesting, setEmailTesting] = useState(false)
 
   // Course form
   const [form, setForm] = useState({
@@ -57,30 +73,108 @@ function Admin() {
 
   const loadData = async () => {
     setLoading(true)
+    const authHeaders = { Authorization: `Bearer ${token}` }
     try {
-      // Stats
-      const statsRes = await fetch(`${API_URL}/api/admin/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const statsData = await statsRes.json()
-      if (statsRes.ok) setStats(statsData)
+      const [statsRes, coursesRes, usersRes, requestsRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/stats`, { headers: authHeaders }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_URL}/api/teacher/all-courses`).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch(`${API_URL}/api/admin/users`, { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch(`${API_URL}/api/teacher/requests`, { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => [])
+      ])
 
-      // Courses
-      const coursesRes = await fetch(`${API_URL}/api/teacher/all-courses`)
-      const coursesData = await coursesRes.json()
-      if (Array.isArray(coursesData)) setCourses(coursesData)
-
-      // Users
-      const usersRes = await fetch(`${API_URL}/api/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const usersData = await usersRes.json()
-      if (Array.isArray(usersData)) setUsers(usersData)
+      if (statsRes) setStats(statsRes)
+      if (Array.isArray(coursesRes)) setCourses(coursesRes)
+      if (Array.isArray(usersRes)) setUsers(usersRes)
+      if (Array.isArray(requestsRes)) setTeacherRequests(requestsRes)
     } catch (err) {
       console.error(err)
     }
     setLoading(false)
   }
+
+  // Security tab — kerak bo'lganda yuklash
+  const loadSecurity = async () => {
+    const authHeaders = { Authorization: `Bearer ${token}` }
+    try {
+      const [statsRes, logsRes] = await Promise.all([
+        fetch(`${API_URL}/api/security/stats`, { headers: authHeaders }).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_URL}/api/security/logs?limit=100`, { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => [])
+      ])
+      if (statsRes) setSecurityStats(statsRes)
+      if (Array.isArray(logsRes)) setSecurityLogs(logsRes)
+    } catch (err) {
+      console.error('Security load:', err)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'security' && !securityStats) {
+      loadSecurity()
+    }
+  }, [activeTab])
+
+  // Teacher request approve/reject
+  const handleRequest = async (id, status) => {
+    setReqAction(prev => ({ ...prev, [id]: status === 'approved' ? 'approving' : 'rejecting' }))
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        addNotification(status === 'approved' ? 'Tasdiqlandi!' : 'Rad etildi', 'success')
+        loadData()
+      } else {
+        addNotification(data.message || 'Xatolik', 'error')
+      }
+    } catch {
+      addNotification('Server xatosi', 'error')
+    }
+    setReqAction(prev => ({ ...prev, [id]: null }))
+  }
+
+  // Email test
+  const sendTestEmail = async () => {
+    if (!emailTestTo.trim()) {
+      addNotification('Email manzilini kiriting', 'error')
+      return
+    }
+    setEmailTesting(true)
+    try {
+      const res = await fetch(`${API_URL}/api/security/email-test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ to: emailTestTo.trim() })
+      })
+      const data = await res.json()
+      if (res.ok && data.ok) {
+        addNotification(`Yuborildi (${data.provider})!`, 'success')
+      } else {
+        addNotification(data.message || 'Yuborishda xatolik', 'error')
+      }
+    } catch {
+      addNotification('Server xatosi', 'error')
+    }
+    setEmailTesting(false)
+  }
+
+  // Filtered users
+  const filteredUsers = useMemo(() => {
+    const q = userSearch.trim().toLowerCase()
+    if (!q) return users
+    return users.filter(u =>
+      u.name?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.role?.toLowerCase().includes(q)
+    )
+  }, [users, userSearch])
+
+  // Statistika hisobi
+  const pendingRequestsCount = teacherRequests.filter(r => r.status === 'pending').length
+  const teachersCount = users.filter(u => u.role === 'teacher').length
+  const totalLessons = courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)
 
   const resetForm = () => {
     setForm({
@@ -299,11 +393,25 @@ function Admin() {
         {/* Sidebar */}
         <aside className="admin-sidebar">
           <div className="admin-brand">
-            <Sparkles size={24} />
-            <span>Admin Panel</span>
+            <div className="admin-brand-icon"><Sparkles size={20} /></div>
+            <div className="admin-brand-text">
+              <strong>Admin Panel</strong>
+              <span>IdrokAI boshqaruvi</span>
+            </div>
           </div>
 
+          {user && (
+            <div className="admin-profile-mini">
+              <div className="admin-profile-avatar">{user.name?.[0]?.toUpperCase() || 'A'}</div>
+              <div className="admin-profile-info">
+                <div className="admin-profile-name">{user.name || 'Admin'}</div>
+                <div className="admin-profile-role"><Shield size={10} /> Administrator</div>
+              </div>
+            </div>
+          )}
+
           <nav className="admin-nav">
+            <div className="admin-nav-section">Asosiy</div>
             <button
               className={`admin-nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
@@ -324,11 +432,34 @@ function Admin() {
               <Users size={18} /> Foydalanuvchilar
               <span className="admin-nav-badge">{users.length}</span>
             </button>
+
+            <div className="admin-nav-section">Boshqaruv</div>
+            <button
+              className={`admin-nav-btn ${activeTab === 'requests' ? 'active' : ''}`}
+              onClick={() => setActiveTab('requests')}
+            >
+              <UserCheck size={18} /> O'qituvchi arizalari
+              {pendingRequestsCount > 0 && (
+                <span className="admin-nav-badge admin-nav-badge-warning">{pendingRequestsCount}</span>
+              )}
+            </button>
+            <button
+              className={`admin-nav-btn ${activeTab === 'security' ? 'active' : ''}`}
+              onClick={() => setActiveTab('security')}
+            >
+              <Shield size={18} /> Xavfsizlik
+            </button>
+            <button
+              className={`admin-nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              <Mail size={18} /> Sozlamalar
+            </button>
           </nav>
 
           <div className="admin-sidebar-footer">
             <button className="btn-outline" onClick={() => navigate('/')}>
-              Saytga qaytish
+              <ArrowLeft size={14} /> Saytga qaytish
             </button>
           </div>
         </aside>
@@ -338,78 +469,149 @@ function Admin() {
           {activeTab === 'dashboard' && (
             <div className="admin-content">
               <div className="admin-page-header">
-                <h1>Dashboard</h1>
-                <p>Platformangiz haqida umumiy ma'lumot</p>
+                <div>
+                  <h1>Dashboard</h1>
+                  <p>Platformangiz holati bir qarashda</p>
+                </div>
+                <div className="admin-header-actions">
+                  <button className="btn-outline btn-small" onClick={loadData}>
+                    <Activity size={14} /> Yangilash
+                  </button>
+                </div>
               </div>
+
+              {pendingRequestsCount > 0 && (
+                <div className="admin-alert admin-alert-warning">
+                  <AlertTriangle size={18} />
+                  <div>
+                    <strong>{pendingRequestsCount} ta o'qituvchi arizasi</strong> ko'rib chiqishni kutmoqda
+                  </div>
+                  <button className="btn-small" onClick={() => setActiveTab('requests')}>
+                    Ko'rish →
+                  </button>
+                </div>
+              )}
 
               <div className="admin-stats">
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
-                    <Users size={24} />
+                    <Users size={22} />
                   </div>
                   <div>
                     <div className="admin-stat-value">{stats.users}</div>
                     <div className="admin-stat-label">Foydalanuvchilar</div>
+                    <div className="admin-stat-sub">{teachersCount} o'qituvchi</div>
                   </div>
                 </div>
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9' }}>
-                    <BookOpen size={24} />
+                    <BookOpen size={22} />
                   </div>
                   <div>
                     <div className="admin-stat-value">{stats.courses}</div>
                     <div className="admin-stat-label">Kurslar</div>
+                    <div className="admin-stat-sub">{totalLessons} dars jami</div>
                   </div>
                 </div>
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
-                    <GraduationCap size={24} />
+                    <GraduationCap size={22} />
                   </div>
                   <div>
                     <div className="admin-stat-value">{stats.enrollments || 0}</div>
                     <div className="admin-stat-label">Yozilishlar</div>
+                    <div className="admin-stat-sub">
+                      {users.length > 0
+                        ? `${(((stats.enrollments || 0) / users.length)).toFixed(1)} o'rtacha/user`
+                        : 'Hali yo\'q'}
+                    </div>
                   </div>
                 </div>
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
-                    <TrendingUp size={24} />
+                    <UserCheck size={22} />
                   </div>
                   <div>
-                    <div className="admin-stat-value">{users.length > 0 ? Math.round((stats.enrollments || 0) / users.length * 100) / 100 : 0}</div>
-                    <div className="admin-stat-label">O'rtacha kurs/user</div>
+                    <div className="admin-stat-value">{pendingRequestsCount}</div>
+                    <div className="admin-stat-label">Pending arizalar</div>
+                    <div className="admin-stat-sub">{teacherRequests.length} jami</div>
                   </div>
                 </div>
               </div>
 
-              <div className="admin-section">
-                <h3><BookOpen size={18} /> So'nggi kurslar</h3>
-                <div className="admin-recent-list">
-                  {courses.slice(0, 5).map(c => (
-                    <div key={c.id} className="admin-recent-item">
-                      <div className="admin-recent-thumb">
-                        {c.image ? (
-                          <img src={assetUrl(c.image)} alt={c.title} />
-                        ) : (
-                          <BookOpen size={20} />
-                        )}
-                      </div>
-                      <div className="admin-recent-info">
-                        <div className="admin-recent-title">{c.title}</div>
-                        <div className="admin-recent-meta">
-                          {c.category} • {c.daraja} • {c.lessons?.length || 0} dars
+              <div className="admin-dashboard-grid">
+                <div className="admin-section">
+                  <div className="admin-section-header">
+                    <h3><BookOpen size={18} /> So'nggi kurslar</h3>
+                    <button className="btn-link" onClick={() => setActiveTab('courses')}>
+                      Hammasi →
+                    </button>
+                  </div>
+                  <div className="admin-recent-list">
+                    {courses.length === 0 ? (
+                      <div className="admin-recent-empty">Hali kurslar yo'q</div>
+                    ) : (
+                      courses.slice(0, 5).map(c => (
+                        <div key={c.id} className="admin-recent-item">
+                          <div className="admin-recent-thumb">
+                            {c.image ? (
+                              <img src={assetUrl(c.image)} alt={c.title} />
+                            ) : (
+                              <BookOpen size={20} />
+                            )}
+                          </div>
+                          <div className="admin-recent-info">
+                            <div className="admin-recent-title">{c.title}</div>
+                            <div className="admin-recent-meta">
+                              {c.category} • {c.daraja} • {c.lessons?.length || 0} dars
+                            </div>
+                          </div>
+                          <button className="btn-outline btn-small" onClick={() => {
+                            setActiveTab('courses')
+                            setTimeout(() => startEdit(c), 100)
+                          }}>
+                            <Edit3 size={14} />
+                          </button>
                         </div>
-                      </div>
-                      <button className="btn-outline btn-small" onClick={() => {
-                        setActiveTab('courses')
-                        setTimeout(() => startEdit(c), 100)
-                      }}>
-                        <Edit3 size={14} />
-                      </button>
-                    </div>
-                  ))}
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-section">
+                  <div className="admin-section-header">
+                    <h3><Users size={18} /> Yangi foydalanuvchilar</h3>
+                    <button className="btn-link" onClick={() => setActiveTab('users')}>
+                      Hammasi →
+                    </button>
+                  </div>
+                  <div className="admin-recent-list">
+                    {users.length === 0 ? (
+                      <div className="admin-recent-empty">Hali userlar yo'q</div>
+                    ) : (
+                      users.slice(0, 5).map(u => (
+                        <div key={u.id} className="admin-recent-item">
+                          <div className="admin-user-avatar" style={{
+                            background: `linear-gradient(135deg, hsl(${u.id * 60 % 360}, 70%, 60%), hsl(${(u.id * 60 + 60) % 360}, 70%, 50%))`
+                          }}>
+                            {u.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <div className="admin-recent-info">
+                            <div className="admin-recent-title">{u.name}</div>
+                            <div className="admin-recent-meta">
+                              {u.email} • <span className={`admin-role-mini role-${u.role}`}>{u.role}</span>
+                            </div>
+                          </div>
+                          <div className="admin-recent-date">
+                            <Clock size={11} /> {new Date(u.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -759,8 +961,24 @@ function Admin() {
           {activeTab === 'users' && (
             <div className="admin-content">
               <div className="admin-page-header">
-                <h1>Foydalanuvchilar</h1>
-                <p>Barcha ro'yxatdan o'tgan foydalanuvchilar</p>
+                <div>
+                  <h1>Foydalanuvchilar</h1>
+                  <p>{filteredUsers.length} ta ko'rsatilmoqda — jami {users.length}</p>
+                </div>
+                <div className="admin-search">
+                  <Search size={16} />
+                  <input
+                    type="text"
+                    value={userSearch}
+                    onChange={e => setUserSearch(e.target.value)}
+                    placeholder="Ism, email yoki rol bo'yicha qidirish..."
+                  />
+                  {userSearch && (
+                    <button className="admin-search-clear" onClick={() => setUserSearch('')}>
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="admin-table-wrap">
@@ -775,7 +993,13 @@ function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((u, i) => (
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                          Foydalanuvchi topilmadi
+                        </td>
+                      </tr>
+                    ) : filteredUsers.map((u, i) => (
                       <tr key={u.id}>
                         <td>{i + 1}</td>
                         <td>
@@ -790,8 +1014,8 @@ function Admin() {
                         </td>
                         <td>{u.email}</td>
                         <td>
-                          <span className={`admin-role ${u.email === 'admin@idrokai.uz' ? 'role-admin' : 'role-user'}`}>
-                            {u.email === 'admin@idrokai.uz' ? 'Admin' : 'User'}
+                          <span className={`admin-role role-${u.role || 'student'}`}>
+                            {u.role === 'admin' ? 'Admin' : u.role === 'teacher' ? 'Teacher' : 'Student'}
                           </span>
                         </td>
                         <td>{new Date(u.created_at).toLocaleDateString('uz-UZ')}</td>
@@ -799,6 +1023,241 @@ function Admin() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* TEACHER REQUESTS */}
+          {activeTab === 'requests' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>O'qituvchi arizalari</h1>
+                  <p>{pendingRequestsCount} pending — jami {teacherRequests.length}</p>
+                </div>
+              </div>
+
+              {teacherRequests.length === 0 ? (
+                <div className="admin-empty">
+                  <UserCheck size={48} />
+                  <h3>Hali arizalar yo'q</h3>
+                  <p>Foydalanuvchilar o'qituvchi bo'lish uchun ariza berishi mumkin</p>
+                </div>
+              ) : (
+                <div className="admin-requests-list">
+                  {teacherRequests.map(req => {
+                    const action = reqAction[req.id]
+                    return (
+                      <div key={req.id} className={`admin-request-card status-${req.status}`}>
+                        <div className="admin-request-main">
+                          <div className="admin-user-avatar" style={{
+                            background: `linear-gradient(135deg, hsl(${req.user_id * 60 % 360}, 70%, 60%), hsl(${(req.user_id * 60 + 60) % 360}, 70%, 50%))`
+                          }}>
+                            {(req.full_name || req.name)?.[0]?.toUpperCase()}
+                          </div>
+                          <div className="admin-request-info">
+                            <div className="admin-request-name">
+                              {req.full_name}
+                              <span className={`admin-request-status status-${req.status}`}>
+                                {req.status === 'pending' ? 'Kutmoqda' :
+                                  req.status === 'approved' ? 'Tasdiqlangan' : 'Rad etilgan'}
+                              </span>
+                            </div>
+                            <div className="admin-request-email">{req.email}</div>
+                            <div className="admin-request-detail">
+                              <strong>Fan:</strong> {req.subject}
+                            </div>
+                            <div className="admin-request-detail">
+                              <strong>Tajriba:</strong> {req.experience}
+                            </div>
+                            <div className="admin-request-date">
+                              <Clock size={11} /> {new Date(req.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </div>
+                          </div>
+                        </div>
+                        {req.status === 'pending' && (
+                          <div className="admin-request-actions">
+                            <button
+                              className="btn-success"
+                              onClick={() => handleRequest(req.id, 'approved')}
+                              disabled={!!action}
+                            >
+                              {action === 'approving' ? <Loader2 size={14} className="spin-icon" /> : <Check size={14} />} Tasdiqlash
+                            </button>
+                            <button
+                              className="btn-danger"
+                              onClick={() => handleRequest(req.id, 'rejected')}
+                              disabled={!!action}
+                            >
+                              {action === 'rejecting' ? <Loader2 size={14} className="spin-icon" /> : <XCircle size={14} />} Rad etish
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SECURITY */}
+          {activeTab === 'security' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>Xavfsizlik</h1>
+                  <p>Threat detector va hujum log'lari</p>
+                </div>
+                <button className="btn-outline btn-small" onClick={loadSecurity}>
+                  <Activity size={14} /> Yangilash
+                </button>
+              </div>
+
+              {securityStats ? (
+                <>
+                  <div className="admin-stats">
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                        <Shield size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{securityStats.total}</div>
+                        <div className="admin-stat-label">Jami hodisalar</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
+                        <AlertTriangle size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{securityStats.last24h}</div>
+                        <div className="admin-stat-label">Oxirgi 24 soat</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9' }}>
+                        <Globe size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{securityStats.topAttackers?.length || 0}</div>
+                        <div className="admin-stat-label">Top hujumchilar</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: securityStats.telegramConfigured ? 'rgba(34, 197, 94, 0.15)' : 'rgba(148, 163, 184, 0.15)', color: securityStats.telegramConfigured ? '#22c55e' : '#94a3b8' }}>
+                        <Send size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{securityStats.telegramConfigured ? 'ON' : 'OFF'}</div>
+                        <div className="admin-stat-label">Telegram alerts</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-section">
+                    <h3><AlertTriangle size={18} /> So'nggi hodisalar</h3>
+                    <div className="admin-table-wrap">
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Vaqt</th>
+                            <th>IP</th>
+                            <th>Davlat</th>
+                            <th>Toifa</th>
+                            <th>Darajasi</th>
+                            <th>URL</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {securityLogs.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                                Hech qanday hodisa yo'q — bu yaxshi
+                              </td>
+                            </tr>
+                          ) : securityLogs.slice(0, 30).map(log => (
+                            <tr key={log.id}>
+                              <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                {new Date(log.ts).toLocaleString('uz-UZ', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </td>
+                              <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{log.ip}</td>
+                              <td style={{ fontSize: '12px' }}>{log.country || '?'}{log.city ? ` • ${log.city}` : ''}</td>
+                              <td><span className="admin-role role-student">{log.category}</span></td>
+                              <td>
+                                <span className={`admin-severity sev-${log.severity}`}>
+                                  {log.severity}
+                                </span>
+                              </td>
+                              <td style={{ fontSize: '11px', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+                                {log.method} {log.url}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="admin-empty">
+                  <Loader2 size={32} className="spin-icon" />
+                  <h3>Yuklanmoqda...</h3>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SETTINGS */}
+          {activeTab === 'settings' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>Sozlamalar</h1>
+                  <p>Email va xizmat testlari</p>
+                </div>
+              </div>
+
+              <div className="admin-section">
+                <h3><Mail size={18} /> Email test</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '16px' }}>
+                  Belgilangan manzilga test xabar yuborib email provayder ishlayotganini tekshiring.
+                </p>
+                <div className="admin-form-row">
+                  <input
+                    type="email"
+                    value={emailTestTo}
+                    onChange={e => setEmailTestTo(e.target.value)}
+                    placeholder="test@example.com"
+                    className="admin-input"
+                    disabled={emailTesting}
+                  />
+                  <button
+                    className="btn-primary"
+                    onClick={sendTestEmail}
+                    disabled={emailTesting || !emailTestTo.trim()}
+                  >
+                    {emailTesting ? <Loader2 size={14} className="spin-icon" /> : <Send size={14} />} Yuborish
+                  </button>
+                </div>
+              </div>
+
+              <div className="admin-section">
+                <h3><Activity size={18} /> Tizim ma'lumotlari</h3>
+                <div className="admin-info-grid">
+                  <div className="admin-info-item">
+                    <span className="admin-info-label">API URL</span>
+                    <span className="admin-info-value" style={{ fontFamily: 'monospace', fontSize: '12px' }}>{API_URL}</span>
+                  </div>
+                  <div className="admin-info-item">
+                    <span className="admin-info-label">Frontend</span>
+                    <span className="admin-info-value" style={{ fontFamily: 'monospace', fontSize: '12px' }}>{window.location.origin}</span>
+                  </div>
+                  <div className="admin-info-item">
+                    <span className="admin-info-label">Versiya</span>
+                    <span className="admin-info-value">v1.0.0</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
