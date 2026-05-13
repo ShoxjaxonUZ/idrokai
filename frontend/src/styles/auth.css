@@ -1,3 +1,6 @@
+/* ============================================
+   AUTH — Soft Modern
+   ============================================ */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -6,31 +9,19 @@
   padding: 40px 24px;
   position: relative;
   overflow: hidden;
-  /* Navbar spacer'ni o'rab gradient navbar ostidan ko'rinadi */
-  margin-top: calc(var(--navbar-h) * -1);
-  padding-top: calc(var(--navbar-h) + 40px);
+  background: var(--bg);
 }
 
+/* Yengil radial accent — kartochka orqasida */
 .auth-page::before {
   content: '';
   position: absolute;
-  top: -30%;
+  top: -20%;
   left: 50%;
   transform: translateX(-50%);
-  width: 1000px;
-  height: 1000px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.auth-page::after {
-  content: '';
-  position: absolute;
-  bottom: -20%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 60%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--primary-bg) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -38,12 +29,12 @@
   background: var(--card);
   border: 1px solid var(--border);
   padding: 40px;
-  border-radius: 28px;
+  border-radius: var(--radius-xl);
   width: 100%;
-  max-width: 460px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
   position: relative;
-  animation: fadeIn 0.4s ease;
+  animation: fadeIn 0.3s ease;
   z-index: 1;
 }
 
@@ -57,33 +48,31 @@
 }
 
 .auth-logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  background: var(--primary);
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 .auth-logo-text {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary-light), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .auth-title {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: var(--text);
   text-align: center;
   margin-bottom: 6px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.025em;
 }
 
 .auth-sub {
@@ -91,19 +80,6 @@
   color: var(--text-soft);
   margin-bottom: 28px;
   font-size: 14px;
-}
-
-.auth-error {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-size: 14px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* Input with icon */
@@ -121,13 +97,13 @@
 }
 
 .input-with-icon input {
-  padding-left: 44px !important;
-  padding-right: 44px !important;
+  padding-left: 42px !important;
+  padding-right: 42px !important;
 }
 
 .input-toggle {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -135,16 +111,16 @@
   color: var(--text-muted);
   cursor: pointer;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .input-toggle:hover {
-  background: var(--bg-soft);
-  color: var(--primary-light);
+  background: var(--card-hover);
+  color: var(--text);
 }
 
 /* Password strength */
@@ -162,16 +138,16 @@
 }
 
 .strength-bar {
-  height: 4px;
+  height: 3px;
   flex: 1;
   border-radius: 2px;
-  transition: background 0.3s;
+  transition: background 0.2s ease;
 }
 
 .password-strength span {
   font-size: 12px;
-  font-weight: 600;
-  min-width: 90px;
+  font-weight: 500;
+  min-width: 88px;
   text-align: right;
 }
 
@@ -181,19 +157,19 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px !important;
+  padding: 13px !important;
   font-size: 15px !important;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 /* Benefits */
 .auth-benefits {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 18px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px dashed var(--border);
+  border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
 
@@ -225,7 +201,7 @@
 
 .auth-divider span {
   background: var(--card);
-  padding: 0 16px;
+  padding: 0 14px;
   position: relative;
   color: var(--text-muted);
   font-size: 13px;
@@ -239,53 +215,37 @@
 }
 
 .auth-link a {
-  color: var(--primary-light);
+  color: var(--primary);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  transition: gap 0.2s;
+  transition: gap 0.15s ease, color 0.15s ease;
 }
 
 .auth-link a:hover {
   gap: 8px;
+  color: var(--primary-dark);
 }
 
 @media (max-width: 768px) {
-  /* margin-top va padding-top yuqorida var(--navbar-h) bilan avtomatik */
   .auth-page {
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-bottom: 32px;
+    padding: 24px 16px;
   }
   .auth-card {
-    padding: 28px 20px;
-    border-radius: 22px;
+    padding: 28px 22px;
+    border-radius: var(--radius-lg);
   }
-  .auth-logo {
-    margin-bottom: 22px;
-  }
-  .auth-logo-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-  }
-  .auth-logo-text {
-    font-size: 22px;
-  }
-  .auth-title {
-    font-size: 24px;
-  }
-  .auth-sub {
-    font-size: 13px;
-    margin-bottom: 22px;
-  }
-  .auth-divider {
-    margin: 20px 0;
-  }
-  /* iOS zoom oldini olish — input font-size >= 16px */
+  .auth-logo { margin-bottom: 22px; }
+  .auth-logo-icon { width: 40px; height: 40px; }
+  .auth-logo-text { font-size: 20px; }
+  .auth-title { font-size: 22px; }
+  .auth-sub { font-size: 13px; margin-bottom: 22px; }
+  .auth-divider { margin: 20px 0; }
+
+  /* iOS zoom oldini olish */
   .input-with-icon input,
   .form-group input,
   .form-group select,
@@ -295,36 +255,23 @@
 }
 
 @media (max-width: 420px) {
-  .auth-page {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
+  .auth-page { padding: 16px 12px; }
   .auth-card {
-    padding: 24px 16px;
-    border-radius: 18px;
+    padding: 22px 16px;
+    border-radius: var(--radius-md);
   }
-  .auth-title {
-    font-size: 22px;
-  }
+  .auth-title { font-size: 20px; }
   .auth-benefits {
     gap: 10px;
     margin-top: 16px;
     padding-top: 16px;
   }
-  .benefit-item {
-    font-size: 12px;
-  }
   .password-strength span {
     font-size: 11px;
-    min-width: 76px;
+    min-width: 74px;
   }
-  /* Decorative blob'larni kichikroq qilish */
   .auth-page::before {
-    width: 600px;
-    height: 600px;
-  }
-  .auth-page::after {
-    width: 400px;
-    height: 400px;
+    width: 500px;
+    height: 500px;
   }
 }
