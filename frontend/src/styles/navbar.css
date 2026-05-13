@@ -44,8 +44,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   box-shadow:
     0 8px 32px color-mix(in srgb, var(--primary) 12%, transparent),
     0 2px 8px rgba(0, 0, 0, 0.04);
