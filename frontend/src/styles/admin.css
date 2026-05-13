@@ -40,7 +40,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(91, 91, 214, 0.3);
   flex-shrink: 0;
 }
 
@@ -77,7 +77,7 @@
 .admin-profile-avatar {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #DC8B1A, #B47115);
   color: white;
   font-weight: 700;
   font-size: 14px;
@@ -86,7 +86,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 2px 8px rgba(220, 139, 26, 0.3);
 }
 
 .admin-profile-info {
@@ -105,7 +105,7 @@
 
 .admin-profile-role {
   font-size: 10px;
-  color: #f59e0b;
+  color: #DC8B1A;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -156,7 +156,7 @@
 .admin-nav-btn.active {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: white;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(91, 91, 214, 0.3);
 }
 
 .admin-nav-badge {
@@ -170,14 +170,14 @@
 }
 
 .admin-nav-badge-warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #DC8B1A, #B47115);
   color: white;
   animation: pulseBadge 2s ease-in-out infinite;
 }
 
 @keyframes pulseBadge {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
-  50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 139, 26, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 139, 26, 0); }
 }
 
 .admin-nav-btn.active .admin-nav-badge {
@@ -324,7 +324,7 @@
 .admin-recent-thumb {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(14, 165, 233, 0.15));
+  background: linear-gradient(135deg, rgba(91, 91, 214, 0.15), rgba(7, 136, 199, 0.15));
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -417,7 +417,7 @@
 
 .upload-box:hover {
   border-color: var(--primary);
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(91, 91, 214, 0.05);
 }
 
 .upload-label {
@@ -514,8 +514,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(15, 157, 119, 0.08);
+  border: 1px solid rgba(15, 157, 119, 0.3);
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 13px;
@@ -590,9 +590,9 @@
 }
 
 .lesson-delete-btn {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(209, 69, 69, 0.1);
   color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(209, 69, 69, 0.25);
   padding: 4px 10px;
   border-radius: 8px;
   cursor: pointer;
@@ -647,7 +647,7 @@
 
 .admin-course-thumb {
   height: 140px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(14, 165, 233, 0.15));
+  background: linear-gradient(135deg, rgba(91, 91, 214, 0.15), rgba(7, 136, 199, 0.15));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -718,9 +718,9 @@
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: rgba(209, 69, 69, 0.1) !important;
   color: var(--danger) !important;
-  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  border: 1px solid rgba(209, 69, 69, 0.25) !important;
 }
 
 .btn-danger:hover {
@@ -832,15 +832,15 @@
 }
 
 .role-admin {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1));
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, rgba(220, 139, 26, 0.15), rgba(180, 113, 21, 0.1));
+  color: #DC8B1A;
+  border: 1px solid rgba(220, 139, 26, 0.3);
 }
 
 .role-user {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(91, 91, 214, 0.1);
   color: var(--primary-light);
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(91, 91, 214, 0.25);
 }
 
 /* ============ SPIN ============ */
@@ -868,13 +868,13 @@
 }
 
 .admin-alert-warning {
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(220, 139, 26, 0.08);
+  border-color: rgba(220, 139, 26, 0.3);
   color: var(--text);
 }
 
 .admin-alert-warning > svg {
-  color: #f59e0b;
+  color: #DC8B1A;
   flex-shrink: 0;
 }
 
@@ -888,7 +888,7 @@
 }
 
 .admin-alert > button {
-  background: #f59e0b;
+  background: #DC8B1A;
   color: white;
   border: none;
   padding: 6px 14px;
@@ -901,7 +901,7 @@
 }
 
 .admin-alert > button:hover {
-  background: #d97706;
+  background: #B47115;
 }
 
 /* ============ NEW: Section header with link ============ */
@@ -975,15 +975,15 @@
 
 /* ============ NEW: Role badges (teacher, student) ============ */
 .role-teacher {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1));
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, rgba(15, 157, 119, 0.15), rgba(22, 163, 74, 0.1));
+  color: #0F9D77;
+  border: 1px solid rgba(15, 157, 119, 0.3);
 }
 
 .role-student {
-  background: rgba(14, 165, 233, 0.1);
+  background: rgba(7, 136, 199, 0.1);
   color: var(--secondary);
-  border: 1px solid rgba(14, 165, 233, 0.25);
+  border: 1px solid rgba(7, 136, 199, 0.25);
 }
 
 .admin-role-mini {
@@ -1072,16 +1072,16 @@
 }
 
 .admin-request-card.status-pending {
-  border-left: 3px solid #f59e0b;
+  border-left: 3px solid #DC8B1A;
 }
 
 .admin-request-card.status-approved {
-  border-left: 3px solid #22c55e;
+  border-left: 3px solid #0F9D77;
   opacity: 0.7;
 }
 
 .admin-request-card.status-rejected {
-  border-left: 3px solid #ef4444;
+  border-left: 3px solid #D14545;
   opacity: 0.6;
 }
 
@@ -1123,18 +1123,18 @@
 }
 
 .admin-request-status.status-pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: rgba(220, 139, 26, 0.15);
+  color: #DC8B1A;
 }
 
 .admin-request-status.status-approved {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: rgba(15, 157, 119, 0.15);
+  color: #0F9D77;
 }
 
 .admin-request-status.status-rejected {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: rgba(209, 69, 69, 0.15);
+  color: #D14545;
 }
 
 .admin-request-email {
@@ -1187,13 +1187,13 @@
 }
 
 .btn-success {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(15, 157, 119, 0.1);
+  color: #0F9D77;
+  border-color: rgba(15, 157, 119, 0.3);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #22c55e;
+  background: #0F9D77;
   color: white;
 }
 
@@ -1215,9 +1215,9 @@
 }
 
 .sev-low { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
-.sev-medium { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.sev-medium { background: rgba(220, 139, 26, 0.15); color: #DC8B1A; }
 .sev-high { background: rgba(249, 115, 22, 0.15); color: #f97316; }
-.sev-critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.sev-critical { background: rgba(209, 69, 69, 0.15); color: #D14545; }
 
 /* ============ NEW: Settings inputs ============ */
 .admin-form-row {
