@@ -16,12 +16,6 @@
   position: absolute;
   inset: 0;
   height: calc(var(--navbar-h) + 20px);
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--bg) 75%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 40%, transparent) 70%,
-    transparent 100%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
   -webkit-mask-image: linear-gradient(180deg, #000 65%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 65%, transparent 100%);
   pointer-events: none;
@@ -44,11 +38,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  box-shadow:
-    0 8px 32px color-mix(in srgb, var(--primary) 12%, transparent),
-    0 2px 8px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   pointer-events: auto;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }

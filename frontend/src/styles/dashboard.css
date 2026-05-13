@@ -38,7 +38,7 @@
 .dash-avatar {
   width: 68px;
   height: 68px;
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
   color: #fff;
   font-size: 28px;
   font-weight: 700;
@@ -47,7 +47,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 .dash-profile-info { flex: 1; }

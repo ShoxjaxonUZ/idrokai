@@ -29,7 +29,7 @@
 .ait-header-icon {
   width: 36px;
   height: 36px;
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -160,7 +160,7 @@
   width: 64px;
   height: 64px;
   margin: 0 auto 22px;
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
@@ -285,7 +285,7 @@
 }
 
 .msg-bot .msg-avatar {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
 }
 
 .msg-body {
