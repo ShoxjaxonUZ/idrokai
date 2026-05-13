@@ -6,6 +6,12 @@ const geoip = require('./geoip')
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID
 
+// Xavfsizlik (admin) xabarlarini yoqish/o'chirish.
+// Default: o'chirilgan — chunki Verification botiga foydalanuvchilar /start yuborganda
+// admin xabarlari o'sha userlar uchun xato yuborilmasligi kerak.
+// Yoqish uchun env: TELEGRAM_SECURITY_ALERTS=on
+const SECURITY_ALERTS_ENABLED = String(process.env.TELEGRAM_SECURITY_ALERTS || '').toLowerCase() === 'on'
+
 let lastErrorAt = 0
 const ERROR_COOLDOWN = 60_000
 
@@ -18,7 +24,7 @@ const md = (s) => {
 }
 
 const sendMessage = async (text, opts = {}) => {
-  if (!isConfigured()) return false
+  if (!isConfigured() || !SECURITY_ALERTS_ENABLED) return false
   if (text.length > 4000) text = text.slice(0, 3990) + '...'
 
   try {
@@ -61,7 +67,7 @@ const sendMessage = async (text, opts = {}) => {
 
 // Joylashuvni alohida xabar sifatida yuborish (Telegram'da xarita ko'rinadi)
 const sendLocation = async (latitude, longitude, opts = {}) => {
-  if (!isConfigured() || latitude == null || longitude == null) return false
+  if (!isConfigured() || !SECURITY_ALERTS_ENABLED || latitude == null || longitude == null) return false
   try {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 5000)
@@ -85,6 +91,7 @@ const sendLocation = async (latitude, longitude, opts = {}) => {
 
 // Hujum xabari — formatlangan, joylashuv bilan
 const sendAttackAlert = async (entry) => {
+  if (!SECURITY_ALERTS_ENABLED) return false
   const sevEmoji = {
     critical: '🔴',
     high: '🟠',
@@ -150,7 +157,7 @@ const sendAttackAlert = async (entry) => {
 }
 
 const sendStartup = async () => {
-  if (!isConfigured()) return false
+  if (!isConfigured() || !SECURITY_ALERTS_ENABLED) return false
   return sendMessage(
     `🛡️ *IdrokAI xavfsizlik tizimi yoqildi*\n\nServer vaqti: ${md(new Date().toISOString())}`,
     { silent: true }

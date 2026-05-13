@@ -195,11 +195,12 @@ const start = async () => {
 
   app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portda ishlamoqda`)
-    if (telegram.isConfigured()) {
+    const alertsOn = String(process.env.TELEGRAM_SECURITY_ALERTS || '').toLowerCase() === 'on'
+    if (telegram.isConfigured() && alertsOn) {
       console.log('🛡️  Telegram security alerts: yoqilgan')
       telegram.sendStartup().catch(() => {})
     } else {
-      console.log('⚠️  Telegram alerts o\'chirilgan (TELEGRAM_BOT_TOKEN va TELEGRAM_CHAT_ID kerak)')
+      console.log('🔕 Telegram security alerts: o\'chirilgan (yoqish uchun TELEGRAM_SECURITY_ALERTS=on)')
     }
 
     // Telegram webhook'ni avtomatik o'rnatish (production'da)
