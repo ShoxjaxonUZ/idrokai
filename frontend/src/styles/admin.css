@@ -1214,9 +1214,9 @@
   letter-spacing: 0.4px;
 }
 
-.sev-low { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
-.sev-medium { background: rgba(220, 139, 26, 0.15); color: #DC8B1A; }
-.sev-high { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+.sev-low { background: rgba(148, 163, 184, 0.12); color: var(--text-soft); }
+.sev-medium { background: var(--warning-bg); color: var(--warning); }
+.sev-high { background: rgba(220, 95, 26, 0.13); color: #C26410; }
 .sev-critical { background: rgba(209, 69, 69, 0.15); color: #D14545; }
 
 /* ============ NEW: Settings inputs ============ */

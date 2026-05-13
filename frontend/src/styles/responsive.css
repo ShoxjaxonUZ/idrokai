@@ -131,7 +131,7 @@ html, body {
   .admin-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border);
     padding: 12px 0;
   }
 
