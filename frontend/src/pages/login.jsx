@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Mail, Lock, Eye, EyeOff, LogIn, GraduationCap,
   AlertCircle, ArrowRight
@@ -9,6 +9,8 @@ import '../styles/auth.css'
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromPath = location.state?.from?.pathname || '/dashboard'
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -45,12 +47,12 @@ function Login() {
           })
           const statusData = await statusRes.json()
           if (statusData.onboarded) {
-            navigate('/')
+            navigate(fromPath, { replace: true })
           } else {
-            navigate('/onboarding')
+            navigate('/onboarding', { replace: true })
           }
         } catch {
-          navigate('/')
+          navigate(fromPath, { replace: true })
         }
       } else if (data.verificationRequired) {
         setNeedVerification(true)
@@ -170,7 +172,7 @@ function Login() {
 
         <div className="auth-link">
           Hisobingiz yo'qmi?{' '}
-          <Link to="/register">
+          <Link to="/register" state={location.state?.from ? { from: location.state.from } : undefined}>
             Ro'yxatdan o'tish <ArrowRight size={14} />
           </Link>
         </div>

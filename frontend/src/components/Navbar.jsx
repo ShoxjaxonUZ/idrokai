@@ -67,10 +67,14 @@ function Navbar() {
           {/* Center links */}
           <div className="nav-center">
             <span onClick={() => goTo('/courses')}>Kurslar</span>
-            <span onClick={() => goTo('/daily')}>Kunlik</span>
-            <span onClick={() => goTo('/battle')}>Battle</span>
-            <span onClick={() => goTo('/ai-teacher')}>AI Teacher</span>
-            <span onClick={() => goTo('/leaderboard')}>Reyting</span>
+            {user && (
+              <>
+                <span onClick={() => goTo('/daily')}>Kunlik</span>
+                <span onClick={() => goTo('/battle')}>Battle</span>
+                <span onClick={() => goTo('/ai-teacher')}>AI Teacher</span>
+                <span onClick={() => goTo('/leaderboard')}>Reyting</span>
+              </>
+            )}
           </div>
 
           {/* Right */}
@@ -160,27 +164,27 @@ function Navbar() {
               <button onClick={() => goTo('/courses')}>
                 <BookOpen size={18} /> Kurslar
               </button>
-              <button onClick={() => goTo('/battle')}>
-                <Swords size={18} /> Battle
-              </button>
-              <button onClick={() => goTo('/ai-teacher')}>
-                <Bot size={18} /> AI Teacher
-              </button>
-              <button onClick={() => goTo('/leaderboard')}>
-                <Trophy size={18} /> Reyting
-              </button>
-              <button onClick={() => goTo('/ai-quiz')}>
-                <Bot size={18} /> AI Test
-              </button>
               {user && (
-                <button onClick={() => goTo('/dashboard')}>
-                  <LayoutDashboard size={18} /> Dashboard
-                </button>
-              )}
-              {user && (
-                <button onClick={() => goTo('/profile')}>
-                  <User size={18} /> Profil
-                </button>
+                <>
+                  <button onClick={() => goTo('/battle')}>
+                    <Swords size={18} /> Battle
+                  </button>
+                  <button onClick={() => goTo('/ai-teacher')}>
+                    <Bot size={18} /> AI Teacher
+                  </button>
+                  <button onClick={() => goTo('/leaderboard')}>
+                    <Trophy size={18} /> Reyting
+                  </button>
+                  <button onClick={() => goTo('/ai-quiz')}>
+                    <Bot size={18} /> AI Test
+                  </button>
+                  <button onClick={() => goTo('/dashboard')}>
+                    <LayoutDashboard size={18} /> Dashboard
+                  </button>
+                  <button onClick={() => goTo('/profile')}>
+                    <User size={18} /> Profil
+                  </button>
+                </>
               )}
               {isAdmin && (
                 <button onClick={() => goTo('/admin')}>

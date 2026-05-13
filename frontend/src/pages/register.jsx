@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   User, Mail, Lock, Eye, EyeOff, UserPlus, GraduationCap,
   AlertCircle, ArrowRight, CheckCircle2
@@ -9,6 +9,8 @@ import '../styles/auth.css'
 
 function Register() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromState = location.state?.from ? { from: location.state.from } : undefined
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -61,7 +63,7 @@ function Register() {
         } else if (data.token) {
           localStorage.setItem('token', data.token)
           localStorage.setItem('user', JSON.stringify(data.user))
-          navigate('/onboarding')
+          navigate('/onboarding', { state: fromState })
         }
       } else {
         setError(data.message || 'Ro\'yxatdan o\'tishda xatolik')
@@ -82,8 +84,8 @@ function Register() {
         if (data.verified) {
           setPollingStatus('verified')
           clearInterval(interval)
-          // 2 soniyadan keyin login sahifasiga
-          setTimeout(() => navigate('/login'), 2000)
+          // 2 soniyadan keyin login sahifasiga (asl manzilni saqlab)
+          setTimeout(() => navigate('/login', { state: fromState }), 2000)
         }
       } catch {}
     }, 3000)
@@ -200,7 +202,7 @@ function Register() {
             Yangi havola olish
           </button>
 
-          <Link to="/login" style={{ display: 'block', marginTop: 16, color: '#8b5cf6' }}>
+          <Link to="/login" state={fromState} style={{ display: 'block', marginTop: 16, color: '#8b5cf6' }}>
             ← Login sahifasiga qaytish
           </Link>
         </div>
@@ -322,7 +324,7 @@ function Register() {
 
         <div className="auth-link">
           Hisobingiz bormi?{' '}
-          <Link to="/login">
+          <Link to="/login" state={fromState}>
             Kirish <ArrowRight size={14} />
           </Link>
         </div>

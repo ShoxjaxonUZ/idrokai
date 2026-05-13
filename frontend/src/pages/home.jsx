@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
   Smartphone, ArrowRight, Play, GraduationCap, BarChart3,
@@ -7,19 +7,22 @@ import {
   Trophy, CheckCircle2, ChevronDown, Shield, Zap,
   Quote, Globe, Code2, Lightbulb
 } from 'lucide-react'
-import { API_URL, assetUrl } from '../lib/api'
+import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/home.css'
 
 function Home() {
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user'))
+  const user = getUser()
+  const token = getToken()
+  const isAuth = !!(user && token)
   const [courses, setCourses] = useState([])
   const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0 })
   const [openFaq, setOpenFaq] = useState(0)
 
   useEffect(() => {
+    if (isAuth) return
     document.title = "IdrokAI — O'zbek tilida bepul ta'lim"
 
     fetch(`${API_URL}/api/teacher/all-courses`)
@@ -37,7 +40,11 @@ function Home() {
         }
       })
       .catch(() => { })
-  }, [])
+  }, [isAuth])
+
+  if (isAuth) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   const features = [
     { Icon: GraduationCap, title: "O'zbek tilida", desc: "Barcha kurslar sof o'zbek tilida tayyorlangan", color: "#8b5cf6" },

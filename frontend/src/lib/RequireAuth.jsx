@@ -7,7 +7,7 @@ export default function RequireAuth({ role, children }) {
   const user = getUser()
 
   if (!token || !user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/register" state={{ from: location }} replace />
   }
 
   if (role) {

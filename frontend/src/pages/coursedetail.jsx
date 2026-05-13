@@ -111,7 +111,7 @@ function CourseDetail() {
   }
 
   const handleEnroll = async () => {
-    if (!token) return navigate('/login')
+    if (!token) return navigate('/register', { state: { from: { pathname: `/courses/${id}` } } })
     setEnrolling(true)
     try {
       const res = await fetch(`${API_URL}/api/courses/enroll`, {
@@ -239,9 +239,15 @@ function CourseDetail() {
                             return (
                               <li
                                 key={realIndex}
-                                className={`lesson-item ${isCompleted ? 'lesson-done' : ''} ${enrolled ? 'lesson-clickable' : ''}`}
+                                className={`lesson-item ${isCompleted ? 'lesson-done' : ''} lesson-clickable`}
                                 onClick={() => {
-                                  if (enrolled) navigate(`/courses/${id}/lessons/${realIndex}`)
+                                  if (!token) {
+                                    navigate('/register', { state: { from: { pathname: `/courses/${id}` } } })
+                                  } else if (enrolled) {
+                                    navigate(`/courses/${id}/lessons/${realIndex}`)
+                                  } else {
+                                    handleEnroll()
+                                  }
                                 }}
                               >
                                 <span className="lesson-num">
