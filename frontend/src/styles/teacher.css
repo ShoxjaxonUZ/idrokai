@@ -1,92 +1,104 @@
+/* ============================================
+   TEACHER — Soft Modern
+   ============================================ */
 .teacher-page {
   max-width: 600px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: calc(var(--navbar-h) + 24px) 24px 48px;
 }
 
 .teacher-card {
-  background: white;
-  border-radius: 20px;
-  padding: 48px 40px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 44px 36px;
+  box-shadow: var(--shadow-sm);
   text-align: center;
 }
 
 .teacher-icon {
-  font-size: 64px;
+  font-size: 56px;
   margin-bottom: 16px;
 }
 
 .teacher-card h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .teacher-card p {
-  color: #6b7280;
-  margin-bottom: 24px;
+  color: var(--text-soft);
+  margin-bottom: 22px;
   font-size: 15px;
+  line-height: 1.6;
 }
 
 .teacher-form-card {
-  background: white;
-  border-radius: 20px;
-  padding: 36px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
 }
 
 .teacher-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
 .teacher-header h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
 
 .teacher-header p {
-  color: #6b7280;
+  color: var(--text-soft);
   font-size: 14px;
 }
 
 .teacher-success {
-  background: #f0fdf4;
-  color: #16a34a;
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   font-size: 14px;
   margin-bottom: 16px;
   text-align: center;
 }
 
 .teacher-error {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   font-size: 14px;
   margin-bottom: 16px;
   text-align: center;
 }
 
 .teacher-benefits {
-  background: #f9f7ff;
-  border: 1px solid #e9d5ff;
-  border-radius: 12px;
+  background: var(--primary-bg);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  border-radius: var(--radius-md);
   padding: 16px 20px;
   margin-bottom: 20px;
 }
 
 .teacher-benefits h4 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: #7c3aed;
+  color: var(--primary);
   margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .teacher-benefits ul {
@@ -98,13 +110,14 @@
 
 .teacher-benefits ul li {
   font-size: 13px;
-  color: #374151;
+  color: var(--text-soft);
 }
 
+/* Dashboard */
 .teacher-dashboard {
-  max-width: 1000px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: calc(var(--navbar-h) + 24px) 24px 48px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -114,28 +127,42 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #7c3aed, #0ea5e9);
-  border-radius: 20px;
-  padding: 28px 32px;
-  color: white;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px 30px;
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
 }
+
+.teacher-dash-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 500px 300px at 90% 0%, var(--primary-bg) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.teacher-dash-header > * { position: relative; }
 
 .teacher-dash-header h2 {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 4px;
+  letter-spacing: -0.02em;
 }
 
 .teacher-dash-header p {
-  opacity: 0.85;
+  color: var(--text-soft);
   font-size: 14px;
 }
 
 .teacher-form-section {
-  background: white;
-  border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 28px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -148,27 +175,28 @@
 }
 
 .teacher-form-header-row h3 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 .teacher-lessons-section {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-soft);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  border: 1px solid var(--border);
 }
 
 .teacher-lesson-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: white;
+  background: var(--card);
   padding: 16px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   margin-bottom: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .teacher-lesson-fields {
@@ -180,21 +208,24 @@
 
 .teacher-lesson-fields input {
   padding: 9px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 14px;
   outline: none;
   width: 100%;
   box-sizing: border-box;
+  background: var(--bg-soft);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .teacher-lesson-fields input:focus {
-  border-color: #7c3aed;
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
 }
 
-.teacher-video-section {
-  margin-top: 4px;
-}
+.teacher-video-section { margin-top: 4px; }
 
 .teacher-video-upload {
   display: flex;
@@ -204,37 +235,42 @@
 }
 
 .video-upload-btn {
-  background: #f3f0ff;
-  color: #7c3aed;
-  border: 1.5px dashed #7c3aed;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border: 1px dashed var(--primary);
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: background 0.15s ease;
 }
 
 .video-upload-btn:hover {
-  background: #ede9fe;
+  background: var(--primary-bg-hover);
 }
 
-.teacher-video-preview {
-  width: 100%;
-}
+.teacher-video-preview { width: 100%; }
 
 .teacher-courses-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 14px;
 }
 
 .teacher-course-card {
-  background: white;
-  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.teacher-course-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .teacher-course-top {
@@ -247,76 +283,59 @@
 .teacher-course-top h4 {
   font-size: 15px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   margin-bottom: 4px;
 }
 
 .teacher-empty {
-  background: white;
-  border-radius: 20px;
-  padding: 60px;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-xl);
+  padding: 56px;
   text-align: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .teacher-empty p:first-child {
-  font-size: 48px;
+  font-size: 44px;
   margin-bottom: 12px;
 }
 
 .teacher-empty h3 {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   margin-bottom: 8px;
 }
 
 .teacher-empty p {
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 
 .teacher-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 14px;
 }
 
 @media (max-width: 768px) {
   .teacher-dashboard,
   .teacher-apply-page {
-    padding: 20px 14px;
+    padding: calc(var(--navbar-h) + 16px) 14px 32px;
   }
-
-  .teacher-courses-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
+  .teacher-courses-grid { grid-template-columns: 1fr; gap: 12px; }
   .teacher-dash-header {
     flex-direction: column;
     gap: 16px;
     text-align: center;
+    padding: 22px;
   }
-  .teacher-dash-header h1 { font-size: 24px; }
-  .teacher-dash-header p { font-size: 13px; }
-
-  .teacher-stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .teacher-video-upload {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
+  .teacher-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .teacher-video-upload { flex-direction: column; align-items: flex-start; }
   .teacher-form-card {
     padding: 22px 18px;
-    border-radius: 18px;
+    border-radius: var(--radius-lg);
   }
-
-  /* iOS zoom oldini olish */
   .teacher-form-card input,
   .teacher-form-card textarea,
   .teacher-form-card select {
@@ -327,9 +346,8 @@
 @media (max-width: 420px) {
   .teacher-dashboard,
   .teacher-apply-page {
-    padding: 14px 10px;
+    padding: calc(var(--navbar-h) + 12px) 10px 24px;
   }
-  .teacher-dash-header h1 { font-size: 20px; }
   .teacher-stats { grid-template-columns: 1fr; }
   .teacher-course-card { padding: 16px; }
   .teacher-form-card { padding: 18px 14px; }

@@ -1,3 +1,6 @@
+/* ============================================
+   CERTIFICATE — Soft Modern (premium feel saqlanadi)
+   ============================================ */
 .cert-wrapper {
   min-height: 100vh;
   background: var(--bg);
@@ -6,14 +9,14 @@
 .cert-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: calc(var(--navbar-h) + 24px) 24px 48px;
 }
 
 .cert-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
 }
 
@@ -23,26 +26,26 @@
   gap: 8px;
 }
 
-/* =============== CERTIFICATE =============== */
+/* Certificate paper */
 .cert {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
   aspect-ratio: 1.414 / 1;
-  background: white;
-  border-radius: 20px;
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-lg);
   display: grid;
   grid-template-columns: 1fr 2.2fr;
   position: relative;
 }
 
-/* ---------- CHAP PANEL ---------- */
+/* Left panel — premium indigo gradient */
 .cert-left {
-  background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #7c3aed 100%);
-  color: white;
-  padding: 48px 32px;
+  background: linear-gradient(135deg, #1E1B4B 0%, #4338CA 50%, #6366F1 100%);
+  color: #fff;
+  padding: 44px 28px;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -56,7 +59,7 @@
   right: -40%;
   width: 120%;
   height: 140%;
-  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -67,64 +70,61 @@
 }
 
 .cert-seal {
-  width: 96px;
-  height: 96px;
+  width: 92px;
+  height: 92px;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #FBBF24, #F59E0B);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #1e1b4b;
-  box-shadow: 0 12px 32px rgba(251, 191, 36, 0.4), inset 0 2px 4px rgba(255,255,255,0.3);
-  border: 4px solid rgba(255, 255, 255, 0.2);
+  color: #1E1B4B;
+  box-shadow: 0 10px 28px rgba(251, 191, 36, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.25);
 }
 
 .cert-brand-name {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 900;
-  letter-spacing: 2px;
-  margin-bottom: 14px;
-  background: linear-gradient(135deg, #fbbf24, white);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  color: #FBBF24;
 }
 
 .cert-brand-line {
-  width: 60px;
+  width: 56px;
   height: 3px;
-  background: #fbbf24;
-  margin: 0 auto 16px;
+  background: #FBBF24;
+  margin: 0 auto 14px;
   border-radius: 2px;
 }
 
 .cert-brand-text {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-style: italic;
 }
 
-/* ---------- O'NG PANEL ---------- */
+/* Right panel */
 .cert-right {
-  padding: 56px 48px;
+  padding: 52px 44px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
-  background: #fafafa;
-  color: #1e1b4b;
+  background: #FAFAF9;
+  color: #1C1917;
 }
 
 .cert-watermark {
   position: absolute;
   bottom: 10%;
   right: 5%;
-  font-size: 140px;
+  font-size: 130px;
   font-weight: 900;
-  color: rgba(139, 92, 246, 0.04);
-  letter-spacing: 4px;
+  color: rgba(99, 102, 241, 0.05);
+  letter-spacing: 0.08em;
   pointer-events: none;
   line-height: 1;
 }
@@ -136,72 +136,68 @@
 .cert-kicker {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 4px;
-  color: #8b5cf6;
+  letter-spacing: 0.2em;
+  color: #6366F1;
   margin-bottom: 8px;
 }
 
 .cert-big-title {
-  font-size: 64px;
+  font-size: 58px;
   font-weight: 900;
-  color: #1e1b4b;
-  letter-spacing: -1px;
+  color: #1E1B4B;
+  letter-spacing: -0.025em;
   line-height: 1;
   margin-bottom: 0;
-  background: linear-gradient(135deg, #1e1b4b, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .cert-body {
   position: relative;
-  margin: 32px 0;
+  margin: 28px 0;
 }
 
 .cert-presented {
   font-size: 14px;
-  color: #6b7280;
+  color: #6B7280;
   margin-bottom: 12px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
 }
 
 .cert-person {
-  font-size: 44px;
+  font-size: 40px;
   font-weight: 800;
-  color: #1e1b4b;
+  color: #1E1B4B;
   margin-bottom: 12px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
   font-family: 'Georgia', serif;
   font-style: italic;
 }
 
 .cert-underline {
-  width: 80px;
+  width: 76px;
   height: 3px;
-  background: linear-gradient(90deg, #8b5cf6, #fbbf24);
-  margin-bottom: 20px;
+  background: linear-gradient(90deg, #6366F1, #FBBF24);
+  margin-bottom: 18px;
   border-radius: 2px;
 }
 
 .cert-achievement {
   font-size: 15px;
-  color: #4b5563;
+  color: #4B5563;
   line-height: 1.7;
   max-width: 540px;
 }
 
 .cert-achievement strong {
-  color: #7c3aed;
+  color: #4338CA;
   font-weight: 700;
 }
 
-/* ---------- BOTTOM ---------- */
+/* Bottom */
 .cert-bottom {
   display: flex;
-  gap: 32px;
-  padding-top: 24px;
-  border-top: 2px dashed #e5e7eb;
+  gap: 28px;
+  padding-top: 22px;
+  border-top: 2px dashed #E7E5E4;
   position: relative;
   z-index: 1;
 }
@@ -216,58 +212,60 @@
 .cert-info-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(14, 165, 233, 0.15));
+  background: rgba(99, 102, 241, 0.10);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8b5cf6;
+  color: #6366F1;
   flex-shrink: 0;
 }
 
 .cert-info-label {
   font-size: 10px;
   font-weight: 700;
-  color: #9ca3af;
+  color: #9CA3AF;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   margin-bottom: 2px;
 }
 
 .cert-info-value {
   font-size: 13px;
   font-weight: 700;
-  color: #1e1b4b;
+  color: #1E1B4B;
 }
 
-/* ---------- LOCKED ---------- */
+/* Locked state */
 .cert-locked {
   max-width: 600px;
-  margin: 80px auto;
-  padding: 60px 32px;
+  margin: 64px auto;
+  padding: 56px 32px;
   text-align: center;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: var(--radius-xl);
 }
 
 .cert-locked-icon {
-  width: 140px;
-  height: 140px;
-  margin: 0 auto 24px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(14, 165, 233, 0.1));
-  border-radius: 36px;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 22px;
+  background: var(--primary-bg);
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-light);
+  color: var(--primary);
 }
 
 .cert-locked h2 {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 12px;
+  letter-spacing: -0.025em;
 }
 
 .cert-locked p {
@@ -276,86 +274,40 @@
   line-height: 1.6;
 }
 
-/* ---------- RESPONSIVE ---------- */
+/* Responsive */
 @media (max-width: 768px) {
-  .cert-wrapper { padding: 16px 12px; }
-  .cert-container { padding: 0; }
+  .cert-container { padding: calc(var(--navbar-h) + 12px) 12px 24px; }
   .cert-actions { flex-direction: column; gap: 8px; margin-bottom: 16px; }
   .cert-actions button { width: 100%; justify-content: center; }
 
   .cert {
     aspect-ratio: auto;
     grid-template-columns: 1fr;
-    border-radius: 20px;
   }
-
-  .cert-left {
-    padding: 28px 20px;
-  }
-
-  .cert-seal {
-    width: 64px;
-    height: 64px;
-  }
-
-  .cert-brand-name {
-    font-size: 26px;
-  }
-
-  .cert-right {
-    padding: 28px 20px;
-  }
-
-  .cert-kicker {
-    font-size: 11px;
-    letter-spacing: 1px;
-  }
-
-  .cert-big-title {
-    font-size: 36px;
-    letter-spacing: 2px;
-  }
-
-  .cert-person {
-    font-size: 26px;
-  }
-
-  .cert-presented {
-    font-size: 13px;
-  }
-
-  .cert-achievement {
-    font-size: 14px;
-  }
-
-  .cert-bottom {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .cert-info-item {
-    width: 100%;
-  }
-
-  .cert-watermark {
-    font-size: 80px;
-  }
+  .cert-left { padding: 28px 20px; }
+  .cert-seal { width: 64px; height: 64px; }
+  .cert-brand-name { font-size: 24px; }
+  .cert-right { padding: 28px 20px; }
+  .cert-big-title { font-size: 34px; }
+  .cert-person { font-size: 24px; }
+  .cert-bottom { flex-direction: column; gap: 12px; }
+  .cert-info-item { width: 100%; }
+  .cert-watermark { font-size: 72px; }
 }
 
 @media (max-width: 420px) {
-  .cert-wrapper { padding: 12px 8px; }
-  .cert { border-radius: 16px; }
+  .cert { border-radius: var(--radius-md); }
   .cert-left { padding: 22px 16px; }
   .cert-right { padding: 22px 16px; }
-  .cert-seal { width: 56px; height: 56px; }
-  .cert-brand-name { font-size: 22px; }
-  .cert-big-title { font-size: 28px; letter-spacing: 1px; }
-  .cert-person { font-size: 22px; }
+  .cert-seal { width: 52px; height: 52px; }
+  .cert-brand-name { font-size: 20px; }
+  .cert-big-title { font-size: 26px; }
+  .cert-person { font-size: 20px; }
   .cert-achievement { font-size: 13px; }
-  .cert-watermark { font-size: 60px; }
+  .cert-watermark { font-size: 56px; }
 }
 
-/* ---------- PRINT ---------- */
+/* Print */
 @media print {
   @page {
     size: A4 landscape;
@@ -365,12 +317,11 @@
   html, body {
     margin: 0 !important;
     padding: 0 !important;
-    background: white !important;
+    background: #fff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Navbar, tugmalar va keraksiz narsalar yashirin */
   .no-print,
   .navbar-wrap,
   header {
@@ -379,7 +330,7 @@
 
   .cert-wrapper {
     min-height: auto !important;
-    background: white !important;
+    background: #fff !important;
   }
 
   .cert-container {
@@ -388,7 +339,6 @@
     margin: 0 !important;
   }
 
-  /* Sertifikatni A4 landscape ga to'liq sig'dirish */
   .cert {
     box-shadow: none !important;
     border-radius: 16px !important;
@@ -400,49 +350,25 @@
     margin: 0 !important;
   }
 
-  /* Ranglarni majburiy saqlash */
   .cert-left {
-    background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #7c3aed 100%) !important;
+    background: linear-gradient(135deg, #1E1B4B 0%, #4338CA 50%, #6366F1 100%) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   .cert-seal {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  .cert-brand-name,
-  .cert-big-title,
-  .cert-kicker {
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
+    background: linear-gradient(135deg, #FBBF24, #F59E0B) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   .cert-underline {
-    background: linear-gradient(90deg, #8b5cf6, #fbbf24) !important;
+    background: linear-gradient(90deg, #6366F1, #FBBF24) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  .cert-brand-line {
-    background: #fbbf24 !important;
-    -webkit-print-color-adjust: exact !important;
-  }
-
-  .cert-info-icon {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(14, 165, 233, 0.15)) !important;
-    -webkit-print-color-adjust: exact !important;
-  }
-
-  /* Watermark yashirish */
-  .cert-watermark {
-    display: none !important;
-  }
+  .cert-watermark { display: none !important; }
 
   * {
     -webkit-print-color-adjust: exact !important;
