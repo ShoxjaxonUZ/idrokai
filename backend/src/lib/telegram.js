@@ -157,4 +157,54 @@ const sendStartup = async () => {
   )
 }
 
-module.exports = { sendMessage, sendLocation, sendAttackAlert, sendStartup, isConfigured }
+// Ma'lum chat_id'ga xabar yuborish (admin emas, oddiy foydalanuvchi)
+const sendTo = async (chatId, text, opts = {}) => {
+  if (!TOKEN) return { ok: false, reason: 'Telegram bot sozlanmagan' }
+  if (!chatId) return { ok: false, reason: 'chat_id berilmagan' }
+  if (text.length > 4000) text = text.slice(0, 3990) + '...'
+
+  try {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 8000)
+    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: opts.parseMode || 'MarkdownV2'
+      }),
+      signal: ctrl.signal
+    })
+    clearTimeout(timer)
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      // 400 + "chat not found" — foydalanuvchi botga /start yubormagan
+      const desc = data.description || `HTTP ${res.status}`
+      return { ok: false, reason: desc }
+    }
+    return { ok: true, messageId: data.result?.message_id }
+  } catch (err) {
+    return { ok: false, reason: err.message }
+  }
+}
+
+// Tasdiqlash kodini yuborish
+const sendVerificationCode = async (chatId, name, code) => {
+  const text = [
+    `🎓 *IdrokAI tasdiqlash kodi*`,
+    '',
+    `Salom, ${md(name || 'foydalanuvchi')}\\!`,
+    '',
+    `Ro'yxatdan o'tishni yakunlash uchun quyidagi kodni kiriting:`,
+    '',
+    `*${md(code)}*`,
+    '',
+    `_Kod 15 daqiqa davomida amal qiladi\\._`,
+    `_Agar siz ro'yxatdan o'tmagan bo'lsangiz, bu xabarni e'tiborsiz qoldiring\\._`
+  ].join('\n')
+
+  return sendTo(chatId, text)
+}
+
+module.exports = { sendMessage, sendLocation, sendAttackAlert, sendStartup, sendTo, sendVerificationCode, isConfigured }

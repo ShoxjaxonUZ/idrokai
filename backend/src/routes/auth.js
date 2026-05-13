@@ -9,6 +9,10 @@ const { validatePassword, loginLimiter } = require('../middleware/security')
 const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
 const email = require('../lib/email')
+const telegram = require('../lib/telegram')
+
+// 6 raqamli tasdiqlash kodini generatsiya qilish
+const generate6DigitCode = () => String(Math.floor(100000 + Math.random() * 900000))
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const TOKEN_TTL = '7d'
@@ -50,7 +54,7 @@ const signToken = (user) => jwt.sign(
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email: rawEmail, password } = req.body
+    const { name, email: rawEmail, password, telegram_chat_id } = req.body
 
     if (typeof name !== 'string' || typeof rawEmail !== 'string' || typeof password !== 'string') {
       return res.status(400).json({ message: 'Maydonlar to\'liq emas' })
@@ -70,6 +74,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Bu email taqiqlangan' })
     }
 
+    // Telegram chat_id — string, faqat raqamlardan (Telegram chat ID minus bo'lishi mumkin)
+    const chatId = typeof telegram_chat_id === 'string' || typeof telegram_chat_id === 'number'
+      ? String(telegram_chat_id).trim()
+      : ''
+    if (!chatId || !/^-?\d{5,20}$/.test(chatId)) {
+      return res.status(400).json({ message: 'Telegram chat ID noto\'g\'ri (faqat raqam, 5-20 belgi)' })
+    }
+
     const exists = await pool.query(
       'SELECT id FROM users WHERE email = $1', [trimmedEmail]
     )
@@ -78,28 +90,37 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
-    const verifyToken = generateVerificationToken()
-    const expires = new Date(Date.now() + VERIFY_TOKEN_TTL_HOURS * 3600 * 1000)
+    // verification_token endi 6 raqamli kod
+    const code = generate6DigitCode()
+    // Kod 15 daqiqa amal qiladi
+    const expires = new Date(Date.now() + 15 * 60 * 1000)
 
+    // Avval Telegram'ga kod yuborib ko'ramiz — agar chat_id noto'g'ri bo'lsa, user'ni
+    // umuman yaratmaymiz (lekin chat_id allaqachon mavjud bo'lsa qayta yaratish)
+    const tgResult = await telegram.sendVerificationCode(chatId, trimmedName, code)
+    if (!tgResult.ok) {
+      const reason = tgResult.reason || 'noma\'lum xato'
+      const userFriendly = reason.includes('chat not found')
+        ? 'Telegram chat ID topilmadi. Avval botga /start yuborganmisiz?'
+        : `Telegram xatosi: ${reason}`
+      return res.status(400).json({ message: userFriendly })
+    }
+
+    // Telegram muvaffaqiyatli — endi user'ni saqlaymiz
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, email_verified, verification_token, verification_expires, verification_sent_at)
-       VALUES ($1, $2, $3, FALSE, $4, $5, NOW())
+      `INSERT INTO users (name, email, password, email_verified, verification_token, verification_expires, verification_sent_at, telegram_chat_id)
+       VALUES ($1, $2, $3, FALSE, $4, $5, NOW(), $6)
        RETURNING id, name, email, role`,
-      [trimmedName, trimmedEmail, hashedPassword, verifyToken, expires]
+      [trimmedName, trimmedEmail, hashedPassword, code, expires, chatId]
     )
 
     const user = result.rows[0]
 
-    // Email yuborish (async — register javobini bloklamaslik uchun)
-    email.sendVerificationEmail(trimmedEmail, trimmedName, verifyToken).catch(err => {
-      console.error('[Register] verification email yuborish xatosi:', err.message)
-    })
-
     res.json({
-      message: 'Ro\'yxatdan o\'tildi. Emailingizni tekshiring va tasdiqlash havolasini bosing.',
+      message: 'Tasdiqlash kodi Telegram\'ga yuborildi. Kodni kiriting.',
       verificationRequired: true,
       email: trimmedEmail,
-      smtpConfigured: email.isConfigured()
+      method: 'telegram'
     })
 
   } catch (err) {
@@ -156,7 +177,62 @@ router.get('/verify-email', async (req, res) => {
   }
 })
 
-// Tasdiqlash havolasini qayta yuborish
+// Kod orqali tasdiqlash (Telegram)
+router.post('/verify-code', async (req, res) => {
+  try {
+    const rawEmail = req.body?.email
+    const code = String(req.body?.code || '').trim()
+
+    const emailRes = validateEmail(rawEmail)
+    if (emailRes.error) return res.status(400).json({ message: emailRes.error })
+    const trimmedEmail = emailRes.ok
+
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({ message: 'Kod 6 raqamdan iborat bo\'lishi kerak' })
+    }
+
+    const result = await pool.query(
+      `SELECT id, name, email, email_verified, verification_token, verification_expires
+       FROM users WHERE email = $1`,
+      [trimmedEmail]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: 'Email yoki kod noto\'g\'ri' })
+    }
+
+    const user = result.rows[0]
+
+    if (user.email_verified) {
+      return res.json({ message: 'Allaqachon tasdiqlangan', alreadyVerified: true })
+    }
+
+    if (!user.verification_token || user.verification_token !== code) {
+      return res.status(400).json({ message: 'Kod noto\'g\'ri' })
+    }
+
+    if (user.verification_expires && new Date(user.verification_expires) < new Date()) {
+      return res.status(400).json({ message: 'Kod muddati o\'tgan. Yangi kod so\'rang.', expired: true })
+    }
+
+    await pool.query(
+      `UPDATE users SET email_verified = TRUE, verification_token = NULL, verification_expires = NULL
+       WHERE id = $1`,
+      [user.id]
+    )
+
+    res.json({
+      message: 'Muvaffaqiyatli tasdiqlandi! Endi tizimga kirishingiz mumkin.',
+      verified: true,
+      email: user.email
+    })
+  } catch (err) {
+    console.error('Verify code error:', err.message)
+    res.status(500).json({ message: 'Xatolik yuz berdi' })
+  }
+})
+
+// Tasdiqlash kodini qayta yuborish (Telegram)
 router.post('/resend-verification', async (req, res) => {
   try {
     const rawEmail = req.body?.email
@@ -165,23 +241,26 @@ router.post('/resend-verification', async (req, res) => {
     const trimmedEmail = emailRes.ok
 
     const result = await pool.query(
-      `SELECT id, name, email_verified, verification_sent_at
+      `SELECT id, name, email_verified, verification_sent_at, telegram_chat_id
        FROM users
        WHERE email = $1`,
       [trimmedEmail]
     )
 
-    // Foydalanuvchi mavjudligini ochiqlamaymiz (enumeration himoyasi)
     if (result.rows.length === 0) {
-      return res.json({ message: 'Agar email tizimda mavjud bo\'lsa, yangi havola yuborildi.' })
+      return res.json({ message: 'Agar email tizimda mavjud bo\'lsa, yangi kod yuborildi.' })
     }
 
     const user = result.rows[0]
     if (user.email_verified) {
-      return res.json({ message: 'Email allaqachon tasdiqlangan. Login qiling.' })
+      return res.json({ message: 'Allaqachon tasdiqlangan. Login qiling.' })
     }
 
-    // Cooldown — har 60 soniyada bir martadan ortiq emas
+    if (!user.telegram_chat_id) {
+      return res.status(400).json({ message: 'Telegram chat ID topilmadi. Qayta ro\'yxatdan o\'ting.' })
+    }
+
+    // Cooldown
     if (user.verification_sent_at) {
       const elapsed = (Date.now() - new Date(user.verification_sent_at).getTime()) / 1000
       if (elapsed < RESEND_COOLDOWN_SECONDS) {
@@ -192,19 +271,22 @@ router.post('/resend-verification', async (req, res) => {
       }
     }
 
-    const newToken = generateVerificationToken()
-    const expires = new Date(Date.now() + VERIFY_TOKEN_TTL_HOURS * 3600 * 1000)
+    const newCode = generate6DigitCode()
+    const expires = new Date(Date.now() + 15 * 60 * 1000)
+
+    const tgResult = await telegram.sendVerificationCode(user.telegram_chat_id, user.name || 'Foydalanuvchi', newCode)
+    if (!tgResult.ok) {
+      return res.status(500).json({ message: `Telegram xatosi: ${tgResult.reason || ''}` })
+    }
 
     await pool.query(
       `UPDATE users
        SET verification_token = $1, verification_expires = $2, verification_sent_at = NOW()
        WHERE id = $3`,
-      [newToken, expires, user.id]
+      [newCode, expires, user.id]
     )
 
-    email.sendVerificationEmail(trimmedEmail, user.name || 'Foydalanuvchi', newToken).catch(() => {})
-
-    res.json({ message: 'Yangi tasdiqlash havolasi yuborildi.' })
+    res.json({ message: 'Yangi kod Telegram\'ga yuborildi.' })
 
   } catch (err) {
     console.error('Resend error:', err.message)

@@ -9,11 +9,13 @@ import '../styles/auth.css'
 
 function Register() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', telegram_chat_id: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [verifying, setVerifying] = useState(false)
 
   useEffect(() => {
     document.title = "Ro'yxatdan o'tish — IdrokAI"
@@ -34,7 +36,7 @@ function Register() {
 
   const handleRegister = async () => {
     setError('')
-    if (!form.name || !form.email || !form.password) {
+    if (!form.name || !form.email || !form.password || !form.telegram_chat_id) {
       return setError('Barcha maydonlarni to\'ldiring')
     }
     if (form.password.length < 8) {
@@ -43,13 +45,19 @@ function Register() {
     if (!/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) {
       return setError('Parolda harf ham, raqam ham bo\'lishi kerak')
     }
+    if (!/^-?\d{5,20}$/.test(form.telegram_chat_id.trim())) {
+      return setError('Telegram chat ID faqat raqamlardan iborat (5-20 belgi)')
+    }
 
     setLoading(true)
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          telegram_chat_id: form.telegram_chat_id.trim()
+        })
       })
       const data = await res.json()
       if (res.ok) {
@@ -67,6 +75,31 @@ function Register() {
       setError('Server bilan bog\'lanib bo\'lmadi')
     }
     setLoading(false)
+  }
+
+  const handleVerifyCode = async () => {
+    setError('')
+    if (!/^\d{6}$/.test(code)) {
+      return setError('Kod 6 raqamdan iborat bo\'lishi kerak')
+    }
+    setVerifying(true)
+    try {
+      const res = await fetch(`${API_URL}/api/auth/verify-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, code })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(data.message || 'Tasdiqlandi! Endi tizimga kiring.')
+        navigate('/login')
+      } else {
+        setError(data.message || 'Kod noto\'g\'ri')
+      }
+    } catch {
+      setError('Server xatosi')
+    }
+    setVerifying(false)
   }
 
   const resendVerification = async () => {
@@ -89,27 +122,54 @@ function Register() {
         <div className="auth-card" style={{ textAlign: 'center', padding: '40px 32px' }}>
           <div style={{
             width: 80, height: 80, borderRadius: '50%',
-            background: 'rgba(139, 92, 246, 0.15)',
+            background: 'rgba(34, 158, 217, 0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 20px'
           }}>
-            <Mail size={40} color="#8b5cf6" />
+            <span style={{ fontSize: 40 }}>📲</span>
           </div>
-          <h1 className="auth-title">Emailingizni tekshiring 📬</h1>
+          <h1 className="auth-title">Telegram'ni tekshiring</h1>
           <p style={{ color: '#666', marginBottom: 24, lineHeight: 1.6 }}>
-            <strong>{form.email}</strong> manziliga tasdiqlash havolasi yubordik.<br />
-            Inboxingizni oching va havolani bosing.
+            Sizning Telegram'ingizga <strong>6 raqamli kod</strong> yubordik.<br />
+            Kodni quyiga kiriting.
           </p>
-          <div style={{
-            background: 'rgba(245, 158, 11, 0.1)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 13, textAlign: 'left'
-          }}>
-            ⚠️ <strong>Spam papkasini ham tekshiring!</strong> Ba'zan email u yerga tushishi mumkin.
+
+          {error && (
+            <div className="auth-error" style={{ marginBottom: 16 }}>
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
+
+          <div className="form-group">
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={code}
+              onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
+              onKeyDown={e => e.key === 'Enter' && handleVerifyCode()}
+              placeholder="123456"
+              style={{
+                fontSize: 28, textAlign: 'center', letterSpacing: 8,
+                fontWeight: 700, padding: '14px 16px'
+              }}
+              autoFocus
+            />
           </div>
-          <button className="btn-outline full" onClick={resendVerification} style={{ marginBottom: 12 }}>
-            Havolani qayta yuborish
+
+          <button
+            className="btn-primary full"
+            onClick={handleVerifyCode}
+            disabled={verifying || code.length !== 6}
+            style={{ marginBottom: 12 }}
+          >
+            {verifying ? 'Tekshirilmoqda...' : 'Tasdiqlash'}
           </button>
+
+          <button className="btn-outline full" onClick={resendVerification} style={{ marginBottom: 12 }}>
+            Kodni qayta yuborish
+          </button>
+
           <Link to="/login" style={{ display: 'block', marginTop: 16, color: '#8b5cf6' }}>
             ← Login sahifasiga qaytish
           </Link>
@@ -163,6 +223,30 @@ function Register() {
               onKeyDown={e => e.key === 'Enter' && handleRegister()}
             />
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>Telegram chat ID</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={form.telegram_chat_id}
+            onChange={e => setForm({ ...form, telegram_chat_id: e.target.value.replace(/[^\d-]/g, '') })}
+            placeholder="masalan: 5272168689"
+            onKeyDown={e => e.key === 'Enter' && handleRegister()}
+          />
+          <small style={{ display: 'block', marginTop: 6, color: '#666', fontSize: 12, lineHeight: 1.5 }}>
+            💡 <strong>Qanday topish kerak:</strong>
+            <br />
+            1. Telegramda <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style={{ color: '#8b5cf6' }}>@userinfobot</a> ni oching
+            <br />
+            2. <code>/start</code> yuboring
+            <br />
+            3. Bot yuborgan <strong>Id</strong> raqamini nusxalab shu yerga yopishtiring
+            <br />
+            <br />
+            <strong>Muhim:</strong> Avval bizning <a href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'idrokai_bot'}`} target="_blank" rel="noopener" style={{ color: '#8b5cf6' }}>IdrokAI botiga</a> ham <code>/start</code> yuboring — aks holda kod yetib bormaydi.
+          </small>
         </div>
 
         <div className="form-group">
