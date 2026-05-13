@@ -52,9 +52,11 @@ const signToken = (user) => jwt.sign(
   { expiresIn: TOKEN_TTL }
 )
 
+const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'Verification_IdrokAIbot'
+
 router.post('/register', async (req, res) => {
   try {
-    const { name, email: rawEmail, password, telegram_chat_id } = req.body
+    const { name, email: rawEmail, password } = req.body
 
     if (typeof name !== 'string' || typeof rawEmail !== 'string' || typeof password !== 'string') {
       return res.status(400).json({ message: 'Maydonlar to\'liq emas' })
@@ -74,14 +76,6 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Bu email taqiqlangan' })
     }
 
-    // Telegram chat_id — string, faqat raqamlardan (Telegram chat ID minus bo'lishi mumkin)
-    const chatId = typeof telegram_chat_id === 'string' || typeof telegram_chat_id === 'number'
-      ? String(telegram_chat_id).trim()
-      : ''
-    if (!chatId || !/^-?\d{5,20}$/.test(chatId)) {
-      return res.status(400).json({ message: 'Telegram chat ID noto\'g\'ri (faqat raqam, 5-20 belgi)' })
-    }
-
     const exists = await pool.query(
       'SELECT id FROM users WHERE email = $1', [trimmedEmail]
     )
@@ -90,42 +84,52 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
-    // verification_token endi 6 raqamli kod
-    const code = generate6DigitCode()
-    // Kod 15 daqiqa amal qiladi
-    const expires = new Date(Date.now() + 15 * 60 * 1000)
+    // Tasdiqlash uchun unik token (deep link payload)
+    const verifyToken = crypto.randomBytes(20).toString('hex') // 40 hex chars
+    // 1 soat amal qiladi
+    const expires = new Date(Date.now() + 60 * 60 * 1000)
 
-    // Avval Telegram'ga kod yuborib ko'ramiz — agar chat_id noto'g'ri bo'lsa, user'ni
-    // umuman yaratmaymiz (lekin chat_id allaqachon mavjud bo'lsa qayta yaratish)
-    const tgResult = await telegram.sendVerificationCode(chatId, trimmedName, code)
-    if (!tgResult.ok) {
-      const reason = tgResult.reason || 'noma\'lum xato'
-      const userFriendly = reason.includes('chat not found')
-        ? 'Telegram chat ID topilmadi. Avval botga /start yuborganmisiz?'
-        : `Telegram xatosi: ${reason}`
-      return res.status(400).json({ message: userFriendly })
-    }
-
-    // Telegram muvaffaqiyatli — endi user'ni saqlaymiz
-    const result = await pool.query(
-      `INSERT INTO users (name, email, password, email_verified, verification_token, verification_expires, verification_sent_at, telegram_chat_id)
-       VALUES ($1, $2, $3, FALSE, $4, $5, NOW(), $6)
-       RETURNING id, name, email, role`,
-      [trimmedName, trimmedEmail, hashedPassword, code, expires, chatId]
+    await pool.query(
+      `INSERT INTO users (name, email, password, email_verified, verification_token, verification_expires, verification_sent_at)
+       VALUES ($1, $2, $3, FALSE, $4, $5, NOW())
+       RETURNING id`,
+      [trimmedName, trimmedEmail, hashedPassword, verifyToken, expires]
     )
 
-    const user = result.rows[0]
+    // Deep link — foydalanuvchi bosadi va Telegram bot ochiladi
+    const telegramUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${verifyToken}`
 
     res.json({
-      message: 'Tasdiqlash kodi Telegram\'ga yuborildi. Kodni kiriting.',
+      message: 'Ro\'yxatdan o\'tildi. Tasdiqlash uchun Telegram havolasini bosing.',
       verificationRequired: true,
       email: trimmedEmail,
+      telegramUrl,
       method: 'telegram'
     })
 
   } catch (err) {
     console.error('Register error:', err.message)
     res.status(500).json({ message: 'Xatolik yuz berdi' })
+  }
+})
+
+// Verifikatsiya holatini tekshirish (frontend poll qiladi)
+router.get('/check-verified', async (req, res) => {
+  try {
+    const rawEmail = req.query?.email
+    const emailRes = validateEmail(rawEmail)
+    if (emailRes.error) return res.status(400).json({ message: emailRes.error })
+
+    const result = await pool.query(
+      'SELECT email_verified FROM users WHERE email = $1',
+      [emailRes.ok]
+    )
+    if (result.rows.length === 0) {
+      return res.json({ verified: false, exists: false })
+    }
+    res.json({ verified: !!result.rows[0].email_verified, exists: true })
+  } catch {
+    res.status(500).json({ verified: false })
   }
 })
 
@@ -232,7 +236,7 @@ router.post('/verify-code', async (req, res) => {
   }
 })
 
-// Tasdiqlash kodini qayta yuborish (Telegram)
+// Yangi Telegram tasdiqlash havolasi olish
 router.post('/resend-verification', async (req, res) => {
   try {
     const rawEmail = req.body?.email
@@ -241,23 +245,19 @@ router.post('/resend-verification', async (req, res) => {
     const trimmedEmail = emailRes.ok
 
     const result = await pool.query(
-      `SELECT id, name, email_verified, verification_sent_at, telegram_chat_id
+      `SELECT id, name, email_verified, verification_sent_at
        FROM users
        WHERE email = $1`,
       [trimmedEmail]
     )
 
     if (result.rows.length === 0) {
-      return res.json({ message: 'Agar email tizimda mavjud bo\'lsa, yangi kod yuborildi.' })
+      return res.json({ message: 'Agar email tizimda mavjud bo\'lsa, yangi havola tayyor.' })
     }
 
     const user = result.rows[0]
     if (user.email_verified) {
       return res.json({ message: 'Allaqachon tasdiqlangan. Login qiling.' })
-    }
-
-    if (!user.telegram_chat_id) {
-      return res.status(400).json({ message: 'Telegram chat ID topilmadi. Qayta ro\'yxatdan o\'ting.' })
     }
 
     // Cooldown
@@ -271,22 +271,23 @@ router.post('/resend-verification', async (req, res) => {
       }
     }
 
-    const newCode = generate6DigitCode()
-    const expires = new Date(Date.now() + 15 * 60 * 1000)
-
-    const tgResult = await telegram.sendVerificationCode(user.telegram_chat_id, user.name || 'Foydalanuvchi', newCode)
-    if (!tgResult.ok) {
-      return res.status(500).json({ message: `Telegram xatosi: ${tgResult.reason || ''}` })
-    }
+    // Yangi token va havola
+    const newToken = crypto.randomBytes(20).toString('hex')
+    const expires = new Date(Date.now() + 60 * 60 * 1000)
 
     await pool.query(
       `UPDATE users
        SET verification_token = $1, verification_expires = $2, verification_sent_at = NOW()
        WHERE id = $3`,
-      [newCode, expires, user.id]
+      [newToken, expires, user.id]
     )
 
-    res.json({ message: 'Yangi kod Telegram\'ga yuborildi.' })
+    const telegramUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${newToken}`
+
+    res.json({
+      message: 'Yangi havola tayyor.',
+      telegramUrl
+    })
 
   } catch (err) {
     console.error('Resend error:', err.message)

@@ -1,0 +1,149 @@
+═══════════════════════════════════════════════════════════════
+  EduUz / IdrokAI — IS HOLATI
+  Sana: 2026-05-12
+  Commit: 3384289 (main, origin/main bilan sinxron)
+═══════════════════════════════════════════════════════════════
+
+
+BUGUN BAJARILGAN ISHLAR
+─────────────────────────────────────────────────
+
+Audit asosida 11 ta kritik xato tuzatildi:
+
+BACKEND:
+  1. battle.js POST /submit/:id — Groq AI chaqiruvi BEGIN/COMMIT'dan
+     tashqariga olib chiqildi. Endi DB pool exhaustion bo'lmaydi.
+     INSERT'ga ON CONFLICT DO NOTHING qo'shildi (race himoyasi).
+
+  2. daily.js POST /submit/:id — xuddi shu refactor. Qo'shimcha:
+     'judging' status + 60 soniya stale recovery — server crash
+     bo'lsa challenge stuck bo'lib qolmaydi.
+
+  3. ai.js — data.choices[0] crash yo'li bartaraf qilindi
+     (optional chaining). Generate-quiz prompt'idagi typo
+     ("variyantga") va moduleTest bilan ziddiyat tuzatildi.
+
+  4. middleware/auth.js — token_version va role endi bitta SQL
+     queryda olib kelinadi. Har authenticated request DB'ga
+     1 ta hit kamroq qiladi.
+
+  5. middleware/threatDetector.js — SQL comment naqshi (`-- `, `# `,
+     `/* */`) endi faqat URL/query string'da tekshiriladi.
+     Body izohlarida ("// kod", "-- TODO") false positive yo'q.
+
+  6. package.json — socket.io olib tashlandi (ishlatilmagan).
+     express-rate-limit zaifligi `npm audit fix` orqali tuzatildi.
+
+FRONTEND:
+  7. Lesson.jsx — useEffect ichidagi stale closure xatosi
+     bartaraf etildi (modul testlar holati endi to'g'ri yuklanadi).
+     YouTube URL'lar uchun iframe variant qo'shildi (avval
+     ishlamasdi). Dead kod tozalandi, useEffect cleanup qo'shildi.
+
+  8. dashboard.jsx — sertifikat hisobi endi server'dan
+     (/api/courses/certificate-status/:id) olinadi, localStorage
+     orqali emas. Soxta sertifikat ko'rinishi imkonsiz.
+     user.name[0] crash initial() helper bilan tuzatildi.
+
+  9. admin.jsx — hardcoded "admin@idrokai.uz" tekshiruvi o'rniga
+     user.role === 'admin' check.
+
+ 10. Battle.jsx — agressiv client-side bloklash (F12, right-click,
+     Ctrl+R/W/T/N/L/U/P/S/F, Backspace) olib tashlandi. Bu UX'ni
+     buzar va texnik bypass qilinardi. beforeunload va visibility
+     warning qoldi.
+
+ 11. package.json — socket.io-client olib tashlandi.
+
+DEPLOY:
+ 12. render.yaml — RESEND_API_KEY va RESEND_FROM envVars qo'shildi.
+
+EMAIL TIZIMI:
+ - Resend hisobi yaratildi
+ - RESEND_API_KEY backend/.env'ga qo'shildi (re_Mt4H...1e3q)
+ - sendVerificationEmail() test'i muvaffaqiyatli o'tdi
+ - shoxjaxon007akbarzoda@gmail.com manziliga test email yuborildi
+
+
+HOZIRGI HOLAT
+─────────────────────────────────────────────────
+
+LOKAL:
+  ✅ Backend ishlaydi (PostgreSQL ulanadi, migrations OK)
+  ✅ Frontend build qiladi (Vite, 0 vulnerability)
+  ✅ Backend npm audit: 0 vulnerability
+  ✅ Email Resend orqali yuboriladi (lokal test o'tdi)
+
+GIT:
+  ✅ Commit 3384289 origin/main'ga push qilingan
+  ✅ 14 fayl o'zgargan: +307 / -714 satrlar (sof tozalash)
+
+PRODUCTION (qilish kerak):
+  ⚠️  Render dashboard'da env vars qo'shilmagan:
+      RESEND_API_KEY  ← .env'dagi qiymati
+      RESEND_FROM     ← IdrokAI <onboarding@resend.dev>
+      APP_URL         ← Vercel frontend domeni
+      CORS_ORIGIN     ← Vercel frontend domeni
+
+  ⚠️  Vercel dashboard'da tekshirish kerak:
+      VITE_API_URL    ← Render backend domeni
+
+
+ERTAGA ISHLASH UCHUN
+─────────────────────────────────────────────────
+
+1) RENDER ENV VARS QO'SHISH (yuqoridagi 4 ta)
+
+2) PRODUCTION TEST:
+   - Yangi user /register qilish
+   - Email kelganini tekshirish (Resend dashboard'da
+     ko'rsa ham bo'ladi: https://resend.com/emails)
+   - Havolani bosib /verify-email'ga o'tish
+   - /login orqali kirish
+
+3) AGAR PRODUCTION'DA EMAIL ISHLAMAYDIGAN BO'LSA:
+   - Render logs'da "📧 Email provayder: Resend" yozuvi
+     borligini tekshiring
+   - Yo'q bo'lsa: env var to'g'ri qo'yilmagan
+   - Bor bo'lsa: Resend dashboard'da delivery status
+     (delivered/bounced/complained)
+
+4) RESEND DOMEN TASDIQLASH (production uchun):
+   Hozir onboarding@resend.dev'dan yuboriladi va FAQAT
+   Resend account egasiga (sizning email'ingiz) yuboriladi.
+   Boshqa userlarga email yuborish uchun:
+   - Resend dashboard → Domains → Add Domain
+   - Sizning domeningiz (masalan idrokai.uz)
+   - DNS records qo'shish (SPF, DKIM)
+   - Tasdiqlash → RESEND_FROM ni "IdrokAI <noreply@idrokai.uz>"
+     ga o'zgartirish
+
+5) HALI TUZATILMAGAN MUMKIN ISHLAR (audit'dan qolgan):
+   - GROQ_API_KEY hali rotate qilinmagan (eski kalit leaked'mi?)
+   - JWT localStorage → httpOnly cookie (XSS himoyasi, katta refactor)
+   - AbortController frontend fetch'larda (memory leak past
+     darajada, lekin yaxshilash mumkin)
+   - Module test'larni course darajasida cache qilish (har user
+     uchun alohida AI chaqiruv — bahosi)
+   - Backend testlar yo'q
+   - Production DB password ('1234') va admin password
+     ('Admin1234') — Render env'da kuchli qiymatlar bo'lishi shart
+
+
+FAYLLAR (siz tahrirlashingiz mumkin)
+─────────────────────────────────────────────────
+
+backend/.env              ← lokal sirlar (gitignored)
+frontend/.env             ← VITE_API_URL (gitignored)
+backend/.env.example      ← template (gitda bor)
+frontend/.env.example     ← template (gitda bor)
+render.yaml               ← Render deploy config
+frontend/vercel.json      ← Vercel config
+
+
+SAVOL TUG'ILSA, AYTING:
+"hozir qayerdamiz" → bu fayl ochiladi va davom etamiz
+"Render env'larni tekshir" → render dashboard URL'i bilan ish
+"production'da email ishlamayapti" → log'larni ko'rib chiqamiz
+
+═══════════════════════════════════════════════════════════════

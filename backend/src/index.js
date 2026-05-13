@@ -19,6 +19,7 @@ const onboardingRoutes = require('./routes/onboarding')
 const dailyRoutes = require('./routes/daily')
 const moduleTestRoutes = require('./routes/moduleTest')
 const securityRoutes = require('./routes/security')
+const telegramRoutes = require('./routes/telegram')
 const { threatDetector } = require('./middleware/threatDetector')
 const telegram = require('./lib/telegram')
 const { runMigrations } = require('./lib/migrate')
@@ -159,6 +160,7 @@ app.use('/api/onboarding', onboardingRoutes)
 app.use('/api/daily', dailyRoutes)
 app.use('/api/module-test', moduleTestRoutes)
 app.use('/api/security', securityRoutes)
+app.use('/api/telegram', telegramRoutes)
 
 // 404 handler
 app.use((req, res) => {
@@ -198,6 +200,23 @@ const start = async () => {
       telegram.sendStartup().catch(() => {})
     } else {
       console.log('⚠️  Telegram alerts o\'chirilgan (TELEGRAM_BOT_TOKEN va TELEGRAM_CHAT_ID kerak)')
+    }
+
+    // Telegram webhook'ni avtomatik o'rnatish (production'da)
+    // RENDER_EXTERNAL_URL Render avtomatik beradi (masalan https://idrokai-api.onrender.com)
+    const externalUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL
+    if (process.env.TELEGRAM_BOT_TOKEN && externalUrl) {
+      const webhookUrl = `${externalUrl.replace(/\/$/, '')}/api/telegram/webhook`
+      const secret = process.env.TELEGRAM_WEBHOOK_SECRET || ''
+      telegram.setWebhook(webhookUrl, secret).then(r => {
+        if (r.ok) {
+          console.log(`✅ Telegram webhook: ${webhookUrl}`)
+        } else {
+          console.warn(`⚠️  Telegram webhook xatosi: ${r.description || r.reason}`)
+        }
+      }).catch(() => {})
+    } else {
+      console.log('ℹ️  Telegram webhook o\'rnatilmadi (RENDER_EXTERNAL_URL kerak)')
     }
   })
 }

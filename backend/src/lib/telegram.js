@@ -207,4 +207,34 @@ const sendVerificationCode = async (chatId, name, code) => {
   return sendTo(chatId, text)
 }
 
-module.exports = { sendMessage, sendLocation, sendAttackAlert, sendStartup, sendTo, sendVerificationCode, isConfigured }
+// Webhook URL'ni Telegram'ga o'rnatish
+const setWebhook = async (url, secret) => {
+  if (!TOKEN) return { ok: false, reason: 'TELEGRAM_BOT_TOKEN yo\'q' }
+  try {
+    const body = { url, allowed_updates: ['message'] }
+    if (secret) body.secret_token = secret
+    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    const data = await res.json()
+    return { ok: data.ok === true, description: data.description, result: data.result }
+  } catch (err) {
+    return { ok: false, reason: err.message }
+  }
+}
+
+// Webhook holatini olish (diagnostika uchun)
+const getWebhookInfo = async () => {
+  if (!TOKEN) return null
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/getWebhookInfo`)
+    const data = await res.json()
+    return data.result
+  } catch {
+    return null
+  }
+}
+
+module.exports = { sendMessage, sendLocation, sendAttackAlert, sendStartup, sendTo, sendVerificationCode, setWebhook, getWebhookInfo, isConfigured }
