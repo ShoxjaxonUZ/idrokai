@@ -27,7 +27,6 @@ import TeacherApply from './pages/TeacherApply'
 import TeacherDashboard from './pages/TeacherDashboard'
 import RequireAuth from './lib/RequireAuth'
 import Loading from './components/Loading'
-import VerifyEmail from './pages/VerifyEmail'
 
 const Certificate = lazy(() => import('./pages/certificate'))
 
@@ -41,7 +40,6 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/courses/:id" element={<CourseDetail />} />
               <Route path="/about" element={<About />} />

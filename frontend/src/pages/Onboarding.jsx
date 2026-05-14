@@ -22,72 +22,31 @@ const ICON_MAP = {
   calculator: Calculator
 }
 
-// Savollar — tartiblangan
-const STEPS = ['welcome', 'age', 'experience', 'goal', 'field', 'interests', 'time', 'result']
+// Soddalashtirilgan: 3 ta asosiy savol — bottleneck'ni kamaytirish
+const STEPS = ['welcome', 'goal', 'field', 'time', 'result']
 
 const QUESTIONS = {
-  age: {
-    title: 'Yoshingiz nechi yosh atrofida?',
-    subtitle: 'Sizga mos kurslarni tanlash uchun',
-    Icon: User,
-    options: [
-      { value: '10-14', label: '10-14 yosh', desc: 'O\'quvchi' },
-      { value: '15-18', label: '15-18 yosh', desc: 'Maktabni bitirayotgan' },
-      { value: '19-25', label: '19-25 yosh', desc: 'Talaba yoki yangi mutaxassis' },
-      { value: '26-35', label: '26-35 yosh', desc: 'Faol kasbiy davr' },
-      { value: '36+', label: '36+ yosh', desc: 'Tajribali mutaxassis' }
-    ]
-  },
-  experience: {
-    title: 'Tajribangiz qanday?',
-    subtitle: 'Dasturlash yoki IT bilan tanishligingiz',
-    Icon: GraduationCap,
-    options: [
-      { value: 'beginner', label: 'Yangi boshlovchi', desc: 'Hech qachon o\'rganmaganman' },
-      { value: 'basic', label: 'Asoslarni bilaman', desc: 'Bir oz tushunaman' },
-      { value: 'intermediate', label: 'O\'rta daraja', desc: 'Bir nechta loyiha qildim' },
-      { value: 'advanced', label: 'Ilg\'or daraja', desc: 'Faol amaliyotim bor' }
-    ]
-  },
   goal: {
     title: 'Asosiy maqsadingiz nima?',
-    subtitle: 'IdrokAI dan nimaga erishmoqchisiz?',
+    subtitle: "IdrokAI'dan nimaga erishmoqchisiz?",
     Icon: Target,
     options: [
       { value: 'kasb', label: 'Yangi kasb egallash', desc: 'IT, dizayn, biznes va boshqalar' },
-      { value: 'maktab', label: 'Maktab yoki Universitet', desc: 'O\'qishimga yordam kerak' },
-      { value: 'qiziqish', label: 'Yangi narsa o\'rganish', desc: 'Hobbi va qiziqish uchun' },
-      { value: 'karyera', label: 'Karyerada o\'sish', desc: 'Yuqori darajaga ko\'tarilish' },
-      { value: 'biznes', label: 'O\'z biznesimni ochish', desc: 'Tadbirkorlik' }
+      { value: 'maktab', label: 'Maktab yoki Universitet', desc: "O'qishimga yordam kerak" },
+      { value: 'karyera', label: "O'sish va sertifikat", desc: 'Yuqori darajaga ko\'tarilish' },
+      { value: 'qiziqish', label: "Yangi narsa o'rganish", desc: 'Hobbi va qiziqish uchun' }
     ]
   },
   field: {
-    title: 'Qaysi soha sizga eng yoqadi?',
-    subtitle: 'Asosiy yo\'nalishni tanlang',
+    title: 'Qaysi soha sizga yoqadi?',
+    subtitle: "Asosiy yo'nalishni tanlang",
     Icon: Briefcase,
     options: [
-      { value: 'dasturlash', label: 'Dasturlash', desc: 'Web, mobil va AI ilovalar' },
+      { value: 'dasturlash', label: 'Dasturlash', desc: 'Web, mobil va AI' },
       { value: 'dizayn', label: 'Dizayn', desc: 'UI/UX va grafika' },
       { value: 'biznes', label: 'Biznes', desc: 'Marketing va boshqaruv' },
       { value: 'matematika', label: 'Matematika va fan', desc: 'Hisoblash va fizika' },
-      { value: 'til', label: 'Til o\'rganish', desc: 'Ingliz tili va boshqalar' }
-    ]
-  },
-  interests: {
-    title: 'Nimalar sizni qiziqtiradi?',
-    subtitle: 'Bir nechta tanlashingiz mumkin',
-    Icon: Heart,
-    multiple: true,
-    options: [
-      { value: 'web', label: 'Web sayt yaratish', iconName: 'globe' },
-      { value: 'mobile', label: 'Mobil ilovalar', iconName: 'smartphone' },
-      { value: 'ai', label: 'Sun\'iy intellekt', iconName: 'bot' },
-      { value: 'design', label: 'Dizayn va grafika', iconName: 'palette' },
-      { value: 'gamedev', label: 'O\'yin yaratish', iconName: 'gamepad' },
-      { value: 'data', label: 'Ma\'lumotlar tahlili', iconName: 'barchart' },
-      { value: 'cyber', label: 'Kiberxavfsizlik', iconName: 'shield' },
-      { value: 'languages', label: 'Til o\'rganish', iconName: 'languages' },
-      { value: 'math', label: 'Matematika va fan', iconName: 'calculator' }
+      { value: 'til', label: "Til o'rganish", desc: 'Ingliz tili va boshqalar' }
     ]
   },
   time: {
@@ -96,10 +55,9 @@ const QUESTIONS = {
     Icon: Clock,
     options: [
       { value: '15min', label: '15 daqiqa', desc: 'Juda bandman' },
-      { value: '30min', label: '30 daqiqa', desc: 'Kuniga oz bo\'lsa ham' },
+      { value: '30min', label: '30 daqiqa', desc: "Kuniga oz bo'lsa ham" },
       { value: '1hour', label: '1 soat', desc: 'Oddiy temp' },
-      { value: '2hours', label: '2 soat', desc: 'Faol o\'rganish' },
-      { value: '3hours+', label: '3 soatdan ortiq', desc: 'Intensiv o\'rganish' }
+      { value: '2hours+', label: '2 soatdan ortiq', desc: "Faol o'rganish" }
     ]
   }
 }
@@ -111,11 +69,8 @@ function Onboarding() {
 
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({
-    ageGroup: '',
-    experience: '',
     goal: '',
     preferredField: '',
-    interests: [],
     availableTime: ''
   })
 
@@ -148,11 +103,8 @@ function Onboarding() {
   const back = () => setStep(s => Math.max(0, s - 1))
 
   const fieldKeyMap = {
-    age: 'ageGroup',
-    experience: 'experience',
     goal: 'goal',
     field: 'preferredField',
-    interests: 'interests',
     time: 'availableTime'
   }
 
@@ -217,15 +169,15 @@ function Onboarding() {
           <div className="onb-features">
             <div className="onb-feature-item">
               <CheckCircle2 size={16} color="#22c55e" />
-              <span>6 ta oddiy savol</span>
+              <span>Atigi 3 ta oddiy savol</span>
             </div>
             <div className="onb-feature-item">
               <CheckCircle2 size={16} color="#22c55e" />
-              <span>AI shaxsiy tavsiya</span>
+              <span>30 soniya vaqt oladi</span>
             </div>
             <div className="onb-feature-item">
               <CheckCircle2 size={16} color="#22c55e" />
-              <span>Mos kurslar avtomatik tanlanadi</span>
+              <span>AI sizga mos kurslarni tanlaydi</span>
             </div>
           </div>
 
