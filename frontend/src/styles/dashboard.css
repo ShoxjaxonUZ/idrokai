@@ -101,6 +101,24 @@
   align-items: center;
   gap: 14px;
   transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), #A78BFA, #F472B6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dash-stat-card:hover::before {
+  opacity: 1;
 }
 
 .dash-stat-card:hover {

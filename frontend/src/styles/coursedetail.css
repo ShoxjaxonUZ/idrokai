@@ -19,7 +19,21 @@
   align-items: center;
   gap: 32px;
   margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
 }
+
+.detail-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 500px 300px at 95% 5%, var(--primary-bg) 0%, transparent 65%),
+    radial-gradient(ellipse 300px 200px at 5% 95%, var(--secondary-bg) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.detail-hero > * { position: relative; z-index: 1; }
 
 .detail-hero-img {
   width: 100%;
