@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
+import GuestBanner from '../components/GuestBanner'
 import { useNotification } from '../context/NotificationContext'
 import '../styles/battle.css'
 
@@ -42,11 +43,21 @@ function Battle() {
   const pollRef = useRef(null)
   const isLockedRef = useRef(false)
 
+  // Guest helper — interaktiv action'larda register sahifaga yo'naltirish
+  const requireAuth = () => {
+    if (!user) {
+      navigate('/register', { state: { from: { pathname: '/battle' } } })
+      return false
+    }
+    return true
+  }
+
   // Sahifa yuklanganda
   useEffect(() => {
-    if (!user) { navigate('/login'); return }
     document.title = "Code Battle — IdrokAI"
     loadLeaderboard()
+
+    if (!user) return
 
     const savedBattleId = localStorage.getItem('active_battle')
     if (savedBattleId) {
@@ -219,6 +230,7 @@ function Battle() {
   }
 
   const createRoom = async () => {
+    if (!requireAuth()) return
     setError('')
     setLoadingAction('create')
     try {
@@ -248,6 +260,7 @@ function Battle() {
   }
 
   const joinRoom = async () => {
+    if (!requireAuth()) return
     if (!joinId.trim()) return setError('ID kiriting')
     setError('')
     setLoadingAction('join')
@@ -287,6 +300,7 @@ function Battle() {
   }
 
   const startSolo = async () => {
+    if (!requireAuth()) return
     setError('')
     setLoadingAction('solo')
     try {
@@ -318,6 +332,7 @@ function Battle() {
   }
 
   const randomMatch = async () => {
+    if (!requireAuth()) return
     setError('')
     setLoadingAction('random')
     try {
@@ -778,6 +793,13 @@ function Battle() {
           <p>Real vaqtda dasturchilar bilan musobaqa. 1 dan 10 kishigacha o'ynang!</p>
         </div>
 
+        {!user && (
+          <GuestBanner
+            title="Code Battle — dasturchilar musobaqasi"
+            subtitle="Boshqa o'yinchilar bilan real vaqtda kod yozing. O'ynashni boshlash uchun ro'yxatdan o'ting"
+          />
+        )}
+
         {error && <div className="battle-error">{error}</div>}
 
         <div className="lang-selector">
@@ -853,7 +875,10 @@ function Battle() {
             </div>
             <h3>Xona ID</h3>
             <p>Do'stingiz yuborgan xona ID si bilan kiring.</p>
-            <button className="btn-primary" onClick={() => setShowJoinModal(true)}>
+            <button className="btn-primary" onClick={() => {
+              if (!requireAuth()) return
+              setShowJoinModal(true)
+            }}>
               <UserPlus size={16} /> Kirish
             </button>
           </div>

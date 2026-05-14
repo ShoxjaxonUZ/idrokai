@@ -8,6 +8,7 @@ import { API_URL, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Loading from '../components/Loading'
+import GuestBanner from '../components/GuestBanner'
 import '../styles/leaderboard.css'
 
 function Leaderboard() {
@@ -77,6 +78,13 @@ function Leaderboard() {
     <div>
       <Navbar />
       <div className="leaderboard-page">
+
+        {!user && (
+          <GuestBanner
+            title="Reyting — eng faol o'quvchilar"
+            subtitle="Daraja, ball, g'alabalar bo'yicha TOP qatnashchilar. Ro'yxatdan o'tib reytingda o'rin oling"
+          />
+        )}
 
         {/* Hero */}
         <div className="lb-hero">

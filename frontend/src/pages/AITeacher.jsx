@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
+import GuestBanner from '../components/GuestBanner'
 import { useNotification } from '../context/NotificationContext'
 import '../styles/aiteacher.css'
 
@@ -51,9 +52,17 @@ function AITeacher() {
 
   const removeImage = () => setImage(null)
 
+  const requireAuth = () => {
+    if (!user) {
+      navigate('/register', { state: { from: { pathname: '/ai-teacher' } } })
+      return false
+    }
+    return true
+  }
+
   useEffect(() => {
-    if (!user) { navigate('/login'); return }
     document.title = "AI Teacher — IdrokAI"
+    if (!user) return
 
     const saved = localStorage.getItem(`ai_chat_${user.id}`)
     if (saved) {
@@ -67,7 +76,7 @@ function AITeacher() {
 
   useEffect(() => {
     scrollToBottom()
-    if (messages.length > 0) {
+    if (user && messages.length > 0) {
       localStorage.setItem(`ai_chat_${user.id}`, JSON.stringify(messages))
     }
   }, [messages])
@@ -107,6 +116,7 @@ function AITeacher() {
   }
 
   const sendMessage = async () => {
+    if (!requireAuth()) return
     if ((!input.trim() && !image) || loading) return
 
     if (usage.remaining <= 0) {
@@ -273,6 +283,13 @@ function AITeacher() {
       <Navbar />
       <div className="ai-teacher-page">
 
+        {!user && (
+          <GuestBanner
+            title="AI Teacher — 4 sohada professional ustoz"
+            subtitle="Dasturlash, matematika, fizika, ingliz tili — kuniga 20 ta savol bepul. Ro'yxatdan o'ting va boshlang"
+          />
+        )}
+
         {/* Header */}
         <div className="ait-header">
           <div className="ait-header-left">
@@ -313,7 +330,7 @@ function AITeacher() {
               <div className="ait-welcome-icon">
                 <Sparkles size={48} />
               </div>
-              <h2>Salom, {user.name}!</h2>
+              <h2>Salom{user ? `, ${user.name}` : ''}!</h2>
               <p>Men sizning AI o'qituvchingizman. Quyidagi sohalarda professional yordam beraman:</p>
 
               <div className="ait-subjects-grid">
@@ -321,7 +338,10 @@ function AITeacher() {
                   <div
                     key={i}
                     className="ait-subject-card"
-                    onClick={() => setInput(s.example)}
+                    onClick={() => {
+                      if (!user) { requireAuth(); return }
+                      setInput(s.example)
+                    }}
                   >
                     <div className="ait-subject-icon" style={{ background: s.color + '20', color: s.color }}>
                       <s.Icon size={24} />
@@ -430,7 +450,7 @@ function AITeacher() {
             />
             <button
               className="ait-image-btn"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => { if (!requireAuth()) return; fileInputRef.current?.click() }}
               disabled={loading || isLimitReached || !!image}
               title="Rasm qo'shish"
               type="button"
@@ -440,20 +460,21 @@ function AITeacher() {
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
+              onFocus={() => { if (!user) requireAuth() }}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   sendMessage()
                 }
               }}
-              placeholder={isLimitReached ? "Limit tugadi, ertaga qayta urunib ko'ring..." : image ? "Rasm haqida savolingiz (ixtiyoriy)..." : "Savolingizni yozing... (Enter = yuborish)"}
+              placeholder={!user ? "Ro'yxatdan o'tib savol yuboring..." : isLimitReached ? "Limit tugadi, ertaga qayta urunib ko'ring..." : image ? "Rasm haqida savolingiz (ixtiyoriy)..." : "Savolingizni yozing... (Enter = yuborish)"}
               rows={1}
               disabled={loading || isLimitReached}
             />
             <button
               className="ait-send"
               onClick={sendMessage}
-              disabled={loading || (!input.trim() && !image) || isLimitReached}
+              disabled={loading || isLimitReached || (user && !input.trim() && !image)}
             >
               <Send size={18} />
             </button>

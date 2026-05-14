@@ -9,8 +9,21 @@ import {
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
+import GuestBanner from '../components/GuestBanner'
 import { useNotification } from '../context/NotificationContext'
 import '../styles/daily.css'
+
+// Guest uchun namuna masala (backend talab qilinmaydi)
+const GUEST_SAMPLE_CHALLENGE = {
+  id: 'guest-sample',
+  title: 'Ro\'yxatdagi raqamlar yig\'indisi',
+  description: 'Berilgan raqamlar ro\'yxatining yig\'indisini hisoblovchi funksiya yozing.\n\nMasalan: [1, 2, 3, 4, 5] → 15',
+  difficulty: 'easy',
+  language: 'python',
+  template: 'def sum_list(numbers):\n    # Kodingizni shu yerga yozing\n    pass\n\n# Misol\nprint(sum_list([1, 2, 3, 4, 5]))',
+  status: 'pending',
+  points: 10
+}
 
 function Daily() {
   const navigate = useNavigate()
@@ -32,9 +45,23 @@ function Daily() {
   const [regenerating, setRegenerating] = useState(false)
   const isCompleted = challenge?.status === 'completed'
 
+  const requireAuth = () => {
+    if (!user) {
+      navigate('/register', { state: { from: { pathname: '/daily' } } })
+      return false
+    }
+    return true
+  }
+
   useEffect(() => {
-    if (!user) { navigate('/login'); return }
     document.title = "Kunlik masala — IdrokAI"
+    if (!user) {
+      // Guest uchun namuna masala
+      setChallenge(GUEST_SAMPLE_CHALLENGE)
+      setCode(GUEST_SAMPLE_CHALLENGE.template)
+      setLoading(false)
+      return
+    }
     loadAll()
   }, [])
 
@@ -108,6 +135,7 @@ function Daily() {
   }
 
   const submitSolution = async () => {
+    if (!requireAuth()) return
     if (!code.trim() || submitting) return
     setSubmitting(true)
     try {
@@ -221,6 +249,13 @@ function Daily() {
       <Navbar />
       <div className="dly-page">
 
+        {!user && (
+          <GuestBanner
+            title="Kunlik masala — har kun yangi challenge"
+            subtitle="Streak (ketma-ket kunlar) to'plang, ball va daraja oshiring. Ro'yxatdan o'tib boshlang"
+          />
+        )}
+
         {/* HERO BAR */}
         <div className="dly-hero-bar">
           <div className="dly-hero-glow"></div>
@@ -232,7 +267,7 @@ function Daily() {
             </div>
             <div className="dly-level-info">
               <div className="dly-rank-name" style={{ color: rank.color }}>{rank.name}</div>
-              <div className="dly-username">{user.name}</div>
+              <div className="dly-username">{user?.name || 'Mehmon'}</div>
               <div className="dly-level-progress">
                 <div className="dly-level-bar">
                   <div className="dly-level-fill" style={{

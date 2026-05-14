@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
+import GuestBanner from '../components/GuestBanner'
 import '../styles/aiquiz.css'
 
 function AIQuiz() {
@@ -32,9 +33,17 @@ function AIQuiz() {
   const [blocked, setBlocked] = useState(false)
   const [blockTime, setBlockTime] = useState(null)
 
+  const requireAuth = () => {
+    if (!user) {
+      navigate('/register', { state: { from: { pathname: '/ai-quiz' } } })
+      return false
+    }
+    return true
+  }
+
   useEffect(() => {
     document.title = "AI Test — IdrokAI"
-    if (!user) { navigate('/login'); return }
+    if (!user) return
     checkBlock()
   }, [])
 
@@ -76,6 +85,7 @@ function AIQuiz() {
   }
 
   const generateQuiz = async () => {
+    if (!requireAuth()) return
     if (!topic.trim()) return setError('Mavzu kiriting')
     setError('')
     setLoading(true)
@@ -345,6 +355,12 @@ function AIQuiz() {
     <div>
       <Navbar />
       <div className="aiquiz-page">
+        {!user && (
+          <GuestBanner
+            title="AI Test — istalgan mavzu bo'yicha"
+            subtitle="AI siz tanlagan mavzu uchun individual savollar yaratadi. Ro'yxatdan o'tib boshlang"
+          />
+        )}
         <div className="aiquiz-generate">
           <div className="aiquiz-icon">
             <Bot size={44} />

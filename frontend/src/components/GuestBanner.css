@@ -1,0 +1,110 @@
+/* ============================================
+   GuestBanner — guest user uchun CTA
+   ============================================ */
+.guest-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.guest-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 400px 200px at 0% 50%, var(--primary-bg) 0%, transparent 65%),
+    radial-gradient(ellipse 300px 150px at 100% 50%, rgba(244, 114, 182, 0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.guest-banner > * { position: relative; z-index: 1; }
+
+.guest-banner-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
+  color: #fff;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.guest-banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.guest-banner-text strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.guest-banner-text span {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.guest-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.guest-banner-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.guest-banner-register {
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%) !important;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 30%, transparent) !important;
+  border: none;
+}
+.guest-banner-register:hover {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #EC4899 100%) !important;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 40%, transparent) !important;
+}
+
+@media (max-width: 768px) {
+  .guest-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .guest-banner-icon {
+    margin: 0 auto;
+  }
+  .guest-banner-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .guest-banner-actions {
+    flex-direction: column;
+  }
+  .guest-banner-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -55,11 +55,12 @@ function App() {
               <Route path="/certificate/:id" element={<RequireAuth><Certificate /></RequireAuth>} />
               <Route path="/courses/:courseId/lessons/:lessonIndex" element={<RequireAuth><Lesson /></RequireAuth>} />
               <Route path="/courses/:courseId/module-test/:moduleIndex" element={<RequireAuth><ModuleTest /></RequireAuth>} />
-              <Route path="/ai-quiz" element={<RequireAuth><AIQuiz /></RequireAuth>} />
-              <Route path="/ai-teacher" element={<RequireAuth><AITeacher /></RequireAuth>} />
-              <Route path="/battle" element={<RequireAuth><Battle /></RequireAuth>} />
-              <Route path="/daily" element={<RequireAuth><Daily /></RequireAuth>} />
-              <Route path="/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
+              {/* Guest ham ko'ra oladi — preview rejim. Interaktiv action'lar register'ga yo'naltiradi */}
+              <Route path="/ai-quiz" element={<AIQuiz />} />
+              <Route path="/ai-teacher" element={<AITeacher />} />
+              <Route path="/battle" element={<Battle />} />
+              <Route path="/daily" element={<Daily />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
 
               <Route path="/teacher/apply" element={<RequireAuth><TeacherApply /></RequireAuth>} />
               <Route path="/teacher/dashboard" element={<RequireAuth role={['teacher', 'admin']}><TeacherDashboard /></RequireAuth>} />

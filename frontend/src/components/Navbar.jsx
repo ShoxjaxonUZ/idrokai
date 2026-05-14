@@ -64,17 +64,13 @@ function Navbar() {
             <span className="logo-text">IdrokAI</span>
           </div>
 
-          {/* Center links */}
+          {/* Center links — guest ham ko'ra oladi (preview) */}
           <div className="nav-center">
             <span onClick={() => goTo('/courses')}>Kurslar</span>
-            {user && (
-              <>
-                <span onClick={() => goTo('/daily')}>Kunlik</span>
-                <span onClick={() => goTo('/battle')}>Battle</span>
-                <span onClick={() => goTo('/ai-teacher')}>AI Teacher</span>
-                <span onClick={() => goTo('/leaderboard')}>Reyting</span>
-              </>
-            )}
+            <span onClick={() => goTo('/daily')}>Kunlik</span>
+            <span onClick={() => goTo('/battle')}>Battle</span>
+            <span onClick={() => goTo('/ai-teacher')}>AI Teacher</span>
+            <span onClick={() => goTo('/leaderboard')}>Reyting</span>
           </div>
 
           {/* Right */}
@@ -164,20 +160,20 @@ function Navbar() {
               <button onClick={() => goTo('/courses')}>
                 <BookOpen size={18} /> Kurslar
               </button>
+              <button onClick={() => goTo('/battle')}>
+                <Swords size={18} /> Battle
+              </button>
+              <button onClick={() => goTo('/ai-teacher')}>
+                <Bot size={18} /> AI Teacher
+              </button>
+              <button onClick={() => goTo('/leaderboard')}>
+                <Trophy size={18} /> Reyting
+              </button>
+              <button onClick={() => goTo('/ai-quiz')}>
+                <Bot size={18} /> AI Test
+              </button>
               {user && (
                 <>
-                  <button onClick={() => goTo('/battle')}>
-                    <Swords size={18} /> Battle
-                  </button>
-                  <button onClick={() => goTo('/ai-teacher')}>
-                    <Bot size={18} /> AI Teacher
-                  </button>
-                  <button onClick={() => goTo('/leaderboard')}>
-                    <Trophy size={18} /> Reyting
-                  </button>
-                  <button onClick={() => goTo('/ai-quiz')}>
-                    <Bot size={18} /> AI Test
-                  </button>
                   <button onClick={() => goTo('/dashboard')}>
                     <LayoutDashboard size={18} /> Dashboard
                   </button>
