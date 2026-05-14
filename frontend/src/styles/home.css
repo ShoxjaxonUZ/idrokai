@@ -141,7 +141,295 @@
 }
 .trust-text strong { color: var(--text); font-weight: 700; }
 
-/* ========== SECTIONS ========== */
+/* ========== BIG STATS — kuchli ko'rsatkichlar ========== */
+.big-stats-section {
+  padding: 80px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.big-stats-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 700px 400px at 50% 0%, var(--primary-bg) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.big-stats-header {
+  text-align: center;
+  margin-bottom: 56px;
+  position: relative;
+  z-index: 1;
+}
+
+.big-stats-header h2 {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 12px;
+  letter-spacing: -0.03em;
+  margin-top: 16px;
+}
+
+.big-stats-header p {
+  color: var(--text-soft);
+  font-size: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.big-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.big-stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 18px;
+  text-align: center;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.big-stat-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.big-stat-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.big-stat-card:hover .big-stat-icon {
+  transform: scale(1.08);
+}
+
+.big-stat-value {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 6px;
+  letter-spacing: -0.03em;
+  display: inline-block;
+}
+
+.big-stat-suffix {
+  background: linear-gradient(135deg, var(--primary), #A78BFA, #F472B6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.big-stat-label {
+  font-size: 13px;
+  color: var(--text-soft);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ========== ADVANTAGES — bizning ustunliklar ========== */
+.advantages-section {
+  background: var(--bg-soft);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.advantages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.advantage-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.advantage-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), #A78BFA, #F472B6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.advantage-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.advantage-card:hover::before {
+  opacity: 1;
+}
+
+.advantage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.advantage-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
+  color: #fff;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.advantage-highlight {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.advantage-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.advantage-card p {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.advantage-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success);
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* ========== NEWS / UPDATES ========== */
+.news-section {
+  /* default fon */
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.news-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 26px;
+  position: relative;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.news-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow);
+}
+
+.news-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+}
+
+.news-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.news-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.news-card p {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.news-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+
+/* ========== SECTIONS (mavjud) ========== */
 .home-section {
   padding: 96px 24px;
 }
@@ -823,6 +1111,10 @@
 .illu-shape { display: none; }
 
 /* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+  .big-stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 968px) {
   .hero-container {
     grid-template-columns: 1fr;
@@ -835,6 +1127,8 @@
 
   .home-course-grid { grid-template-columns: repeat(2, 1fr); }
   .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .advantages-grid { grid-template-columns: repeat(2, 1fr); }
+  .news-grid { grid-template-columns: 1fr; }
 
   .steps-grid {
     grid-template-columns: 1fr;
@@ -851,6 +1145,15 @@
 }
 
 @media (max-width: 640px) {
+  .big-stats-section { padding: 56px 16px; }
+  .big-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .big-stat-card { padding: 22px 14px; }
+  .big-stat-icon { width: 44px; height: 44px; }
+  .big-stat-value { font-size: 28px; }
+
+  .advantages-grid { grid-template-columns: 1fr; gap: 14px; }
+  .advantage-card { padding: 22px 20px; }
+
   .hero-new {
     padding: calc(var(--navbar-h) + 24px) 16px 60px;
     min-height: auto;

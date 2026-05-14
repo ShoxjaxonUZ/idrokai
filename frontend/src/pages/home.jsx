@@ -5,7 +5,8 @@ import {
   Smartphone, ArrowRight, Play, GraduationCap, BarChart3,
   Star, Users, Clock, Target, UserPlus, PlayCircle,
   Trophy, CheckCircle2, ChevronDown, Shield, Zap,
-  Quote, Globe, Code2, Lightbulb
+  Quote, Globe, Code2, Lightbulb, TrendingUp, Heart,
+  MessageCircle, Calendar, Flame, X, Check, Newspaper
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -100,6 +101,92 @@ function Home() {
       avatar: "B",
       color: "#0ea5e9"
     }
+  ]
+
+  // Asosiy statistikalar — kuchli ko'rinish
+  const bigStats = [
+    { Icon: Users, value: stats.users || 500, suffix: '+', label: "Faol o'quvchi", color: '#5B5BD6' },
+    { Icon: BookOpen, value: stats.courses || 50, suffix: '+', label: 'Kurs', color: '#0F9D77' },
+    { Icon: Play, value: stats.lessons || 1000, suffix: '+', label: 'Dars', color: '#DC8B1A' },
+    { Icon: Heart, value: 95, suffix: '%', label: 'Mamnunlik', color: '#EC4899' },
+    { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam', color: '#0788C7' },
+    { Icon: Award, value: 100, suffix: '%', label: 'Bepul', color: '#A78BFA' },
+  ]
+
+  // Bizning ustunliklarimiz — taqqoslash
+  const advantages = [
+    {
+      Icon: Bot,
+      title: 'AI Teacher 4 sohada',
+      desc: "Dasturlash, matematika, fizika va ingliz tili bo'yicha 24/7 individual yordam",
+      highlight: 'Faqat IdrokAI'
+    },
+    {
+      Icon: Swords,
+      title: 'Code Battle multiplayer',
+      desc: "Real vaqtda 1 dan 10 kishigacha kod yozish musobaqasi. Solo praktika ham bor",
+      highlight: 'Yagona O\'zbekistonda'
+    },
+    {
+      Icon: Flame,
+      title: 'Kunlik masala + streak',
+      desc: "Har kuni yangi challenge, daraja oshirish va reytingda ko'tarilish",
+      highlight: 'Gamification'
+    },
+    {
+      Icon: Award,
+      title: 'Avtomatik sertifikat',
+      desc: "Kurs tugagandan keyin rasmiy sertifikat PDF formatda yuklab oling",
+      highlight: 'Bepul'
+    },
+    {
+      Icon: Globe,
+      title: "Sof o'zbek tilida",
+      desc: "Barcha materiallar, AI javoblar va testlar o'zbek tilida — tarjima emas",
+      highlight: 'O\'zimizniki'
+    },
+    {
+      Icon: Smartphone,
+      title: 'Mobil-first dizayn',
+      desc: "Telefon, planshet va kompyuterda bir xil qulay — istalgan joydan o'rganing",
+      highlight: 'Responsive'
+    },
+  ]
+
+  // Yangiliklar — so'nggi platform yangilanishlari
+  const news = [
+    {
+      tag: 'YANGI',
+      tagColor: '#0F9D77',
+      Icon: Bot,
+      title: 'AI Teacher endi rasmlarni ham tahlil qiladi',
+      desc: 'Daftaringizdagi misol yoki kod ekranini rasm qilib yuboring — AI darrov javob beradi.',
+      date: 'Bu hafta'
+    },
+    {
+      tag: 'YANGILANDI',
+      tagColor: '#5B5BD6',
+      Icon: Swords,
+      title: 'Code Battle 1-10 o\'yinchi rejimida',
+      desc: 'Endi do\'stlaringiz bilan birgalikda real vaqtda kod yozish musobaqasini o\'ynashingiz mumkin.',
+      date: 'O\'tgan hafta'
+    },
+    {
+      tag: 'YAXSHILANDI',
+      tagColor: '#DC8B1A',
+      Icon: Trophy,
+      title: 'Sertifikatlar yangi dizaynda',
+      desc: 'Premium ko\'rinish, QR kod va onlayn tasdiqlash bilan rasmiy sertifikatlar.',
+      date: '2 hafta oldin'
+    },
+    {
+      tag: 'YANGI',
+      tagColor: '#EC4899',
+      Icon: Flame,
+      title: 'Kunlik masala — streak va daraja',
+      desc: 'Har kun bitta masala yeching, ketma-ket kunlar uchun bonus ball va rang to\'plang.',
+      date: '3 hafta oldin'
+    },
   ]
 
   const faqs = [
@@ -242,6 +329,33 @@ function Home() {
         </div>
       </section>
 
+      {/* BIG STATS — kuchli raqamlar */}
+      <section className="big-stats-section">
+        <div className="home-container">
+          <div className="big-stats-header">
+            <div className="section-badge">
+              <TrendingUp size={14} /> Bizning ko'rsatkichlar
+            </div>
+            <h2>O'zbekistondagi <span className="gradient-text">eng kuchli</span> ta'lim platformasi</h2>
+            <p>Minglab o'quvchilar tanlagan, sevgan va ishongan platformamiz</p>
+          </div>
+
+          <div className="big-stats-grid">
+            {bigStats.map((s, i) => (
+              <div key={i} className="big-stat-card">
+                <div className="big-stat-icon" style={{ background: s.color + '15', color: s.color }}>
+                  <s.Icon size={28} />
+                </div>
+                <div className="big-stat-value">
+                  {s.value}<span className="big-stat-suffix">{s.suffix}</span>
+                </div>
+                <div className="big-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* MASHHUR KURSLAR */}
       {courses.length > 0 && (
         <section className="home-section">
@@ -299,6 +413,37 @@ function Home() {
         </section>
       )}
 
+      {/* BIZNING USTUNLIKLAR */}
+      <section className="home-section advantages-section">
+        <div className="home-container">
+          <div className="section-header">
+            <div className="section-badge">
+              <Sparkles size={14} /> Bizning ustunliklar
+            </div>
+            <h2>Nima uchun <span className="gradient-text">aynan IdrokAI</span>?</h2>
+            <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud bo'lgan imkoniyatlar</p>
+          </div>
+
+          <div className="advantages-grid">
+            {advantages.map((a, i) => (
+              <div key={i} className="advantage-card">
+                <div className="advantage-header">
+                  <div className="advantage-icon">
+                    <a.Icon size={22} />
+                  </div>
+                  <span className="advantage-highlight">{a.highlight}</span>
+                </div>
+                <h3>{a.title}</h3>
+                <p>{a.desc}</p>
+                <div className="advantage-check">
+                  <Check size={14} /> IdrokAI'da mavjud
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* NIMA UCHUN IDROKAI */}
       <section className="home-section features-section">
         <div className="home-container">
@@ -349,6 +494,37 @@ function Home() {
                 <p>{s.desc}</p>
                 {i < steps.length - 1 && <div className="step-arrow"><ArrowRight size={20} /></div>}
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* YANGILIKLAR */}
+      <section className="home-section news-section">
+        <div className="home-container">
+          <div className="section-header">
+            <div className="section-badge">
+              <Newspaper size={14} /> Yangiliklar
+            </div>
+            <h2>So'nggi <span className="gradient-text">yangilanishlar</span></h2>
+            <p>Platformani doim yaxshilash uchun harakat qilamiz — har hafta yangi xususiyatlar</p>
+          </div>
+
+          <div className="news-grid">
+            {news.map((n, i) => (
+              <article key={i} className="news-card">
+                <div className="news-tag" style={{ background: n.tagColor + '15', color: n.tagColor, borderColor: n.tagColor + '30' }}>
+                  {n.tag}
+                </div>
+                <div className="news-icon">
+                  <n.Icon size={24} />
+                </div>
+                <h3>{n.title}</h3>
+                <p>{n.desc}</p>
+                <div className="news-date">
+                  <Calendar size={12} /> {n.date}
+                </div>
+              </article>
             ))}
           </div>
         </div>
