@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import {
   BookOpen, TrendingUp, CheckCircle2, Trophy, LayoutDashboard,
   GraduationCap, BarChart3, PlayCircle, Pause, Bot, User,
-  Edit, ArrowRight, Award, Target
+  Edit, ArrowRight, Award, Target, MessageCircle, Mail,
+  Send, Clock, X, ChevronDown, ChevronUp
 } from 'lucide-react'
 import { API_URL, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import Loading from '../components/Loading'
 import '../styles/dashboard.css'
 
@@ -24,10 +26,55 @@ function Dashboard() {
   const [certifiedCourseIds, setCertifiedCourseIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
+  const [messages, setMessages] = useState([])
+  const [expandedMsg, setExpandedMsg] = useState(null)
+
+  const unreadMessagesCount = messages.filter(m => m.admin_reply && !m.read_by_user).length
+
+  const loadMessages = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/contact/my`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (Array.isArray(data)) setMessages(data)
+    } catch {}
+  }
+
+  const markMessageRead = async (id) => {
+    try {
+      await fetch(`${API_URL}/api/contact/my/${id}/read`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, read_by_user: true } : m))
+    } catch {}
+  }
+
+  const toggleMessage = (msg) => {
+    if (expandedMsg === msg.id) {
+      setExpandedMsg(null)
+    } else {
+      setExpandedMsg(msg.id)
+      if (msg.admin_reply && !msg.read_by_user) {
+        markMessageRead(msg.id)
+      }
+    }
+  }
+
+  const formatDate = (d) => {
+    try {
+      return new Date(d).toLocaleDateString('uz-UZ', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+    } catch { return d }
+  }
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
     document.title = "Dashboard — IdrokAI"
+    loadMessages()
 
     let cancelled = false
 
@@ -132,6 +179,7 @@ function Dashboard() {
             { key: 'overview', label: 'Umumiy', Icon: LayoutDashboard },
             { key: 'courses', label: 'Kurslarim', Icon: BookOpen },
             { key: 'results', label: 'Natijalar', Icon: Trophy },
+            { key: 'messages', label: 'Xabarlarim', Icon: MessageCircle, badge: unreadMessagesCount },
           ].map(tab => (
             <button
               key={tab.key}
@@ -139,6 +187,7 @@ function Dashboard() {
               onClick={() => setActiveTab(tab.key)}
             >
               <tab.Icon size={16} /> {tab.label}
+              {tab.badge > 0 && <span className="dash-tab-badge">{tab.badge}</span>}
             </button>
           ))}
         </div>
@@ -300,7 +349,108 @@ function Dashboard() {
           </div>
         )}
 
+        {/* Xabarlarim tab */}
+        {activeTab === 'messages' && (
+          <div className="dash-content">
+            <div className="dash-section">
+              <h3>
+                <Mail size={18} /> Aloqa xabarlarim
+                {unreadMessagesCount > 0 && (
+                  <span className="dash-badge badge-blue" style={{ marginLeft: 10 }}>
+                    {unreadMessagesCount} yangi javob
+                  </span>
+                )}
+              </h3>
+
+              {messages.length === 0 ? (
+                <div className="dash-empty">
+                  <div className="empty-icon"><MessageCircle size={48} /></div>
+                  <p>Hali hech qanday xabar yubormagansiz</p>
+                  <button className="btn-primary" onClick={() => navigate('/contact')}>
+                    <Send size={16} /> Xabar yuborish
+                  </button>
+                </div>
+              ) : (
+                <div className="msg-list">
+                  {messages.map(msg => {
+                    const expanded = expandedMsg === msg.id
+                    const hasNewReply = msg.admin_reply && !msg.read_by_user
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`msg-item ${hasNewReply ? 'msg-new-reply' : ''} ${expanded ? 'msg-expanded' : ''}`}
+                      >
+                        <div className="msg-header" onClick={() => toggleMessage(msg)}>
+                          <div className="msg-header-left">
+                            <div className="msg-status-dot" data-status={
+                              msg.admin_reply ? 'replied' : 'pending'
+                            }></div>
+                            <div>
+                              <div className="msg-preview">
+                                {msg.message.length > 80 ? msg.message.slice(0, 80) + '...' : msg.message}
+                              </div>
+                              <div className="msg-meta">
+                                <Clock size={12} /> {formatDate(msg.created_at)}
+                                {msg.admin_reply && (
+                                  <span className="msg-status-text" style={{ color: 'var(--success)' }}>
+                                    <CheckCircle2 size={12} /> Javob bor
+                                  </span>
+                                )}
+                                {!msg.admin_reply && (
+                                  <span className="msg-status-text" style={{ color: 'var(--warning)' }}>
+                                    <Clock size={12} /> Javob kutilmoqda
+                                  </span>
+                                )}
+                                {hasNewReply && (
+                                  <span className="msg-new-badge">YANGI</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <button className="msg-toggle-btn" type="button">
+                            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </button>
+                        </div>
+
+                        {expanded && (
+                          <div className="msg-body">
+                            <div className="msg-section">
+                              <div className="msg-section-label">Sizning xabaringiz</div>
+                              <div className="msg-section-text">{msg.message}</div>
+                            </div>
+
+                            {msg.admin_reply ? (
+                              <div className="msg-section msg-reply">
+                                <div className="msg-section-label">
+                                  <Award size={14} /> Admin javob ({formatDate(msg.replied_at)})
+                                </div>
+                                <div className="msg-section-text">{msg.admin_reply}</div>
+                              </div>
+                            ) : (
+                              <div className="msg-pending">
+                                <Clock size={14} />
+                                Javob kutilmoqda — odatda 24 soat ichida javob beriladi
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div style={{ textAlign: 'center', marginTop: 20 }}>
+                <button className="btn-outline" onClick={() => navigate('/contact')}>
+                  <Send size={16} /> Yangi xabar yuborish
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
+      <Footer />
     </div>
   )
 }
