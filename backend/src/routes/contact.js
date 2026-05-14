@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit')
 const jwt = require('jsonwebtoken')
 const pool = require('../db')
 const telegram = require('../lib/telegram')
+const notifications = require('../lib/notifications')
 const { auth, adminOnly } = require('../middleware/auth')
 
 const router = express.Router()
@@ -210,6 +211,18 @@ router.post('/admin/:id/reply', auth, adminOnly, async (req, res) => {
        WHERE id = $3`,
       [cleanReply, req.user.id, id]
     )
+
+    // Agar xabar ro'yxatdan o'tgan user'dan bo'lsa — in-app notification yaratamiz
+    if (msg.user_id) {
+      notifications.notify(
+        msg.user_id,
+        'admin_reply',
+        'Admin sizning xabaringizga javob berdi',
+        cleanReply.slice(0, 200) + (cleanReply.length > 200 ? '...' : ''),
+        '/dashboard',
+        'mail'
+      ).catch(() => {})
+    }
 
     // Agar user Telegram'da tasdiqlanagan bo'lsa — Telegram'ga ham yuboramiz
     let telegramSent = false

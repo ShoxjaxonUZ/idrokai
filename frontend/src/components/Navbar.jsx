@@ -6,6 +6,7 @@ import {
   User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy
 } from 'lucide-react'
 import { getUser, clearAuth } from '../lib/api'
+import NotificationBell from './NotificationBell'
 import '../styles/navbar.css'
 
 const initial = (name) => {
@@ -82,6 +83,7 @@ function Navbar() {
 
             {user ? (
               <>
+                <NotificationBell />
                 <button className="nav-dashboard" onClick={() => goTo('/dashboard')}>
                   Dashboard
                 </button>
