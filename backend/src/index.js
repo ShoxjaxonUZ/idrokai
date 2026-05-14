@@ -20,6 +20,7 @@ const dailyRoutes = require('./routes/daily')
 const moduleTestRoutes = require('./routes/moduleTest')
 const securityRoutes = require('./routes/security')
 const telegramRoutes = require('./routes/telegram')
+const contactRoutes = require('./routes/contact')
 const { threatDetector } = require('./middleware/threatDetector')
 const telegram = require('./lib/telegram')
 const { runMigrations } = require('./lib/migrate')
@@ -161,6 +162,7 @@ app.use('/api/daily', dailyRoutes)
 app.use('/api/module-test', moduleTestRoutes)
 app.use('/api/security', securityRoutes)
 app.use('/api/telegram', telegramRoutes)
+app.use('/api/contact', contactRoutes)
 
 // 404 handler
 app.use((req, res) => {

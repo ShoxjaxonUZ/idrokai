@@ -244,4 +244,36 @@ const getWebhookInfo = async () => {
   }
 }
 
-module.exports = { sendMessage, sendLocation, sendAttackAlert, sendStartup, sendTo, sendVerificationCode, setWebhook, getWebhookInfo, isConfigured }
+// Admin'ga xabar yuborish (security alerts flag'iga bog'liq emas).
+// Contact form va shu kabi hodisalar uchun ishlatiladi.
+const sendToAdmin = async (text, opts = {}) => {
+  if (!isConfigured()) return { ok: false, reason: 'Telegram sozlanmagan' }
+  if (text.length > 4000) text = text.slice(0, 3990) + '...'
+
+  try {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 8000)
+    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text,
+        parse_mode: opts.parseMode || 'MarkdownV2',
+        disable_web_page_preview: opts.preview === false,
+        disable_notification: opts.silent || false
+      }),
+      signal: ctrl.signal
+    })
+    clearTimeout(timer)
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return { ok: false, reason: data.description || `HTTP ${res.status}` }
+    }
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, reason: err.message }
+  }
+}
+
+module.exports = { sendMessage, sendLocation, sendAttackAlert, sendStartup, sendTo, sendToAdmin, sendVerificationCode, setWebhook, getWebhookInfo, isConfigured, md }

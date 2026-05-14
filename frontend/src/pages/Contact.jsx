@@ -1,29 +1,68 @@
 import { useEffect, useState } from 'react'
 import {
   Mail, Phone, MapPin, Send, MessageCircle,
-  Clock, CheckCircle2
+  Clock, CheckCircle2, AlertCircle, Loader2
 } from 'lucide-react'
+import { API_URL, getUser } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/pages.css'
 
 function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
-  const [sent, setSent] = useState(false)
+  const user = getUser()
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    message: ''
+  })
+  const [status, setStatus] = useState({ type: '', text: '' })
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     document.title = "Aloqa — IdrokAI"
   }, [])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.message) {
-      alert('Barcha maydonlarni to\'ldiring!')
-      return
+    setStatus({ type: '', text: '' })
+
+    const name = form.name.trim()
+    const email = form.email.trim()
+    const message = form.message.trim()
+
+    if (!name || !email || !message) {
+      return setStatus({ type: 'error', text: "Barcha maydonlarni to'ldiring" })
     }
-    setSent(true)
-    setForm({ name: '', email: '', message: '' })
-    setTimeout(() => setSent(false), 4000)
+    if (name.length < 2) {
+      return setStatus({ type: 'error', text: "Ism juda qisqa" })
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return setStatus({ type: 'error', text: "Email noto'g'ri" })
+    }
+    if (message.length < 10) {
+      return setStatus({ type: 'error', text: "Xabar kamida 10 ta belgi bo'lishi kerak" })
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        setStatus({ type: 'success', text: data.message || "Xabar yuborildi!" })
+        setForm({ name: user?.name || '', email: user?.email || '', message: '' })
+        setTimeout(() => setStatus({ type: '', text: '' }), 6000)
+      } else {
+        setStatus({ type: 'error', text: data.message || "Yuborishda xatolik" })
+      }
+    } catch {
+      setStatus({ type: 'error', text: "Server bilan bog'lanib bo'lmadi. Internetni tekshiring" })
+    }
+    setLoading(false)
   }
 
   return (
@@ -36,7 +75,7 @@ function Contact() {
             <MessageCircle size={14} /> Aloqa
           </div>
           <h1>Biz bilan <span className="gradient-text">bog'laning</span></h1>
-          <p>Savollaringiz, takliflaringiz yoki hamkorlik uchun yozing</p>
+          <p>Savollaringiz, takliflaringiz yoki hamkorlik uchun yozing — tez orada javob beramiz</p>
         </div>
 
         <div className="page-section">
@@ -45,8 +84,8 @@ function Contact() {
             {/* Contact info */}
             <div className="contact-info">
               <div className="contact-info-item">
-                <div className="contact-info-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
-                  <Mail size={22} />
+                <div className="contact-info-icon" style={{ background: 'var(--primary-bg)', color: 'var(--primary)' }}>
+                  <Mail size={20} />
                 </div>
                 <div>
                   <div className="contact-info-label">Email</div>
@@ -55,8 +94,8 @@ function Contact() {
               </div>
 
               <div className="contact-info-item">
-                <div className="contact-info-icon" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9' }}>
-                  <Phone size={22} />
+                <div className="contact-info-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}>
+                  <Phone size={20} />
                 </div>
                 <div>
                   <div className="contact-info-label">Telefon</div>
@@ -65,8 +104,8 @@ function Contact() {
               </div>
 
               <div className="contact-info-item">
-                <div className="contact-info-icon" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
-                  <MapPin size={22} />
+                <div className="contact-info-icon" style={{ background: 'var(--secondary-bg)', color: 'var(--secondary)' }}>
+                  <MapPin size={20} />
                 </div>
                 <div>
                   <div className="contact-info-label">Manzil</div>
@@ -75,8 +114,8 @@ function Contact() {
               </div>
 
               <div className="contact-info-item">
-                <div className="contact-info-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
-                  <Clock size={22} />
+                <div className="contact-info-icon" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}>
+                  <Clock size={20} />
                 </div>
                 <div>
                   <div className="contact-info-label">Ish vaqti</div>
@@ -88,46 +127,65 @@ function Contact() {
             {/* Contact form */}
             <div className="contact-form">
               <h3>Xabar yuboring</h3>
-              {sent && (
+              {status.type === 'success' && (
                 <div className="contact-success">
                   <CheckCircle2 size={18} />
-                  Xabaringiz yuborildi! Tez orada javob beramiz.
+                  {status.text}
+                </div>
+              )}
+              {status.type === 'error' && (
+                <div className="contact-error">
+                  <AlertCircle size={18} />
+                  {status.text}
                 </div>
               )}
 
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label>Ism</label>
+                  <label>Ism *</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
                     placeholder="Ismingiz"
+                    maxLength={100}
+                    disabled={loading}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Email</label>
+                  <label>Email *</label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
                     placeholder="email@example.com"
+                    maxLength={200}
+                    disabled={loading}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Xabar</label>
+                  <label>Xabar * <span className="form-hint">({form.message.length}/2000)</span></label>
                   <textarea
                     value={form.message}
-                    onChange={e => setForm({ ...form, message: e.target.value })}
-                    placeholder="Xabaringizni yozing..."
-                    rows={5}
+                    onChange={e => setForm({ ...form, message: e.target.value.slice(0, 2000) })}
+                    placeholder="Xabaringizni yozing... (kamida 10 belgi)"
+                    rows={6}
+                    disabled={loading}
                   />
                 </div>
 
-                <button type="submit" className="btn-primary" style={{ width: '100%' }}>
-                  <Send size={16} /> Yuborish
+                <button
+                  type="submit"
+                  className="btn-primary contact-submit-btn"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <><Loader2 size={16} className="spin" /> Yuborilmoqda...</>
+                  ) : (
+                    <><Send size={16} /> Yuborish</>
+                  )}
                 </button>
               </form>
             </div>

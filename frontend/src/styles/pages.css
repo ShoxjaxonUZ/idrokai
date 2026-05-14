@@ -462,9 +462,8 @@
   box-shadow: var(--shadow-focus);
 }
 
-.contact-success {
-  background: var(--success-bg);
-  color: var(--success);
+.contact-success,
+.contact-error {
   padding: 12px 14px;
   border-radius: var(--radius);
   margin-bottom: 16px;
@@ -472,7 +471,36 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid color-mix(in srgb, var(--success) 22%, transparent);
+  border: 1px solid transparent;
+}
+
+.contact-success {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 22%, transparent);
+}
+
+.contact-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+.contact-submit-btn {
+  width: 100%;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px !important;
+  font-size: 15px !important;
+}
+
+.form-hint {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 6px;
 }
 
 /* Help */
