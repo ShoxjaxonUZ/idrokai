@@ -444,34 +444,6 @@ function Home() {
         </div>
       </section>
 
-      {/* NIMA UCHUN IDROKAI */}
-      <section className="home-section features-section">
-        <div className="home-container">
-          <div className="section-header">
-            <div className="section-badge">
-              <Lightbulb size={14} /> Xususiyatlar
-            </div>
-            <h2>Nima uchun IdrokAI?</h2>
-            <p>Zamonaviy ta'limning barcha imkoniyatlari bir joyda</p>
-          </div>
-
-          <div className="features-grid">
-            {features.map((f, i) => (
-              <div key={i} className="feature-card">
-                <div className="feature-icon" style={{
-                  background: f.color + '20',
-                  color: f.color
-                }}>
-                  <f.Icon size={24} />
-                </div>
-                <h4>{f.title}</h4>
-                <p>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* QANDAY ISHLAYDI */}
       <section className="home-section steps-section">
         <div className="home-container">
