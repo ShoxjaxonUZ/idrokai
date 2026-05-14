@@ -85,6 +85,144 @@
   gap: 8px;
 }
 
+/* ============================================
+   'Bugun nimani boshlaysiz?' widget
+   ============================================ */
+.dash-today-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-today-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 500px 250px at 95% 0%, var(--primary-bg) 0%, transparent 65%),
+    radial-gradient(ellipse 300px 200px at 5% 100%, rgba(244, 114, 182, 0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.dash-today-section > * { position: relative; z-index: 1; }
+
+.dash-today-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.dash-today-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.015em;
+}
+
+.dash-today-header h3 svg {
+  color: var(--primary);
+}
+
+.dash-today-hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.dash-today-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.dash-today-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-today-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-today-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash-today-content {
+  flex: 1;
+}
+
+.dash-today-content h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.dash-today-content p {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.dash-today-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.dash-today-card:hover .dash-today-btn {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+@media (max-width: 968px) {
+  .dash-today-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .dash-today-grid { grid-template-columns: 1fr; }
+  .dash-today-section { padding: 20px 18px; }
+}
+
 /* Stats */
 .dash-stats {
   display: grid;

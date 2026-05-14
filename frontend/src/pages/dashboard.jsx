@@ -4,7 +4,7 @@ import {
   BookOpen, TrendingUp, CheckCircle2, Trophy, LayoutDashboard,
   GraduationCap, BarChart3, PlayCircle, Pause, Bot, User,
   Edit, ArrowRight, Award, Target, MessageCircle, Mail,
-  Send, Clock, X, ChevronDown, ChevronUp
+  Send, Clock, X, ChevronDown, ChevronUp, Sparkles
 } from 'lucide-react'
 import { API_URL, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -28,6 +28,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [messages, setMessages] = useState([])
   const [expandedMsg, setExpandedMsg] = useState(null)
+  const [todayStatus, setTodayStatus] = useState(null) // { dailyDone, dailyId }
 
   const unreadMessagesCount = messages.filter(m => m.admin_reply && !m.read_by_user).length
 
@@ -71,10 +72,27 @@ function Dashboard() {
     } catch { return d }
   }
 
+  // Bugungi kunlik masala statusini olish
+  const loadDailyStatus = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/daily/today`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (res.ok && data.challenge) {
+        setTodayStatus({
+          dailyDone: data.challenge.status === 'completed',
+          dailyId: data.challenge.id
+        })
+      }
+    } catch {}
+  }
+
   useEffect(() => {
     if (!user) { navigate('/login'); return }
     document.title = "Dashboard — IdrokAI"
     loadMessages()
+    loadDailyStatus()
 
     let cancelled = false
 
@@ -133,6 +151,74 @@ function Dashboard() {
   const completedCourses = enrolledCourses.filter(k => k.progress === 100)
   const inProgressCourses = enrolledCourses.filter(k => k.progress > 0 && k.progress < 100)
 
+  // Bugun nima qilish kerakligini hisoblash
+  const todayItems = []
+  if (todayStatus && !todayStatus.dailyDone) {
+    todayItems.push({
+      key: 'daily',
+      Icon: Target,
+      iconColor: 'var(--warning)',
+      iconBg: 'var(--warning-bg)',
+      title: 'Bugungi masalani yeching',
+      desc: "Streak'ingizni saqlash uchun 5-10 daqiqa",
+      btnLabel: 'Boshlash',
+      onClick: () => navigate('/daily')
+    })
+  }
+  if (inProgressCourses[0]) {
+    const k = inProgressCourses[0]
+    todayItems.push({
+      key: 'continue',
+      Icon: PlayCircle,
+      iconColor: 'var(--primary)',
+      iconBg: 'var(--primary-bg)',
+      title: `Davom ettiring: ${k.title}`,
+      desc: `${k.progress}% bajarildi — qolgan darslarni boshlang`,
+      btnLabel: 'Davom etish',
+      onClick: () => navigate(`/courses/${k.course_id}`)
+    })
+  }
+  const certReady = enrolledCourses.find(k =>
+    k.progress === 100 && certifiedCourseIds.has(k.course_id)
+  )
+  if (certReady) {
+    todayItems.push({
+      key: 'cert',
+      Icon: Award,
+      iconColor: 'var(--warning)',
+      iconBg: 'var(--warning-bg)',
+      title: 'Sertifikatingiz tayyor!',
+      desc: `${certReady.title} — sertifikatni oling`,
+      btnLabel: 'Olish',
+      onClick: () => navigate(`/certificate/${certReady.course_id}`)
+    })
+  }
+  if (enrolledCourses.length === 0) {
+    todayItems.push({
+      key: 'start',
+      Icon: BookOpen,
+      iconColor: 'var(--secondary)',
+      iconBg: 'var(--secondary-bg)',
+      title: 'Birinchi kursingizni tanlang',
+      desc: 'Bizda 50+ bepul kurs bor — o\'zingizga mosini boshlang',
+      btnLabel: "Kurslar",
+      onClick: () => navigate('/courses')
+    })
+  }
+  // Har doim Battle/AI tavsiya
+  if (todayItems.length < 3) {
+    todayItems.push({
+      key: 'ai',
+      Icon: Bot,
+      iconColor: 'var(--info)',
+      iconBg: 'var(--info-bg)',
+      title: 'AI Teacher bilan suhbat',
+      desc: '4 sohada professional yordam — kuniga 20 ta savol',
+      btnLabel: 'Boshlash',
+      onClick: () => navigate('/ai-teacher')
+    })
+  }
+
   return (
     <div>
       <Navbar />
@@ -152,6 +238,34 @@ function Dashboard() {
             <Edit size={16} /> Profilni tahrirlash
           </button>
         </div>
+
+        {/* BUGUN NIMA QILISH KERAK widget */}
+        {todayItems.length > 0 && (
+          <div className="dash-today-section">
+            <div className="dash-today-header">
+              <h3>
+                <Sparkles size={18} /> Bugun nimani boshlaysiz?
+              </h3>
+              <span className="dash-today-hint">Sizning oqimingiz uchun tavsiyalar</span>
+            </div>
+            <div className="dash-today-grid">
+              {todayItems.slice(0, 3).map(item => (
+                <div key={item.key} className="dash-today-card" onClick={item.onClick}>
+                  <div className="dash-today-icon" style={{ background: item.iconBg, color: item.iconColor }}>
+                    <item.Icon size={22} />
+                  </div>
+                  <div className="dash-today-content">
+                    <h4>{item.title}</h4>
+                    <p>{item.desc}</p>
+                  </div>
+                  <button className="dash-today-btn">
+                    {item.btnLabel} <ArrowRight size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Statistika */}
         <div className="dash-stats">
