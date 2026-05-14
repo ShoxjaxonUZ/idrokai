@@ -5,7 +5,8 @@ import {
   Image as ImageIcon, Upload, Video, Loader2, X, Save,
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
   Search, Shield, Mail, UserCheck, AlertTriangle, Check,
-  XCircle, Send, ArrowLeft, Globe, Activity, Clock
+  XCircle, Send, ArrowLeft, Globe, Activity, Clock,
+  MessageCircle, Reply, Archive
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -40,6 +41,13 @@ function Admin() {
   // Settings — email test
   const [emailTestTo, setEmailTestTo] = useState('')
   const [emailTesting, setEmailTesting] = useState(false)
+
+  // Contact messages
+  const [contactMessages, setContactMessages] = useState([])
+  const [contactFilter, setContactFilter] = useState('all')
+  const [replyDrafts, setReplyDrafts] = useState({}) // {id: 'text'}
+  const [replying, setReplying] = useState({}) // {id: bool}
+  const [contactLoading, setContactLoading] = useState(false)
 
   // Course form
   const [form, setForm] = useState({
@@ -92,6 +100,75 @@ function Admin() {
     setLoading(false)
   }
 
+  // Contact messages
+  const loadContactMessages = async () => {
+    setContactLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/contact/admin/list?status=${contactFilter}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (Array.isArray(data)) setContactMessages(data)
+    } catch (err) {
+      console.error(err)
+    }
+    setContactLoading(false)
+  }
+
+  const sendReply = async (msgId) => {
+    const text = (replyDrafts[msgId] || '').trim()
+    if (text.length < 5) {
+      return addNotification("Javob kamida 5 ta belgi bo'lishi kerak", 'error')
+    }
+    setReplying(prev => ({ ...prev, [msgId]: true }))
+    try {
+      const res = await fetch(`${API_URL}/api/contact/admin/${msgId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reply: text })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        addNotification(
+          data.telegramSent
+            ? "Javob yuborildi (saytda + Telegram)"
+            : "Javob yuborildi (saytda ko'rinadi)",
+          'success'
+        )
+        setReplyDrafts(prev => ({ ...prev, [msgId]: '' }))
+        await loadContactMessages()
+      } else {
+        addNotification(data.message || "Xatolik", 'error')
+      }
+    } catch {
+      addNotification("Server bilan bog'lanib bo'lmadi", 'error')
+    }
+    setReplying(prev => ({ ...prev, [msgId]: false }))
+  }
+
+  const changeContactStatus = async (msgId, newStatus) => {
+    try {
+      await fetch(`${API_URL}/api/contact/admin/${msgId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
+      setContactMessages(prev => prev.map(m =>
+        m.id === msgId ? { ...m, status: newStatus } : m
+      ))
+    } catch {
+      addNotification("Status o'zgartirib bo'lmadi", 'error')
+    }
+  }
+
+  const newMessagesCount = contactMessages.filter(m => m.status === 'new').length
+
   // Security tab — kerak bo'lganda yuklash
   const loadSecurity = async () => {
     const authHeaders = { Authorization: `Bearer ${token}` }
@@ -108,6 +185,9 @@ function Admin() {
   }
 
   useEffect(() => {
+    if (activeTab === 'messages') {
+      loadContactMessages()
+    }
     if (activeTab === 'security' && !securityStats) {
       loadSecurity()
     }
@@ -441,6 +521,15 @@ function Admin() {
               <UserCheck size={18} /> O'qituvchi arizalari
               {pendingRequestsCount > 0 && (
                 <span className="admin-nav-badge admin-nav-badge-warning">{pendingRequestsCount}</span>
+              )}
+            </button>
+            <button
+              className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`}
+              onClick={() => setActiveTab('messages')}
+            >
+              <MessageCircle size={18} /> Xabarlar
+              {newMessagesCount > 0 && (
+                <span className="admin-nav-badge admin-nav-badge-warning">{newMessagesCount}</span>
               )}
             </button>
             <button
@@ -1113,6 +1202,171 @@ function Admin() {
                             >
                               {action === 'rejecting' ? <Loader2 size={14} className="spin-icon" /> : <XCircle size={14} />} Rad etish
                             </button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* MESSAGES */}
+          {activeTab === 'messages' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>Aloqa xabarlari</h1>
+                  <p>Foydalanuvchilar yuborgan xabarlar va siz yozgan javoblar</p>
+                </div>
+                <button className="btn-outline btn-small" onClick={loadContactMessages}>
+                  <Activity size={14} /> Yangilash
+                </button>
+              </div>
+
+              {/* Filter tablar */}
+              <div className="msg-filter-tabs">
+                {[
+                  { key: 'all', label: 'Hammasi', count: contactMessages.length },
+                  { key: 'new', label: 'Yangi', count: contactMessages.filter(m => m.status === 'new').length, color: 'var(--warning)' },
+                  { key: 'replied', label: 'Javob berildi', count: contactMessages.filter(m => m.status === 'replied').length, color: 'var(--success)' },
+                  { key: 'archived', label: 'Arxiv', count: contactMessages.filter(m => m.status === 'archived').length, color: 'var(--text-muted)' },
+                ].map(t => (
+                  <button
+                    key={t.key}
+                    className={`msg-filter-btn ${contactFilter === t.key ? 'active' : ''}`}
+                    onClick={() => {
+                      setContactFilter(t.key)
+                      setTimeout(loadContactMessages, 0)
+                    }}
+                  >
+                    {t.label}
+                    {t.count > 0 && <span className="msg-filter-count">{t.count}</span>}
+                  </button>
+                ))}
+              </div>
+
+              {contactLoading ? (
+                <div className="admin-empty">
+                  <Loader2 size={32} className="spin" />
+                  <p>Yuklanmoqda...</p>
+                </div>
+              ) : contactMessages.length === 0 ? (
+                <div className="admin-empty">
+                  <Mail size={48} style={{ opacity: 0.4, marginBottom: 12 }} />
+                  <h3>Xabar yo'q</h3>
+                  <p>Hozircha bu filter bo'yicha xabarlar yo'q</p>
+                </div>
+              ) : (
+                <div className="admin-msg-list">
+                  {contactMessages.map(msg => {
+                    const draft = replyDrafts[msg.id] || ''
+                    const sending = !!replying[msg.id]
+                    return (
+                      <div key={msg.id} className={`admin-msg-card admin-msg-${msg.status}`}>
+                        {/* Sarlavha */}
+                        <div className="admin-msg-top">
+                          <div className="admin-msg-from">
+                            <div className="admin-msg-avatar">
+                              {(msg.name?.[0] || '?').toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="admin-msg-name">
+                                {msg.name}
+                                {msg.user_id && (
+                                  <span className="admin-msg-badge admin-msg-badge-user">
+                                    <Check size={10} /> Ro'yxatdan o'tgan
+                                  </span>
+                                )}
+                              </div>
+                              <a href={`mailto:${msg.email}`} className="admin-msg-email">
+                                <Mail size={11} /> {msg.email}
+                              </a>
+                            </div>
+                          </div>
+                          <div className="admin-msg-meta-top">
+                            <span className={`admin-msg-status admin-msg-status-${msg.status}`}>
+                              {msg.status === 'new' && <><AlertTriangle size={10} /> Yangi</>}
+                              {msg.status === 'read' && <><Eye size={10} /> O'qildi</>}
+                              {msg.status === 'replied' && <><Check size={10} /> Javob berildi</>}
+                              {msg.status === 'archived' && <><Archive size={10} /> Arxiv</>}
+                            </span>
+                            <span className="admin-msg-date">
+                              <Clock size={11} />
+                              {new Date(msg.created_at).toLocaleString('uz-UZ', {
+                                day: '2-digit', month: 'short',
+                                hour: '2-digit', minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Xabar matni */}
+                        <div className="admin-msg-text">
+                          {msg.message}
+                        </div>
+
+                        {/* Javob bor bo'lsa — ko'rsatish */}
+                        {msg.admin_reply && (
+                          <div className="admin-msg-reply-shown">
+                            <div className="admin-msg-reply-label">
+                              <Reply size={12} /> Sizning javobingiz
+                              {msg.replied_at && (
+                                <span style={{ marginLeft: 8, fontWeight: 400, opacity: 0.7 }}>
+                                  ({new Date(msg.replied_at).toLocaleString('uz-UZ', {
+                                    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                                  })})
+                                </span>
+                              )}
+                            </div>
+                            <div className="admin-msg-reply-text">{msg.admin_reply}</div>
+                          </div>
+                        )}
+
+                        {/* Javob yozish */}
+                        {msg.status !== 'archived' && (
+                          <div className="admin-msg-reply-form">
+                            <textarea
+                              className="admin-msg-textarea"
+                              placeholder={msg.admin_reply ? "Qo'shimcha javob yozing..." : "Foydalanuvchiga javob yozing... (kamida 5 belgi)"}
+                              value={draft}
+                              onChange={e => setReplyDrafts(prev => ({ ...prev, [msg.id]: e.target.value.slice(0, 2000) }))}
+                              rows={3}
+                              disabled={sending}
+                            />
+                            <div className="admin-msg-reply-actions">
+                              <span className="admin-msg-char-count">
+                                {draft.length}/2000
+                              </span>
+                              <div style={{ display: 'flex', gap: 8 }}>
+                                {msg.status !== 'archived' && (
+                                  <button
+                                    className="btn-outline btn-small"
+                                    onClick={() => changeContactStatus(msg.id, 'archived')}
+                                    disabled={sending}
+                                  >
+                                    <Archive size={12} /> Arxivlash
+                                  </button>
+                                )}
+                                <button
+                                  className="btn-primary btn-small"
+                                  onClick={() => sendReply(msg.id)}
+                                  disabled={sending || draft.trim().length < 5}
+                                >
+                                  {sending ? (
+                                    <><Loader2 size={12} className="spin" /> Yuborilmoqda</>
+                                  ) : (
+                                    <><Send size={12} /> Javob yuborish</>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                            {msg.user_id && (
+                              <div className="admin-msg-hint">
+                                💡 Javob saytda + Telegram'da (agar foydalanuvchi bot bilan tasdiqlanagan bo'lsa) yuboriladi
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
