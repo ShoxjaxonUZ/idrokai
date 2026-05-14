@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
     Check, CheckCircle2, ChevronLeft, ChevronRight,
     PlayCircle, BookOpen, Flag, Download, Paperclip,
-    Lock, FileText
+    Lock, FileText, StickyNote, Save, Loader2
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
@@ -35,6 +35,61 @@ function Lesson() {
     const index = parseInt(lessonIndex)
     const [videoEnded, setVideoEnded] = useState(false)
     const [moduleTestStatus, setModuleTestStatus] = useState({})
+
+    // Notes (eslatmalar)
+    const [notes, setNotes] = useState('')
+    const [notesLoading, setNotesLoading] = useState(false)
+    const [notesSaving, setNotesSaving] = useState(false)
+    const [notesUpdatedAt, setNotesUpdatedAt] = useState(null)
+    const [showNotes, setShowNotes] = useState(false)
+    const saveTimerRef = useRef(null)
+    const initialLoadRef = useRef(false)
+
+    // Load notes when lesson changes
+    useEffect(() => {
+        if (!token || !courseId || isNaN(index)) return
+        initialLoadRef.current = false
+        setNotesLoading(true)
+        fetch(`${API_URL}/api/lesson-notes/${courseId}/${index}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data) {
+                    setNotes(data.content || '')
+                    setNotesUpdatedAt(data.updated_at)
+                    initialLoadRef.current = true
+                }
+            })
+            .catch(() => {})
+            .finally(() => setNotesLoading(false))
+    }, [courseId, index, token])
+
+    // Auto-save (debounced 1s)
+    useEffect(() => {
+        if (!initialLoadRef.current) return
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+        setNotesSaving(true)
+        saveTimerRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/lesson-notes/${courseId}/${index}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content: notes })
+                })
+                const data = await res.json()
+                if (res.ok && data.updated_at) {
+                    setNotesUpdatedAt(data.updated_at)
+                }
+            } catch {}
+            setNotesSaving(false)
+        }, 1000)
+
+        return () => clearTimeout(saveTimerRef.current)
+    }, [notes, courseId, index, token])
 
     useEffect(() => {
         setVideoEnded(false)
@@ -328,6 +383,57 @@ function Lesson() {
                             {isDone && (
                                 <div className="lesson-done-badge">
                                     <CheckCircle2 size={18} /> Bajarildi
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Eslatmalar (notes) panel */}
+                        <div className="lesson-notes-panel">
+                            <button
+                                className="lesson-notes-toggle"
+                                onClick={() => setShowNotes(s => !s)}
+                                type="button"
+                            >
+                                <StickyNote size={16} />
+                                <span>Eslatmalarim</span>
+                                {notes.trim().length > 0 && (
+                                    <span className="lesson-notes-dot"></span>
+                                )}
+                                <span className="lesson-notes-toggle-state">
+                                    {showNotes ? "Yopish" : "Ochish"}
+                                </span>
+                            </button>
+
+                            {showNotes && (
+                                <div className="lesson-notes-body">
+                                    {notesLoading ? (
+                                        <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-muted)' }}>
+                                            <Loader2 size={18} className="spin" />
+                                            <span style={{ marginLeft: 8 }}>Yuklanmoqda...</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <textarea
+                                                className="lesson-notes-textarea"
+                                                value={notes}
+                                                onChange={e => setNotes(e.target.value.slice(0, 10000))}
+                                                placeholder="Bu dars haqida eslatmalaringizni yozing... Avtomatik saqlanadi."
+                                                rows={8}
+                                            />
+                                            <div className="lesson-notes-meta">
+                                                <span className="lesson-notes-count">
+                                                    {notes.length} / 10000 belgi
+                                                </span>
+                                                <span className="lesson-notes-status">
+                                                    {notesSaving ? (
+                                                        <><Loader2 size={12} className="spin" /> Saqlanmoqda...</>
+                                                    ) : notesUpdatedAt ? (
+                                                        <><Save size={12} /> Saqlandi</>
+                                                    ) : null}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>

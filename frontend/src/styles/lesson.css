@@ -272,6 +272,120 @@
   gap: 6px;
 }
 
+/* ============================================
+   Notes (eslatmalar) panel
+   ============================================ */
+.lesson-notes-panel {
+  margin: 18px 0;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.lesson-notes-toggle {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  transition: background 0.15s ease;
+  position: relative;
+}
+
+.lesson-notes-toggle:hover {
+  background: var(--card-hover);
+}
+
+.lesson-notes-toggle svg {
+  color: var(--primary);
+}
+
+.lesson-notes-toggle > span:first-of-type {
+  flex: 1;
+  text-align: left;
+}
+
+.lesson-notes-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+}
+
+.lesson-notes-toggle-state {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.lesson-notes-body {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
+  animation: notesExpand 0.18s ease;
+}
+
+@keyframes notesExpand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lesson-notes-textarea {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  min-height: 140px;
+  font-family: inherit;
+  line-height: 1.6;
+  margin-top: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lesson-notes-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.lesson-notes-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.lesson-notes-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lesson-notes-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.lesson-notes-count {
+  font-weight: 500;
+}
+
 /* Material card */
 .lesson-material {
   background: var(--bg-soft);
