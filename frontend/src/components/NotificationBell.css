@@ -245,6 +245,26 @@
   color: var(--text-muted);
 }
 
+/* View all link */
+.notif-view-all {
+  width: 100%;
+  background: var(--bg);
+  border: none;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+  border-top: 1px solid var(--border);
+  transition: background 0.12s ease;
+}
+
+.notif-view-all:hover {
+  background: var(--card-hover);
+}
+
 /* Mobile */
 @media (max-width: 640px) {
   .notif-dropdown {

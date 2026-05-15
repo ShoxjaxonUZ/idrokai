@@ -139,7 +139,12 @@ export default function NotificationBell() {
       {open && (
         <div className="notif-dropdown">
           <div className="notif-dropdown-header">
-            <div className="notif-dropdown-title">
+            <div
+              className="notif-dropdown-title"
+              onClick={() => { navigate('/notifications'); setOpen(false) }}
+              style={{ cursor: 'pointer' }}
+              title="To'liq tarix"
+            >
               <Bell size={16} />
               <strong>Bildirishnomalar</strong>
               {unread > 0 && <span className="notif-count-chip">{unread}</span>}
@@ -182,7 +187,8 @@ export default function NotificationBell() {
                 <span>Yangi xabar bo'lsa shu yerda ko'rinadi</span>
               </div>
             ) : (
-              items.map(item => {
+              <>
+              {items.map(item => {
                 const Icon = ICONS[item.type] || (
                   item.icon === 'mail' ? Mail :
                   item.icon === 'award' ? Award :
@@ -209,7 +215,14 @@ export default function NotificationBell() {
                     </div>
                   </div>
                 )
-              })
+              })}
+              <button
+                className="notif-view-all"
+                onClick={() => { navigate('/notifications'); setOpen(false) }}
+              >
+                Hammasini ko'rish →
+              </button>
+              </>
             )}
           </div>
         </div>

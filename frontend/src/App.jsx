@@ -22,6 +22,7 @@ import AITeacher from './pages/AITeacher'
 import Leaderboard from './pages/Leaderboard'
 import Onboarding from './pages/Onboarding'
 import Daily from './pages/Daily'
+import Notifications from './pages/Notifications'
 import ModuleTest from './pages/ModuleTest'
 import TeacherApply from './pages/TeacherApply'
 import TeacherDashboard from './pages/TeacherDashboard'
@@ -48,6 +49,7 @@ function App() {
               <Route path="/privacy" element={<Privacy />} />
 
               <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+              <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
               <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
               <Route path="/certificate/:id" element={<RequireAuth><Certificate /></RequireAuth>} />
