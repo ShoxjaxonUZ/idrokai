@@ -6,7 +6,7 @@ import {
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
   Search, Shield, Mail, UserCheck, AlertTriangle, Check,
   XCircle, Send, ArrowLeft, Globe, Activity, Clock,
-  MessageCircle, Reply, Archive
+  MessageCircle, Reply, Archive, Megaphone
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -48,6 +48,11 @@ function Admin() {
   const [replyDrafts, setReplyDrafts] = useState({}) // {id: 'text'}
   const [replying, setReplying] = useState({}) // {id: bool}
   const [contactLoading, setContactLoading] = useState(false)
+
+  // Broadcast
+  const [broadcastForm, setBroadcastForm] = useState({ title: '', message: '', link: '', audience: 'all' })
+  const [broadcasting, setBroadcasting] = useState(false)
+  const [recentBroadcasts, setRecentBroadcasts] = useState([])
 
   // Course form
   const [form, setForm] = useState({
@@ -169,6 +174,49 @@ function Admin() {
 
   const newMessagesCount = contactMessages.filter(m => m.status === 'new').length
 
+  // Broadcast functions
+  const loadRecentBroadcasts = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/notifications/admin/recent-broadcasts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (Array.isArray(data)) setRecentBroadcasts(data)
+    } catch {}
+  }
+
+  const sendBroadcast = async () => {
+    const { title, message, link, audience } = broadcastForm
+    if (!title.trim() || title.trim().length < 3) {
+      return addNotification("Sarlavha kamida 3 ta belgi bo'lishi kerak", 'error')
+    }
+    if (!confirm(`Haqiqatan ham xabarni yuborish?\n\nAuditoriya: ${audience === 'all' ? 'Hammasi' : audience === 'students' ? 'Studentlar' : 'Aktiv (7 kun)'}`)) {
+      return
+    }
+    setBroadcasting(true)
+    try {
+      const res = await fetch(`${API_URL}/api/notifications/admin/broadcast`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ title: title.trim(), message: message.trim(), link: link.trim() || null, audience })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        addNotification(`${data.sent} ta foydalanuvchiga yuborildi!`, 'success')
+        setBroadcastForm({ title: '', message: '', link: '', audience: 'all' })
+        await loadRecentBroadcasts()
+      } else {
+        addNotification(data.message || 'Xatolik', 'error')
+      }
+    } catch {
+      addNotification("Server bilan bog'lanib bo'lmadi", 'error')
+    }
+    setBroadcasting(false)
+  }
+
   // Security tab — kerak bo'lganda yuklash
   const loadSecurity = async () => {
     const authHeaders = { Authorization: `Bearer ${token}` }
@@ -187,6 +235,9 @@ function Admin() {
   useEffect(() => {
     if (activeTab === 'messages') {
       loadContactMessages()
+    }
+    if (activeTab === 'broadcast') {
+      loadRecentBroadcasts()
     }
     if (activeTab === 'security' && !securityStats) {
       loadSecurity()
@@ -531,6 +582,12 @@ function Admin() {
               {newMessagesCount > 0 && (
                 <span className="admin-nav-badge admin-nav-badge-warning">{newMessagesCount}</span>
               )}
+            </button>
+            <button
+              className={`admin-nav-btn ${activeTab === 'broadcast' ? 'active' : ''}`}
+              onClick={() => setActiveTab('broadcast')}
+            >
+              <Megaphone size={18} /> E'lon yuborish
             </button>
             <button
               className={`admin-nav-btn ${activeTab === 'security' ? 'active' : ''}`}
@@ -1372,6 +1429,126 @@ function Admin() {
                       </div>
                     )
                   })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* BROADCAST */}
+          {activeTab === 'broadcast' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>E'lon yuborish</h1>
+                  <p>Barcha foydalanuvchilarga bir vaqtda bildirishnoma yuborish</p>
+                </div>
+              </div>
+
+              <div className="admin-section">
+                <h3><Megaphone size={18} /> Yangi e'lon</h3>
+                <div className="broadcast-form">
+                  <div className="form-group">
+                    <label>Sarlavha *</label>
+                    <input
+                      type="text"
+                      value={broadcastForm.title}
+                      onChange={e => setBroadcastForm(p => ({ ...p, title: e.target.value.slice(0, 200) }))}
+                      placeholder="Masalan: Yangi Python kursi qo'shildi!"
+                      maxLength={200}
+                      disabled={broadcasting}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      {broadcastForm.title.length}/200
+                    </span>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Tavsif (ixtiyoriy)</label>
+                    <textarea
+                      value={broadcastForm.message}
+                      onChange={e => setBroadcastForm(p => ({ ...p, message: e.target.value.slice(0, 1000) }))}
+                      placeholder="Batafsil ma'lumot..."
+                      rows={4}
+                      maxLength={1000}
+                      disabled={broadcasting}
+                    />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                      {broadcastForm.message.length}/1000
+                    </span>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Havola (ixtiyoriy — bossa qaerga o'tadi)</label>
+                    <input
+                      type="text"
+                      value={broadcastForm.link}
+                      onChange={e => setBroadcastForm(p => ({ ...p, link: e.target.value }))}
+                      placeholder="/courses, /battle, /daily..."
+                      disabled={broadcasting}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Auditoriya</label>
+                    <div className="broadcast-audience">
+                      {[
+                        { key: 'all', label: 'Hamma foydalanuvchi', desc: 'Barchasi' },
+                        { key: 'students', label: 'Faqat studentlar', desc: 'Teacher/admin emas' },
+                        { key: 'active7d', label: 'Aktiv (180 kun)', desc: 'Kurs/dars bilan aloqasi bor' }
+                      ].map(opt => (
+                        <label
+                          key={opt.key}
+                          className={`broadcast-radio ${broadcastForm.audience === opt.key ? 'active' : ''}`}
+                        >
+                          <input
+                            type="radio"
+                            name="audience"
+                            value={opt.key}
+                            checked={broadcastForm.audience === opt.key}
+                            onChange={() => setBroadcastForm(p => ({ ...p, audience: opt.key }))}
+                          />
+                          <div>
+                            <strong>{opt.label}</strong>
+                            <span>{opt.desc}</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    className="btn-primary"
+                    onClick={sendBroadcast}
+                    disabled={broadcasting || !broadcastForm.title.trim()}
+                  >
+                    {broadcasting ? (
+                      <><Loader2 size={14} className="spin" /> Yuborilmoqda...</>
+                    ) : (
+                      <><Send size={14} /> Yuborish</>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* So'nggi broadcastlar */}
+              {recentBroadcasts.length > 0 && (
+                <div className="admin-section">
+                  <h3><Clock size={18} /> So'nggi e'lonlar</h3>
+                  <div className="broadcast-history">
+                    {recentBroadcasts.map((b, i) => (
+                      <div key={i} className="broadcast-item">
+                        <div className="broadcast-item-main">
+                          <strong>{b.title}</strong>
+                          {b.message && <span className="broadcast-item-msg">{b.message}</span>}
+                        </div>
+                        <div className="broadcast-item-stats">
+                          <span><Users size={11} /> {b.recipients} ta</span>
+                          <span><Eye size={11} /> {b.read_count} o'qildi</span>
+                          <span><Clock size={11} /> {new Date(b.created_at).toLocaleDateString('uz-UZ', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -1,7 +1,8 @@
 // In-app notifications endpoint'lari
 const express = require('express')
 const pool = require('../db')
-const { auth } = require('../middleware/auth')
+const { auth, adminOnly } = require('../middleware/auth')
+const notifyLib = require('../lib/notifications')
 
 const router = express.Router()
 
@@ -86,6 +87,82 @@ router.delete('/', auth, async (req, res) => {
   try {
     await pool.query('DELETE FROM notifications WHERE user_id = $1', [req.user.id])
     res.json({ ok: true })
+  } catch (err) {
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// ===== ADMIN BROADCAST =====
+// POST /api/notifications/admin/broadcast
+// body: { title, message, link?, audience: 'all'|'students'|'active7d', type? }
+router.post('/admin/broadcast', auth, adminOnly, async (req, res) => {
+  try {
+    const { title, message, link, audience = 'all', type = 'system' } = req.body || {}
+
+    if (!title || String(title).trim().length < 3) {
+      return res.status(400).json({ message: "Sarlavha kamida 3 ta belgi bo'lishi kerak" })
+    }
+    if (message && String(message).length > 1000) {
+      return res.status(400).json({ message: "Xabar 1000 belgi dan oshmasin" })
+    }
+
+    // Auditoriya bo'yicha userlar
+    let query = 'SELECT id FROM users WHERE 1=1'
+    if (audience === 'students') {
+      query += " AND role = 'student'"
+    } else if (audience === 'active7d') {
+      // Oxirgi 7 kun ichida aktiv (notification, lesson_progress, battle_submissions'da harakat bor)
+      query = `
+        SELECT DISTINCT u.id FROM users u
+        WHERE u.created_at > NOW() - INTERVAL '180 days'
+          AND (
+            EXISTS (SELECT 1 FROM lesson_progress lp WHERE lp.user_id = u.id AND lp.id > 0)
+            OR EXISTS (SELECT 1 FROM enrollments e WHERE e.user_id = u.id)
+          )
+      `
+    }
+
+    const usersResult = await pool.query(query)
+    const userIds = usersResult.rows.map(r => r.id)
+
+    if (userIds.length === 0) {
+      return res.json({ ok: true, sent: 0, message: 'Auditoriya bo\'sh' })
+    }
+
+    const sent = await notifyLib.notifyMany(
+      userIds,
+      String(type),
+      String(title).trim().slice(0, 200),
+      String(message || '').trim().slice(0, 1000),
+      link ? String(link).slice(0, 500) : null,
+      'sparkles'
+    )
+
+    res.json({ ok: true, sent, total: userIds.length })
+  } catch (err) {
+    console.error('[notifications] broadcast error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// Admin: oxirgi broadcast'lar tarixi
+router.get('/admin/recent-broadcasts', auth, adminOnly, async (req, res) => {
+  try {
+    // Bir xil title+message+created_at bilan ko'p user uchun yuborilgan
+    // Oddiy yondashuv: so'nggi system notification'lar guruh bo'yicha
+    const result = await pool.query(`
+      SELECT title, message, link, created_at,
+             COUNT(*)::int AS recipients,
+             SUM(CASE WHEN read THEN 1 ELSE 0 END)::int AS read_count
+      FROM notifications
+      WHERE type = 'system'
+        AND created_at > NOW() - INTERVAL '30 days'
+      GROUP BY title, message, link, created_at
+      HAVING COUNT(*) > 1
+      ORDER BY created_at DESC
+      LIMIT 20
+    `)
+    res.json(result.rows)
   } catch (err) {
     res.status(500).json({ message: 'Server xatosi' })
   }

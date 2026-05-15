@@ -1393,6 +1393,128 @@
 }
 
 /* ============================================
+   Admin: Broadcast (e'lon yuborish)
+   ============================================ */
+.broadcast-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 700px;
+}
+
+.broadcast-form textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background: var(--bg-soft);
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  min-height: 90px;
+  font-family: inherit;
+  line-height: 1.55;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.broadcast-form textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.broadcast-audience {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.broadcast-radio {
+  display: flex;
+  gap: 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.broadcast-radio:hover {
+  border-color: var(--border-hover);
+}
+
+.broadcast-radio.active {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.broadcast-radio input { margin-top: 3px; }
+
+.broadcast-radio strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.broadcast-radio span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.broadcast-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.broadcast-item {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.broadcast-item-main {
+  margin-bottom: 8px;
+}
+
+.broadcast-item-main strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.broadcast-item-msg {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.broadcast-item-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.broadcast-item-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .broadcast-audience { grid-template-columns: 1fr; }
+}
+
+/* ============================================
    Admin: Contact Messages tab
    ============================================ */
 .msg-filter-tabs {
