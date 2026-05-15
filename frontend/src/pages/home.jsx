@@ -395,9 +395,15 @@ function Home() {
                     <div className="home-course-meta">
                       <span><BookOpen size={12} /> {kurs.lessons?.length || 0} dars</span>
                       <span><Users size={12} /> {kurs.students_count || 0}</span>
-                      <span className="home-course-rating">
-                        <Star size={12} fill="currentColor" /> 4.8
-                      </span>
+                      {kurs.ratings_count > 0 ? (
+                        <span className="home-course-rating">
+                          <Star size={12} fill="currentColor" /> {kurs.avg_rating.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="home-course-rating" style={{ opacity: 0.6 }}>
+                          <Star size={12} /> Yangi
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

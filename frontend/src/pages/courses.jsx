@@ -45,13 +45,9 @@ function Courses() {
     .sort((a, b) => {
       if (sortBy === 'newest') return (b.id > a.id ? 1 : -1)
       if (sortBy === 'lessons') return (b.lessons?.length || 0) - (a.lessons?.length || 0)
+      if (sortBy === 'rating') return (b.avg_rating || 0) - (a.avg_rating || 0)
       return 0
     })
-
-  const getRating = (id) => {
-    const seed = String(id).charCodeAt(0) || 0
-    return (4.2 + (seed % 8) / 10).toFixed(1)
-  }
 
   if (loading) return (
     <div><Navbar /><Loading text="Kurslar yuklanmoqda..." /></div>
@@ -133,6 +129,7 @@ function Courses() {
             <select className="sort-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
               <option value="popular">Mashhur</option>
               <option value="newest">Yangi</option>
+              <option value="rating">Reyting</option>
               <option value="lessons">Darslar soni</option>
             </select>
           </div>
@@ -191,9 +188,16 @@ function Courses() {
                   </p>
 
                   <div className="course-rating">
-                    <span className="rating-stars">
-                      <Star size={14} fill="currentColor" /> <strong>{getRating(kurs.id)}</strong>
-                    </span>
+                    {kurs.ratings_count > 0 ? (
+                      <span className="rating-stars">
+                        <Star size={14} fill="currentColor" /> <strong>{kurs.avg_rating.toFixed(1)}</strong>
+                        <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.7 }}>({kurs.ratings_count})</span>
+                      </span>
+                    ) : (
+                      <span className="rating-stars" style={{ opacity: 0.5 }}>
+                        <Star size={14} /> <strong>Yangi</strong>
+                      </span>
+                    )}
                     <span className="rating-students">
                       <Users size={12} /> {kurs.students_count || 0} o'quvchi
                     </span>
