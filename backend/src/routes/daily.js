@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
+const { safeParseJson, extractAndParseJson } = require('../lib/jsonParse')
 
 const MAX_CODE_LEN = 10000
 
@@ -101,15 +102,17 @@ JAVOB FAQAT JSON formatda:
     const match = text.match(/\{[\s\S]*\}/)
 
     if (match) {
-      const parsed = JSON.parse(match[0])
-      return {
-        title: String(parsed.title || 'Kunlik masala').slice(0, 200),
-        text: String(parsed.text || 'Masala matni').slice(0, 4000),
-        template: String(parsed.template || '').slice(0, 4000)
+      const parsed = safeParseJson(match[0])
+      if (parsed) {
+        return {
+          title: String(parsed.title || 'Kunlik masala').slice(0, 200),
+          text: String(parsed.text || 'Masala matni').slice(0, 4000),
+          template: String(parsed.template || '').slice(0, 4000)
+        }
       }
     }
   } catch (err) {
-    console.error('AI generate error:', err)
+    console.error('AI generate error:', err.message || err)
   }
 
   return fallbacks[language] || fallbacks.python
@@ -401,14 +404,13 @@ JAVOB JSON: {"score": 0-100, "feedback": "qisqa o'zbek tahlil"}`
     })
     const data = await groqRes.json()
     const text = data.choices?.[0]?.message?.content || ''
-    const match = text.match(/\{[\s\S]*?\}/)
-    if (match) {
-      const parsed = JSON.parse(match[0])
+    const parsed = extractAndParseJson(text)
+    if (parsed) {
       score = Math.min(100, Math.max(0, parseInt(parsed.score) || 0))
       feedback = String(parsed.feedback || 'Tahlil qilindi').slice(0, 1000)
     }
   } catch (err) {
-    console.error('AI scoring error:', err)
+    console.error('AI scoring error:', err.message || err)
   }
 
   const passed = score >= 60

@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
+const { extractAndParseJson } = require('../lib/jsonParse')
 
 const getTodayDate = () => new Date().toISOString().split('T')[0]
 
@@ -156,16 +157,9 @@ correct — to'g'ri javob indeksi (0 dan 3 gacha)`
 
     const data = await groqRes.json()
     const text = data.choices?.[0]?.message?.content || ''
-    const match = text.match(/\{[\s\S]*\}/)
-    if (!match) {
-      return res.status(500).json({ message: 'AI savollar yaratolmadi' })
-    }
-
-    let parsed
-    try {
-      parsed = JSON.parse(match[0])
-    } catch {
-      return res.status(500).json({ message: 'AI noto\'g\'ri JSON qaytardi' })
+    const parsed = extractAndParseJson(text)
+    if (!parsed) {
+      return res.status(500).json({ message: "AI savollar yaratolmadi" })
     }
 
     const all = Array.isArray(parsed.questions) ? parsed.questions : []

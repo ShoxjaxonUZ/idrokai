@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
+const { extractAndParseJson } = require('../lib/jsonParse')
 
 const MAX_INTERESTS = 20
 const MAX_INTEREST_LEN = 50
@@ -105,10 +106,9 @@ JAVOB FAQAT JSON formatda:
 
       const aiData = await groqRes.json()
       const text = aiData.choices?.[0]?.message?.content || ''
-      const match = text.match(/\{[\s\S]*?\}/)
+      const parsed = extractAndParseJson(text)
 
-      if (match) {
-        const parsed = JSON.parse(match[0])
+      if (parsed) {
         recommendedCourses = (parsed.courseIds || [])
           .map(id => allCourses.find(c => String(c.id) === String(id)))
           .filter(Boolean)
@@ -116,7 +116,7 @@ JAVOB FAQAT JSON formatda:
         studyPlan = String(parsed.studyPlan || '').slice(0, 1000)
       }
     } catch (aiErr) {
-      console.error('AI error:', aiErr)
+      console.error('AI error:', aiErr.message || aiErr)
       const lowField = preferredField.toLowerCase()
       if (lowField) {
         recommendedCourses = allCourses

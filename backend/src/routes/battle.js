@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
+const { extractAndParseJson } = require('../lib/jsonParse')
 
 const MAX_CODE_LEN = 10000
 
@@ -92,10 +93,9 @@ JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
 
     const data = await groqRes.json()
     const text = data.choices?.[0]?.message?.content || ''
-    const match = text.match(/\{[\s\S]*\}/)
-    if (!match) return null
+    const parsed = extractAndParseJson(text)
+    if (!parsed) return null
 
-    const parsed = JSON.parse(match[0])
     const title = String(parsed.title || '').trim().slice(0, 100)
     const probText = String(parsed.text || '').trim().slice(0, 2000)
     const template = String(parsed.template || '').trim().slice(0, 4000)
@@ -180,10 +180,9 @@ JAVOB FAQAT JSON formatda:
 
     const data = await groqRes.json()
     const text = data.choices?.[0]?.message?.content || ''
-    const match = text.match(/\{[\s\S]*?\}/)
+    const parsed = extractAndParseJson(text)
 
-    if (match) {
-      const parsed = JSON.parse(match[0])
+    if (parsed) {
       let score = Math.min(100, Math.max(0, parseInt(parsed.score) || 0))
 
       const codeNorm = code.toLowerCase()

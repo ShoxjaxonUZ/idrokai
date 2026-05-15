@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
+const { safeParseJson } = require('../lib/jsonParse')
 
 const MAX_TOPIC_LEN = 200
 const MAX_MESSAGE_LEN = 2000
@@ -104,11 +105,9 @@ Quyidagi JSON formatda ${safeCount} ta test savoli yarat. Faqat sof JSON qaytarg
       text = text.substring(firstBrace, lastBrace + 1)
     }
 
-    let parsed
-    try {
-      parsed = JSON.parse(text)
-    } catch {
-      return res.status(500).json({ message: 'AI noto\'g\'ri JSON qaytardi' })
+    const parsed = safeParseJson(text)
+    if (!parsed) {
+      return res.status(500).json({ message: "AI noto'g'ri JSON qaytardi" })
     }
     res.json(parsed)
 
