@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
 const { extractAndParseJson } = require('../lib/jsonParse')
+const notifications = require('../lib/notifications')
 
 const MAX_CODE_LEN = 10000
 
@@ -249,6 +250,19 @@ const finishBattle = async (battleId) => {
           UPDATE battles SET status = 'finished', finished_at = NOW(), winner_id = $1
           WHERE id = $2
         `, [sub.score >= 60 ? sub.user_id : null, battleId])
+
+        // Solo natija notification
+        const passed = sub.score >= 60
+        notifications.notify(
+          sub.user_id,
+          'system',
+          passed ? 'Solo battle yutdingiz!' : "Solo battle — yana urinib ko'ring",
+          passed
+            ? `${sub.score} ball oldingiz${pointsChange > 0 ? ` (+${pointsChange} reyting)` : ''}`
+            : `${sub.score} ball. Boshqa masalalarni ko'rib chiqing.`,
+          '/battle',
+          'swords'
+        ).catch(() => {})
       }
       await client.query('COMMIT')
       return
@@ -295,6 +309,32 @@ const finishBattle = async (battleId) => {
     `, [winnerId, battleId])
 
     await client.query('COMMIT')
+
+    // Multiplayer natija notification — har bir player uchun
+    for (let i = 0; i < sortedSubs.length; i++) {
+      const sub = sortedSubs[i]
+      const place = i + 1
+      let title, msg, icon = 'swords'
+
+      if (sub.user_id === winnerId) {
+        title = "G'alaba qozondingiz!"
+        msg = `${sub.score} ball — Top 1 (+25 reyting)`
+      } else if (place === 2) {
+        title = "2-o'rin — yaxshi natija!"
+        msg = `${sub.score} ball`
+      } else if (place === 3) {
+        title = "3-o'rin"
+        msg = `${sub.score} ball`
+      } else if (winnerId) {
+        title = "Battle tugadi"
+        msg = `${place}-o'rin — ${sub.score} ball. Yana urinib ko'ring!`
+      } else {
+        title = "Battle — durang"
+        msg = `${sub.score} ball — hech kim 60 dan yuqori olmadi`
+      }
+
+      notifications.notify(sub.user_id, 'system', title, msg, '/battle', icon).catch(() => {})
+    }
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {})
     console.error('Finish battle error:', err)
