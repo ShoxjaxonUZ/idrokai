@@ -25,23 +25,7 @@ const validateImage = (image) => {
   return null
 }
 
-const groqFetch = async (body, ms = 30000) => {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try {
-    return await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: JSON.stringify(body),
-      signal: ctrl.signal
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-}
+const { groqFetch } = require('../lib/groq')
 
 router.post('/generate-quiz', auth, async (req, res) => {
   try {

@@ -5,25 +5,9 @@ const { auth } = require('../middleware/auth')
 const { extractAndParseJson } = require('../lib/jsonParse')
 const notifications = require('../lib/notifications')
 
-const MAX_CODE_LEN = 10000
+const { groqFetch } = require('../lib/groq')
 
-const groqFetch = async (body, ms = 30000) => {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try {
-    return await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: JSON.stringify(body),
-      signal: ctrl.signal
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-}
+const MAX_CODE_LEN = 10000
 
 const PROBLEMS = {
   python: [
@@ -110,7 +94,8 @@ JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
       template
     }
   } catch (err) {
-    console.error('AI problem gen error:', err.message)
+    // Fallback ishlaydi — bu warn, error emas
+    console.warn('[battle] AI fallback used:', err.message?.slice(0, 80))
     return null
   }
 }

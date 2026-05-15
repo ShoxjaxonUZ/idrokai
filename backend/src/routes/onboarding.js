@@ -21,23 +21,7 @@ const cleanInterests = (v) => {
     .slice(0, MAX_INTERESTS)
 }
 
-const groqFetch = async (body, ms = 30000) => {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try {
-    return await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: JSON.stringify(body),
-      signal: ctrl.signal
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-}
+const { groqFetch } = require('../lib/groq')
 
 router.get('/status', auth, async (req, res) => {
   try {
@@ -116,7 +100,7 @@ JAVOB FAQAT JSON formatda:
         studyPlan = String(parsed.studyPlan || '').slice(0, 1000)
       }
     } catch (aiErr) {
-      console.error('AI error:', aiErr.message || aiErr)
+      console.warn('[onboarding] AI fallback:', (aiErr.message || aiErr).slice?.(0, 80))
       const lowField = preferredField.toLowerCase()
       if (lowField) {
         recommendedCourses = allCourses

@@ -5,25 +5,9 @@ const { auth } = require('../middleware/auth')
 const { safeParseJson, extractAndParseJson } = require('../lib/jsonParse')
 const notifications = require('../lib/notifications')
 
-const MAX_CODE_LEN = 10000
+const { groqFetch } = require('../lib/groq')
 
-const groqFetch = async (body, ms = 30000) => {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try {
-    return await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
-      },
-      body: JSON.stringify(body),
-      signal: ctrl.signal
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-}
+const MAX_CODE_LEN = 10000
 
 const getUserLevel = async (userId) => {
   const profile = await pool.query('SELECT experience FROM user_profiles WHERE user_id = $1', [userId])
@@ -113,7 +97,8 @@ JAVOB FAQAT JSON formatda:
       }
     }
   } catch (err) {
-    console.error('AI generate error:', err.message || err)
+    // AI ishlamasa fallback ko'rsatiladi — warn
+    console.warn('[daily] AI fallback:', (err.message || err).slice?.(0, 80))
   }
 
   return fallbacks[language] || fallbacks.python
@@ -411,7 +396,7 @@ JAVOB JSON: {"score": 0-100, "feedback": "qisqa o'zbek tahlil"}`
       feedback = String(parsed.feedback || 'Tahlil qilindi').slice(0, 1000)
     }
   } catch (err) {
-    console.error('AI scoring error:', err.message || err)
+    console.warn('[daily] AI scoring fallback:', (err.message || err).slice?.(0, 80))
   }
 
   const passed = score >= 60

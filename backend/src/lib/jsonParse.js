@@ -29,7 +29,8 @@ function safeParseJson(raw) {
       })
     return JSON.parse(cleaned)
   } catch (err) {
-    console.error('[safeParseJson] failed:', err.message?.slice(0, 80))
+    // Fallback ishlaydi — bu kritik xato emas, faqat info
+    console.warn('[safeParseJson] fallback used:', err.message?.slice(0, 60))
     return null
   }
 }
