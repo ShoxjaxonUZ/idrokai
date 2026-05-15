@@ -57,10 +57,13 @@ export default function NotificationBell() {
       es.addEventListener('notification', (e) => {
         try {
           const newNotif = JSON.parse(e.data)
-          // Optimistic — list boshiga qo'shish
+          if (!newNotif.id) {
+            // notifyMany (broadcast) — id yo'q, to'liq refetch
+            fetchNotifs()
+            return
+          }
           setItems(prev => {
-            // duplicate yo'qmi tekshirish (id bilan)
-            if (newNotif.id && prev.some(n => n.id === newNotif.id)) return prev
+            if (prev.some(n => n.id === newNotif.id)) return prev
             return [newNotif, ...prev.slice(0, 19)]
           })
           setUnread(u => u + 1)
@@ -225,7 +228,7 @@ export default function NotificationBell() {
               </div>
             ) : (
               <>
-              {items.map(item => {
+              {items.filter(item => item.id).map(item => {
                 const Icon = ICONS[item.type] || (
                   item.icon === 'mail' ? Mail :
                   item.icon === 'award' ? Award :
