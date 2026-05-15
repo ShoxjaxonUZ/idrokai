@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
 const { extractAndParseJson } = require('../lib/jsonParse')
+const notifications = require('../lib/notifications')
 
 const getTodayDate = () => new Date().toISOString().split('T')[0]
 
@@ -233,6 +234,46 @@ router.post('/submit', auth, async (req, res) => {
       SET score = $1, passed = $2, user_answers = $3::jsonb, completed_at = NOW()
       WHERE id = $4
     `, [correctCount, passed, JSON.stringify(answers), att.id])
+
+    // Notification — test pass bo'lganda
+    if (passed) {
+      // Kursdagi jami modullarni hisoblash
+      const courseRow = await pool.query(
+        'SELECT title, lessons FROM courses WHERE id = $1',
+        [courseId]
+      )
+      const course = courseRow.rows[0]
+      let totalModules = 1
+      if (course) {
+        try {
+          const lessons = typeof course.lessons === 'string' ? JSON.parse(course.lessons) : course.lessons
+          totalModules = Math.max(1, Math.ceil((lessons?.length || 0) / 5))
+        } catch {}
+      }
+
+      const isLastModule = (moduleIdx + 1) >= totalModules
+      const courseTitle = course?.title || 'Kurs'
+
+      if (isLastModule) {
+        notifications.notify(
+          req.user.id,
+          'cert_ready',
+          'Sertifikatingiz tayyor!',
+          `"${courseTitle}" kursini muvaffaqiyatli tugatdingiz. Sertifikatingizni oling.`,
+          `/certificate/${courseId}`,
+          'award'
+        ).catch(() => {})
+      } else {
+        notifications.notify(
+          req.user.id,
+          'system',
+          `${moduleIdx + 1}-qism testi o'tildi!`,
+          `"${courseTitle}" — keyingi qism ochildi, davom eting`,
+          `/courses/${courseId}`,
+          'award'
+        ).catch(() => {})
+      }
+    }
 
     res.json({
       passed,

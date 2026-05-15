@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   BookOpen, BarChart3, Target, Play, Rocket, Check,
-  Lock, Award, Globe, Clock, CheckCircle2, FileText
+  Lock, Award, Globe, Clock, CheckCircle2, FileText,
+  StickyNote, ChevronRight
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -25,6 +26,7 @@ function CourseDetail() {
   const [moduleTests, setModuleTests] = useState({})
   const [pageLoading, setPageLoading] = useState(true)
   const [enrolling, setEnrolling] = useState(false)
+  const [notes, setNotes] = useState([]) // [{lesson_index, preview, updated_at}]
 
   useEffect(() => {
     loadCourse()
@@ -90,6 +92,15 @@ function CourseDetail() {
         const done = progRes.filter(l => l.completed).map(l => l.lesson_index)
         setCompletedLessons(done)
       }
+
+      // Eslatmalar (notes) — kurs ichidagi barcha darslar uchun
+      try {
+        const notesRes = await fetch(`${API_URL}/api/lesson-notes/course/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const notesData = await notesRes.json()
+        if (Array.isArray(notesData)) setNotes(notesData)
+      } catch {}
     } catch (err) {
       console.error(err)
     }
@@ -302,6 +313,31 @@ function CourseDetail() {
                 })
               )}
             </div>
+
+            {/* Mening eslatmalarim — student notes preview */}
+            {enrolled && notes.length > 0 && (
+              <div className="detail-section">
+                <h3><StickyNote size={20} /> Mening eslatmalarim ({notes.length})</h3>
+                <div className="notes-preview-list">
+                  {notes.map(n => (
+                    <div
+                      key={n.lesson_index}
+                      className="notes-preview-item"
+                      onClick={() => navigate(`/courses/${id}/lessons/${n.lesson_index}`)}
+                    >
+                      <div className="notes-preview-num">{n.lesson_index + 1}</div>
+                      <div className="notes-preview-content">
+                        <div className="notes-preview-title">
+                          {course.lessons[n.lesson_index]?.title || `${n.lesson_index + 1}-dars`}
+                        </div>
+                        <div className="notes-preview-text">{n.preview}{n.preview.length >= 100 ? '...' : ''}</div>
+                      </div>
+                      <ChevronRight size={16} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Comments courseId={id} />
           </div>
