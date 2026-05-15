@@ -6,7 +6,7 @@ const { auth } = require('../middleware/auth')
 const router = express.Router()
 
 // GET /api/video-progress/:courseId/:lessonIndex
-router.get('/:courseId/:lessonIndex', auth, async (req, res) => {
+router.get('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
     const result = await pool.query(
@@ -23,7 +23,7 @@ router.get('/:courseId/:lessonIndex', auth, async (req, res) => {
 })
 
 // PUT /api/video-progress/:courseId/:lessonIndex
-router.put('/:courseId/:lessonIndex', auth, async (req, res) => {
+router.put('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
     const { position, duration } = req.body || {}
@@ -49,7 +49,7 @@ router.put('/:courseId/:lessonIndex', auth, async (req, res) => {
 })
 
 // DELETE /api/video-progress/:courseId/:lessonIndex — reset (lesson tugaganda)
-router.delete('/:courseId/:lessonIndex', auth, async (req, res) => {
+router.delete('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
     await pool.query(
