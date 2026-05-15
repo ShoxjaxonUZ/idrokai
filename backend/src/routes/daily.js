@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
 const { safeParseJson, extractAndParseJson } = require('../lib/jsonParse')
+const notifications = require('../lib/notifications')
 
 const MAX_CODE_LEN = 10000
 
@@ -427,6 +428,15 @@ JAVOB JSON: {"score": 0-100, "feedback": "qisqa o'zbek tahlil"}`
 
     if (!passed) {
       await client.query('COMMIT')
+      // Failed notification
+      notifications.notify(
+        req.user.id,
+        'system',
+        "Bugungi masala — yana urinib ko'ring",
+        `${score} ball. Ertaga yangi masala bilan qaytamiz.`,
+        '/daily',
+        'flame'
+      ).catch(() => {})
       return res.json({ passed: false, score, feedback, pointsEarned: 0 })
     }
 
@@ -458,6 +468,18 @@ JAVOB JSON: {"score": 0-100, "feedback": "qisqa o'zbek tahlil"}`
     `, [newStreak, longestStreak, today, pointsEarned, req.user.id])
 
     await client.query('COMMIT')
+
+    // Success notification
+    const streakText = newStreak >= 7 ? ` 🔥 ${newStreak} kunlik streak!` : newStreak >= 3 ? ` (${newStreak} kunlik streak)` : ''
+    notifications.notify(
+      req.user.id,
+      'system',
+      `Kunlik masala yechildi! +${pointsEarned} ball`,
+      `${score}/100 ball${streakText}. Ertaga yangi masala kutmoqda.`,
+      '/daily',
+      'flame'
+    ).catch(() => {})
+
     res.json({ passed: true, score, feedback, pointsEarned, newStreak, longestStreak })
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {})
