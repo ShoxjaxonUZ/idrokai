@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Swords, Plus, Users, Trophy, Copy, LogOut, Zap,
   Clock, Send, Code, Shield, Crown, Medal, Award, Code2,
-  User, UserPlus, Hash, Play, CheckCircle2, Loader2, Minus, AlertCircle
+  User, UserPlus, Hash, Play, CheckCircle2, Loader2, Minus, AlertCircle,
+  Share2, MessageCircle, Link as LinkIcon, Check
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -20,10 +21,12 @@ const LANGUAGES = [
 
 function Battle() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const notif = useNotification()
   const addNotification = notif?.addNotification || (() => {})
   const user = (() => { try { return JSON.parse(localStorage.getItem('user')) } catch { return null } })()
   const token = localStorage.getItem('token')
+  const [copyOk, setCopyOk] = useState(false)
 
   const [view, setView] = useState('lobby')
   const [language, setLanguage] = useState('python')
@@ -51,6 +54,21 @@ function Battle() {
     }
     return true
   }
+
+  // URL parameter ?join=ABC123 — link orqali kelganda auto-fill
+  useEffect(() => {
+    const joinParam = searchParams.get('join')
+    if (joinParam && joinParam.length === 6) {
+      if (!user) {
+        navigate('/register', { state: { from: { pathname: `/battle?join=${joinParam}` } } })
+        return
+      }
+      setJoinId(joinParam.toUpperCase())
+      setShowJoinModal(true)
+      // Parametrni URL'dan tozalash
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams])
 
   // Sahifa yuklanganda
   useEffect(() => {
@@ -713,10 +731,55 @@ function Battle() {
               <Users size={72} />
             </div>
             <h2>Xona kutilmoqda</h2>
-            <p>Xona ID ni do'stlaringizga yuboring</p>
+            <p>Do'stlaringizga taklif yuboring</p>
 
-            <div className="battle-id-display">
+            <div
+              className="battle-id-display"
+              onClick={() => {
+                const url = `${window.location.origin}/battle?join=${currentBattle.id}`
+                navigator.clipboard?.writeText(url).then(() => {
+                  setCopyOk(true)
+                  addNotification('Havola nusxalandi', 'success')
+                  setTimeout(() => setCopyOk(false), 2000)
+                })
+              }}
+              title="Bosing — havolani nusxalash"
+            >
+              {copyOk ? <Check size={28} /> : <Copy size={20} />}
               {currentBattle.id}
+            </div>
+
+            {/* Share tugmalar */}
+            <div className="battle-share-row">
+              <button
+                className="battle-share-btn"
+                onClick={() => {
+                  const url = `${window.location.origin}/battle?join=${currentBattle.id}`
+                  navigator.clipboard?.writeText(url).then(() => {
+                    setCopyOk(true)
+                    addNotification('Havola nusxalandi', 'success')
+                    setTimeout(() => setCopyOk(false), 2000)
+                  })
+                }}
+              >
+                <LinkIcon size={14} /> Havolani nusxalash
+              </button>
+              <a
+                className="battle-share-btn battle-share-tg"
+                href={`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/battle?join=${currentBattle.id}`)}&text=${encodeURIComponent(`IdrokAI Battle xonaga qo'shiling! ID: ${currentBattle.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Send size={14} /> Telegram
+              </a>
+              <a
+                className="battle-share-btn battle-share-wa"
+                href={`https://wa.me/?text=${encodeURIComponent(`IdrokAI Battle xonaga qo'shiling! ${window.location.origin}/battle?join=${currentBattle.id}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle size={14} /> WhatsApp
+              </a>
             </div>
 
             <div className="waiting-info">
