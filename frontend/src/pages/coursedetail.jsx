@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   BookOpen, BarChart3, Target, Play, Rocket, Check,
   Lock, Award, Globe, Clock, CheckCircle2, FileText,
-  StickyNote, ChevronRight
+  StickyNote, ChevronRight, Star
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Comments from '../components/Comments'
+import CourseRatings from '../components/CourseRatings'
 import Loading from '../components/Loading'
 import '../styles/coursedetail.css'
 
@@ -338,6 +339,12 @@ function CourseDetail() {
                 </div>
               </div>
             )}
+
+            {/* Reyting va sharhlar */}
+            <div className="detail-section">
+              <h3><Star size={20} /> Reyting va sharhlar</h3>
+              <CourseRatings courseId={id} enrolled={enrolled} />
+            </div>
 
             <Comments courseId={id} />
           </div>
