@@ -2,6 +2,7 @@
 // Misol: lib/notifications.notify(userId, 'admin_reply', 'Admin javob berdi', '...', '/dashboard?tab=messages')
 
 const pool = require('../db')
+const sse = require('./sse')
 
 /**
  * Yangi notification yaratish (fire-and-forget — xato bo'lsa log, lekin throw qilmaydi).
@@ -21,7 +22,17 @@ async function notify(userId, type, title, message = '', link = null, icon = nul
        RETURNING id, created_at`,
       [userId, type, String(title).slice(0, 200), String(message).slice(0, 1000), link, icon]
     )
-    return r.rows[0]
+    const row = r.rows[0]
+    // SSE — agar foydalanuvchi onlayn bo'lsa, darrov push
+    try {
+      sse.sendToUser(userId, 'notification', {
+        id: row.id,
+        type, title, message, link, icon,
+        read: false,
+        created_at: row.created_at
+      })
+    } catch {}
+    return row
   } catch (err) {
     console.error('[notify] error:', err.message)
     return null
@@ -46,6 +57,14 @@ async function notifyMany(userIds, type, title, message = '', link = null, icon 
        VALUES ${placeholders.join(', ')}`,
       values
     )
+    // SSE broadcast
+    try {
+      sse.sendToMany(userIds, 'notification', {
+        type, title, message, link, icon,
+        read: false,
+        created_at: new Date().toISOString()
+      })
+    } catch {}
     return r.rowCount || userIds.length
   } catch (err) {
     console.error('[notifyMany] error:', err.message)

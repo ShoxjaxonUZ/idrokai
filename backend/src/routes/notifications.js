@@ -1,10 +1,49 @@
 // In-app notifications endpoint'lari
 const express = require('express')
+const jwt = require('jsonwebtoken')
 const pool = require('../db')
 const { auth, adminOnly } = require('../middleware/auth')
 const notifyLib = require('../lib/notifications')
+const sse = require('../lib/sse')
 
 const router = express.Router()
+
+// SSE stream — real-time notifications
+// Token URL'da query parameter sifatida (EventSource'da headers qo'shib bo'lmaydi)
+router.get('/stream', async (req, res) => {
+  const token = req.query.token
+  if (!token) {
+    return res.status(401).end()
+  }
+
+  let userId
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ['HS256'],
+      maxAge: '7d'
+    })
+    userId = decoded.id
+  } catch {
+    return res.status(401).end()
+  }
+
+  // SSE headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  })
+  // Initial greeting
+  res.write('event: connected\n')
+  res.write(`data: ${JSON.stringify({ ts: Date.now() })}\n\n`)
+
+  const entry = sse.addClient(userId, res)
+
+  req.on('close', () => {
+    sse.removeClient(userId, entry)
+  })
+})
 
 // GET /api/notifications — user'ning so'nggi bildirishnomalari
 router.get('/', auth, async (req, res) => {

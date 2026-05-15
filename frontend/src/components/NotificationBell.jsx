@@ -15,7 +15,7 @@ const ICONS = {
   system: Sparkles
 }
 
-const POLL_INTERVAL = 30_000 // 30 soniya
+const POLL_INTERVAL = 120_000 // SSE asosiy, polling fallback (2 daqiqa)
 
 export default function NotificationBell() {
   const navigate = useNavigate()
@@ -25,6 +25,7 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const wrapRef = useRef(null)
   const pollRef = useRef(null)
+  const sseRef = useRef(null)
 
   const fetchNotifs = async () => {
     const token = getToken()
@@ -42,9 +43,45 @@ export default function NotificationBell() {
   }
 
   useEffect(() => {
+    const token = getToken()
+    if (!token) return
+
     fetchNotifs()
+
+    // SSE real-time stream
+    try {
+      const url = `${API_URL}/api/notifications/stream?token=${encodeURIComponent(token)}`
+      const es = new EventSource(url)
+      sseRef.current = es
+
+      es.addEventListener('notification', (e) => {
+        try {
+          const newNotif = JSON.parse(e.data)
+          // Optimistic — list boshiga qo'shish
+          setItems(prev => {
+            // duplicate yo'qmi tekshirish (id bilan)
+            if (newNotif.id && prev.some(n => n.id === newNotif.id)) return prev
+            return [newNotif, ...prev.slice(0, 19)]
+          })
+          setUnread(u => u + 1)
+        } catch {}
+      })
+
+      es.onerror = () => {
+        // SSE uzildi — polling fallback ishlaydi
+      }
+    } catch {}
+
+    // Polling fallback (har 2 daqiqada — agar SSE uzilsa)
     pollRef.current = setInterval(fetchNotifs, POLL_INTERVAL)
-    return () => clearInterval(pollRef.current)
+
+    return () => {
+      clearInterval(pollRef.current)
+      if (sseRef.current) {
+        sseRef.current.close()
+        sseRef.current = null
+      }
+    }
   }, [])
 
   // Dropdown tashqarisida bosilsa yopiladi
