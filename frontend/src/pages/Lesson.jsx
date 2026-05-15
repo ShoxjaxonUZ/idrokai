@@ -45,6 +45,12 @@ function Lesson() {
     const saveTimerRef = useRef(null)
     const initialLoadRef = useRef(false)
 
+    // Video resume (HTML5 video uchun)
+    const videoRef = useRef(null)
+    const videoSaveTimerRef = useRef(null)
+    const [resumeNotice, setResumeNotice] = useState(null) // {seconds, shown}
+    const savedPositionRef = useRef(0)
+
     // Load notes when lesson changes
     useEffect(() => {
         if (!token || !courseId || isNaN(index)) return
@@ -64,6 +70,53 @@ function Lesson() {
             .catch(() => {})
             .finally(() => setNotesLoading(false))
     }, [courseId, index, token])
+
+    // Video pozitsiyani yuklash (lesson o'zgarganda)
+    useEffect(() => {
+        if (!token || !courseId || isNaN(index)) return
+        savedPositionRef.current = 0
+        setResumeNotice(null)
+        fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data && data.position_seconds > 5) {
+                    savedPositionRef.current = data.position_seconds
+                    setResumeNotice({ seconds: Math.floor(data.position_seconds) })
+                }
+            })
+            .catch(() => {})
+    }, [courseId, index, token])
+
+    // Video saved position'ga jump (loadedmetadata'da)
+    const handleVideoLoaded = (e) => {
+        const v = e.target
+        if (savedPositionRef.current > 5 && savedPositionRef.current < (v.duration - 10)) {
+            v.currentTime = savedPositionRef.current
+        }
+    }
+
+    // Position save (debounced 5s)
+    const handleTimeUpdate = (e) => {
+        if (!token) return
+        const v = e.target
+        const pos = v.currentTime
+        const dur = v.duration || null
+        if (videoSaveTimerRef.current) clearTimeout(videoSaveTimerRef.current)
+        videoSaveTimerRef.current = setTimeout(() => {
+            fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ position: pos, duration: dur })
+            }).catch(() => {})
+        }, 5000)
+    }
+
+    const dismissResume = () => setResumeNotice(null)
 
     // Auto-save (debounced 1s)
     useEffect(() => {
@@ -313,6 +366,17 @@ function Lesson() {
 
                 {/* Main */}
                 <div className="lesson-main">
+                    {/* Video resume banner */}
+                    {resumeNotice && (
+                        <div className="video-resume-banner">
+                            <PlayCircle size={18} />
+                            <span>
+                                <strong>{Math.floor(resumeNotice.seconds / 60)}:{String(resumeNotice.seconds % 60).padStart(2, '0')}</strong>{' '}
+                                dan davom ettirilmoqda — siz shu yerda to'xtaganingiz
+                            </span>
+                            <button onClick={dismissResume} title="Yopish">×</button>
+                        </div>
+                    )}
                     <div className="lesson-video-wrap">
                         {vimeoId ? (
                             <iframe
@@ -338,15 +402,26 @@ function Lesson() {
                             />
                         ) : lesson.videoUrl ? (
                             <video
+                                ref={videoRef}
                                 key={lesson.videoUrl}
                                 src={safeUrl(assetUrl(lesson.videoUrl))}
                                 controls
                                 controlsList="nodownload"
                                 className="lesson-video"
                                 poster={assetUrl(course.image)}
+                                onLoadedMetadata={handleVideoLoaded}
+                                onTimeUpdate={handleTimeUpdate}
                                 onEnded={async () => {
                                     setVideoEnded(true)
                                     await markLessonDone()
+
+                                    // Position'ni reset qilish — qayta ko'rganda boshidan
+                                    if (token) {
+                                        fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
+                                            method: 'DELETE',
+                                            headers: { Authorization: `Bearer ${token}` }
+                                        }).catch(() => {})
+                                    }
 
                                     const isLastInModule = (index + 1) % 5 === 0
                                     const hasMoreLessons = (index + 1) < course.lessons.length

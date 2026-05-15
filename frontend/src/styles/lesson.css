@@ -128,6 +128,61 @@
   gap: 20px;
 }
 
+/* Video resume banner */
+.video-resume-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--primary-bg);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  animation: resumeFade 0.3s ease;
+}
+
+@keyframes resumeFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.video-resume-banner svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.video-resume-banner > span {
+  flex: 1;
+}
+
+.video-resume-banner strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.video-resume-banner button {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.video-resume-banner button:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
 /* Video */
 .lesson-video-wrap {
   background: #000;
