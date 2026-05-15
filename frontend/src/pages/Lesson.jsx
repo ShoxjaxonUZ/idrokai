@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
     Check, CheckCircle2, ChevronLeft, ChevronRight,
     PlayCircle, BookOpen, Flag, Download, Paperclip,
-    Lock, FileText, StickyNote, Save, Loader2
+    Lock, FileText, StickyNote, Save, Loader2, Gauge
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
@@ -47,9 +47,45 @@ function Lesson() {
 
     // Video resume (HTML5 video uchun)
     const videoRef = useRef(null)
+    const youtubeFrameRef = useRef(null)
+    const vimeoFrameRef = useRef(null)
     const videoSaveTimerRef = useRef(null)
     const [resumeNotice, setResumeNotice] = useState(null) // {seconds, shown}
     const savedPositionRef = useRef(0)
+
+    // Playback speed (1x default, localStorage'da saqlanadi)
+    const [playbackSpeed, setPlaybackSpeed] = useState(() => {
+        try {
+            const saved = parseFloat(localStorage.getItem('lesson_speed'))
+            return [0.75, 1, 1.25, 1.5, 1.75, 2].includes(saved) ? saved : 1
+        } catch { return 1 }
+    })
+
+    const applyPlaybackSpeed = (speed) => {
+        setPlaybackSpeed(speed)
+        try { localStorage.setItem('lesson_speed', String(speed)) } catch {}
+
+        // HTML5 video
+        if (videoRef.current) {
+            videoRef.current.playbackRate = speed
+        }
+
+        // YouTube iframe (postMessage API)
+        if (youtubeFrameRef.current?.contentWindow) {
+            youtubeFrameRef.current.contentWindow.postMessage(
+                JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [speed] }),
+                'https://www.youtube.com'
+            )
+        }
+
+        // Vimeo iframe (postMessage)
+        if (vimeoFrameRef.current?.contentWindow) {
+            vimeoFrameRef.current.contentWindow.postMessage(
+                JSON.stringify({ method: 'setPlaybackRate', value: speed }),
+                'https://player.vimeo.com'
+            )
+        }
+    }
 
     // Load notes when lesson changes
     useEffect(() => {
@@ -380,6 +416,7 @@ function Lesson() {
                     <div className="lesson-video-wrap">
                         {vimeoId ? (
                             <iframe
+                                ref={vimeoFrameRef}
                                 key={vimeoId}
                                 className="lesson-video"
                                 src={`https://player.vimeo.com/video/${vimeoId}`}
@@ -387,29 +424,43 @@ function Lesson() {
                                 frameBorder="0"
                                 allow="autoplay; fullscreen; picture-in-picture"
                                 allowFullScreen
-                                onLoad={() => setVideoEnded(true)}
+                                onLoad={(e) => {
+                                    setVideoEnded(true)
+                                    // Speed restore
+                                    setTimeout(() => applyPlaybackSpeed(playbackSpeed), 500)
+                                }}
                             />
                         ) : youTubeId ? (
                             <iframe
+                                ref={youtubeFrameRef}
                                 key={youTubeId}
                                 className="lesson-video"
-                                src={`https://www.youtube.com/embed/${youTubeId}`}
+                                src={`https://www.youtube.com/embed/${youTubeId}?enablejsapi=1`}
                                 title={lesson.title}
                                 frameBorder="0"
                                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
-                                onLoad={() => setVideoEnded(true)}
+                                onLoad={() => {
+                                    setVideoEnded(true)
+                                    setTimeout(() => applyPlaybackSpeed(playbackSpeed), 500)
+                                }}
                             />
                         ) : lesson.videoUrl ? (
                             <video
-                                ref={videoRef}
+                                ref={(el) => {
+                                    videoRef.current = el
+                                    if (el) el.playbackRate = playbackSpeed
+                                }}
                                 key={lesson.videoUrl}
                                 src={safeUrl(assetUrl(lesson.videoUrl))}
                                 controls
                                 controlsList="nodownload"
                                 className="lesson-video"
                                 poster={assetUrl(course.image)}
-                                onLoadedMetadata={handleVideoLoaded}
+                                onLoadedMetadata={(e) => {
+                                    handleVideoLoaded(e)
+                                    if (videoRef.current) videoRef.current.playbackRate = playbackSpeed
+                                }}
                                 onTimeUpdate={handleTimeUpdate}
                                 onEnded={async () => {
                                     setVideoEnded(true)
@@ -443,6 +494,26 @@ function Lesson() {
                             </div>
                         )}
                     </div>
+
+                    {/* Speed control panel */}
+                    {(youTubeId || vimeoId || lesson.videoUrl) && (
+                        <div className="lesson-speed-bar">
+                            <span className="lesson-speed-label">
+                                <Gauge size={14} /> Tezlik:
+                            </span>
+                            <div className="lesson-speed-options">
+                                {[0.75, 1, 1.25, 1.5, 1.75, 2].map(speed => (
+                                    <button
+                                        key={speed}
+                                        className={`lesson-speed-btn ${playbackSpeed === speed ? 'active' : ''}`}
+                                        onClick={() => applyPlaybackSpeed(speed)}
+                                    >
+                                        {speed === 1 ? '1x' : `${speed}x`}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="lesson-content">
                         <div className="lesson-top">
