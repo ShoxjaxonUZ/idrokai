@@ -8,6 +8,7 @@ import {
 import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
 import Navbar from '../components/Navbar'
+import LessonQA from '../components/LessonQA'
 import '../styles/lesson.css'
 
 function getYouTubeId(url) {
@@ -583,6 +584,9 @@ function Lesson() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Lesson Q&A — savol javob */}
+                        <LessonQA courseId={courseId} lessonIndex={index} />
 
                         {/* Material yuklab olish */}
                         {lesson.materialUrl && (

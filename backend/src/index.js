@@ -25,6 +25,7 @@ const notificationsRoutes = require('./routes/notifications')
 const lessonNotesRoutes = require('./routes/lessonNotes')
 const videoProgressRoutes = require('./routes/videoProgress')
 const courseRatingsRoutes = require('./routes/courseRatings')
+const lessonQARoutes = require('./routes/lessonQA')
 const { threatDetector } = require('./middleware/threatDetector')
 const telegram = require('./lib/telegram')
 const { runMigrations } = require('./lib/migrate')
@@ -171,6 +172,7 @@ app.use('/api/notifications', notificationsRoutes)
 app.use('/api/lesson-notes', lessonNotesRoutes)
 app.use('/api/video-progress', videoProgressRoutes)
 app.use('/api/course-ratings', courseRatingsRoutes)
+app.use('/api/lesson-qa', lessonQARoutes)
 
 // 404 handler
 app.use((req, res) => {

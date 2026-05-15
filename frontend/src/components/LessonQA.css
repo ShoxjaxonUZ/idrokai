@@ -1,0 +1,309 @@
+/* ============================================
+   Lesson Q&A — savol javob paneli
+   ============================================ */
+.qa-panel {
+  margin: 18px 0;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.qa-toggle {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  transition: background 0.15s ease;
+}
+
+.qa-toggle:hover { background: var(--card-hover); }
+
+.qa-toggle svg { color: var(--primary); }
+
+.qa-toggle > span:first-of-type {
+  flex: 1;
+  text-align: left;
+}
+
+.qa-count-badge {
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.qa-toggle-state {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.qa-body {
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Ask form */
+.qa-ask-form {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.qa-ask-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+  min-height: 50px;
+}
+
+.qa-ask-input::placeholder {
+  color: var(--text-muted);
+}
+
+.qa-ask-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.qa-char {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Loading / Empty */
+.qa-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.qa-empty {
+  text-align: center;
+  padding: 28px 20px;
+  color: var(--text-muted);
+}
+
+.qa-empty svg {
+  opacity: 0.4;
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+
+.qa-empty p {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.qa-empty span {
+  font-size: 12px;
+}
+
+/* List */
+.qa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.qa-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.qa-item.qa-answered {
+  border-color: color-mix(in srgb, var(--success) 22%, transparent);
+}
+
+.qa-question { }
+
+.qa-q-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.qa-q-header strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.qa-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.qa-q-text {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.55;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.qa-q-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.qa-vote-btn,
+.qa-answer-btn,
+.qa-del-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.qa-vote-btn:hover:not(:disabled),
+.qa-answer-btn:hover {
+  background: var(--card-hover);
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+.qa-vote-btn.voted {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+.qa-del-btn:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+/* Answer */
+.qa-answer {
+  margin-top: 12px;
+  background: var(--success-bg);
+  border: 1px solid color-mix(in srgb, var(--success) 22%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.qa-a-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.qa-a-header svg { color: var(--success); flex-shrink: 0; }
+
+.qa-a-header strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.qa-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qa-role-admin {
+  background: rgba(220, 95, 26, 0.13);
+  color: #C26410;
+  border: 1px solid rgba(220, 95, 26, 0.25);
+}
+
+.qa-role-teacher {
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid color-mix(in srgb, var(--info) 22%, transparent);
+}
+
+.qa-a-text {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Reply form */
+.qa-reply-form {
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.qa-reply-form textarea {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.qa-reply-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
