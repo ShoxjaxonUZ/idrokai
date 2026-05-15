@@ -1,0 +1,51 @@
+{
+  "name": "IdrokAI — O'zbek tilida bepul ta'lim",
+  "short_name": "IdrokAI",
+  "description": "Dasturlash, matematika, AI yordami va Code Battle bilan bepul ta'lim platformasi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "uz",
+  "dir": "ltr",
+  "background_color": "#0C0A09",
+  "theme_color": "#5B5BD6",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Kunlik masala",
+      "short_name": "Daily",
+      "url": "/daily"
+    },
+    {
+      "name": "Code Battle",
+      "short_name": "Battle",
+      "url": "/battle"
+    },
+    {
+      "name": "Kurslar",
+      "short_name": "Kurslar",
+      "url": "/courses"
+    },
+    {
+      "name": "AI Teacher",
+      "short_name": "AI",
+      "url": "/ai-teacher"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false
+}

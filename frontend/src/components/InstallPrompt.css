@@ -1,0 +1,123 @@
+/* ============================================
+   PWA Install Prompt — pastki o'ng burchakda
+   ============================================ */
+.install-prompt {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-lg);
+  max-width: 380px;
+  animation: installFadeIn 0.3s ease;
+}
+
+@keyframes installFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.install-prompt-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.install-prompt-close:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+.install-prompt-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
+  color: #fff;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.install-prompt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.install-prompt-text strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.install-prompt-text span {
+  font-size: 11.5px;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.install-prompt-text b {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.install-prompt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.install-prompt-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* iOS variant — battle btn yo'q, faqat instruction */
+.install-prompt-ios {
+  padding-right: 32px;
+}
+
+@media (max-width: 640px) {
+  .install-prompt {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+    flex-wrap: wrap;
+  }
+  .install-prompt-text { flex-basis: calc(100% - 60px); }
+  .install-prompt-btn { width: 100%; justify-content: center; margin-top: 8px; }
+}

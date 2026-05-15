@@ -48,16 +48,22 @@
     <meta name="twitter:description" content="Dasturlash, matematika, ingliz tili va dizayn kurslarini bepul o'rganing!" />
     <meta name="twitter:image" content="https://idrokai.uz/og-image.png" />
 
-    <!-- Favicon -->
+    <!-- Favicon + PWA -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="IdrokAI" />
+    <meta name="mobile-web-app-capable" content="yes" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Theme color -->
-    <meta name="theme-color" content="#7c3aed" />
+    <!-- Theme color (Soft Modern indigo) -->
+    <meta name="theme-color" content="#5B5BD6" />
+    <meta name="theme-color" content="#1A1814" media="(prefers-color-scheme: dark)" />
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-KZXJV41SWK"></script>
@@ -78,6 +84,15 @@
           document.documentElement.setAttribute('data-theme', 'dark');
         }
       })();
+    </script>
+
+    <!-- Service Worker — PWA + offline cache -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
     </script>
   </head>
   <body>
