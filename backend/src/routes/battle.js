@@ -392,6 +392,23 @@ router.post('/join', auth, async (req, res) => {
     }
 
     await client.query('COMMIT')
+
+    // Host'ga notification — yangi player qo'shildi (faqat host boshqa user bo'lsa)
+    if (existing.rows.length === 0 && battle.host_id !== req.user.id) {
+      try {
+        const joinerRes = await pool.query('SELECT name FROM users WHERE id = $1', [req.user.id])
+        const joinerName = joinerRes.rows[0]?.name || 'Foydalanuvchi'
+        notifications.notify(
+          battle.host_id,
+          'battle_invite',
+          `${joinerName} sizning Battle xonangizga qo'shildi`,
+          `Xona ID: ${battle.id} — endi boshlash mumkin`,
+          '/battle',
+          'swords'
+        ).catch(() => {})
+      } catch {}
+    }
+
     res.json({ id: battle.id, status: battle.status })
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {})
