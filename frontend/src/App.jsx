@@ -23,6 +23,7 @@ import Leaderboard from './pages/Leaderboard'
 import Onboarding from './pages/Onboarding'
 import Daily from './pages/Daily'
 import Notifications from './pages/Notifications'
+import VerifyCertificate from './pages/VerifyCertificate'
 import ModuleTest from './pages/ModuleTest'
 import TeacherApply from './pages/TeacherApply'
 import TeacherDashboard from './pages/TeacherDashboard'
@@ -49,6 +50,7 @@ function App() {
               <Route path="/help" element={<Help />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/certificate-demo" element={<Certificate demo />} />
+              <Route path="/verify/:code" element={<VerifyCertificate />} />
 
               <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
               <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />

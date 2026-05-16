@@ -1,0 +1,188 @@
+/* ============================================
+   Certificate Verify sahifasi
+   ============================================ */
+.verify-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(var(--navbar-h) + 40px) 24px 64px;
+  min-height: calc(100vh - var(--navbar-h) - 200px);
+}
+
+.verify-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 64px 0;
+  color: var(--text-muted);
+}
+
+.verify-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 44px 36px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.verify-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.verify-valid::before {
+  background: radial-gradient(ellipse 500px 280px at 50% 0%, var(--success-bg) 0%, transparent 65%);
+}
+
+.verify-invalid::before {
+  background: radial-gradient(ellipse 500px 280px at 50% 0%, var(--danger-bg) 0%, transparent 65%);
+}
+
+.verify-card > * { position: relative; }
+
+.verify-icon {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 18px;
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verify-icon-ok {
+  background: var(--success);
+  color: #fff;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--success) 40%, transparent);
+}
+
+.verify-icon-fail {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.verify-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.verify-badge-ok {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
+}
+
+.verify-badge-fail {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+.verify-card h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.025em;
+}
+
+.verify-sub {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.verify-sub strong {
+  color: var(--text);
+  font-family: 'Fira Code', monospace;
+}
+
+/* Details */
+.verify-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.verify-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.verify-detail-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.verify-detail-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.verify-detail-value {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.verify-code-box {
+  background: var(--surface);
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 22px;
+}
+
+.verify-code-box strong {
+  color: var(--primary);
+  font-family: 'Fira Code', monospace;
+  letter-spacing: 0.05em;
+}
+
+.verify-cta {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .verify-card { padding: 32px 22px; }
+  .verify-card h1 { font-size: 20px; }
+}

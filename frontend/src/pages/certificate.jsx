@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Award, Download, ArrowLeft, CheckCircle2, Trophy,
-  Calendar, BookOpen
+  Calendar, BookOpen, ShieldCheck
 } from 'lucide-react'
-import { API_URL, apiGet, getUser } from '../lib/api'
+import { API_URL, apiGet, getToken, getUser } from '../lib/api'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import QRCode from 'qrcode'
 import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import '../styles/certificate.css'
@@ -16,7 +17,6 @@ function Certificate({ demo = false }) {
   const navigate = useNavigate()
   const user = getUser()
 
-  // Demo namuna ma'lumotlari — ro'yxatdan o'tmasdan ko'rish uchun
   const demoUser = { id: 0, name: user?.name || 'Aziz Karimov' }
   const demoCourse = {
     id: 'demo',
@@ -30,6 +30,11 @@ function Certificate({ demo = false }) {
   const [passed, setPassed] = useState(demo)
   const [reason, setReason] = useState('')
   const [certInfo, setCertInfo] = useState(null)
+  const [certCode, setCertCode] = useState(demo ? 'IDR-DEMO01' : '')
+  const [issuedAt, setIssuedAt] = useState(demo ? new Date().toISOString() : null)
+  const [qrDataUrl, setQrDataUrl] = useState('')
+
+  const certUser = demo ? demoUser : user
 
   useEffect(() => {
     if (demo) {
@@ -56,6 +61,21 @@ function Certificate({ demo = false }) {
         setPassed(!!status.eligible)
         setReason(status.reason || '')
         setCertInfo(status)
+
+        // Eligible bo'lsa — sertifikatni rasman berish (DB'ga yozish)
+        if (status.eligible) {
+          try {
+            const res = await fetch(`${API_URL}/api/certificate/issue/${id}`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${getToken()}` }
+            })
+            const certData = await res.json()
+            if (res.ok && certData.cert_code) {
+              setCertCode(certData.cert_code)
+              setIssuedAt(certData.issued_at)
+            }
+          } catch {}
+        }
       } catch (err) {
         console.error(err)
         setPassed(false)
@@ -69,90 +89,50 @@ function Certificate({ demo = false }) {
     return () => { cancelled = true }
   }, [id, demo])
 
-  // Demo'da real user yoki namuna user
-  const certUser = demo ? demoUser : user
+  // QR kod generatsiya — certCode tayyor bo'lganda
+  useEffect(() => {
+    if (!certCode) return
+    const verifyUrl = `${window.location.origin}/verify/${certCode}`
+    QRCode.toDataURL(verifyUrl, {
+      width: 240,
+      margin: 1,
+      color: { dark: '#1E1B4B', light: '#FFFFFF' }
+    })
+      .then(setQrDataUrl)
+      .catch(() => {})
+  }, [certCode])
 
   const handlePrint = async () => {
-  const cert = document.querySelector('.cert')
-  if (!cert) return
-
-  try {
-    // CSS loading kutish
-    await new Promise(resolve => setTimeout(resolve, 200))
-
-    const canvas = await html2canvas(cert, {
-      scale: 4,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: cert.scrollWidth,
-      windowHeight: cert.scrollHeight,
-      onclone: (clonedDoc) => {
-        // Gradient matnlarni qattiq rangga aylantirish PDF uchun
-        const clonedCert = clonedDoc.querySelector('.cert')
-        if (clonedCert) {
-          // cert-big-title
-          const title = clonedCert.querySelector('.cert-big-title')
-          if (title) {
-            title.style.background = 'none'
-            title.style.webkitTextFillColor = '#1e1b4b'
-            title.style.color = '#1e1b4b'
-          }
-
-          // cert-brand-name
-          const brand = clonedCert.querySelector('.cert-brand-name')
-          if (brand) {
-            brand.style.background = 'none'
-            brand.style.webkitTextFillColor = '#fbbf24'
-            brand.style.color = '#fbbf24'
-          }
-
-          // cert-kicker
-          const kicker = clonedCert.querySelector('.cert-kicker')
-          if (kicker) {
-            kicker.style.color = '#8b5cf6'
-          }
-
-          // cert-achievement strong
-          const strong = clonedCert.querySelector('.cert-achievement strong')
-          if (strong) {
-            strong.style.color = '#7c3aed'
-          }
-
-          // watermark yashirish
-          const wm = clonedCert.querySelector('.cert-watermark')
-          if (wm) wm.style.display = 'none'
-        }
-      }
-    })
-
-    const imgData = canvas.toDataURL('image/png', 1.0)
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4',
-      compress: true
-    })
-
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-
-    // To'liq sahifani qoplash
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
-    pdf.save(`Sertifikat-${certUser.name}-${course.title}.pdf`)
-  } catch (err) {
-    console.error('PDF xatolik:', err)
-    alert('PDF saqlashda xatolik: ' + err.message)
+    const cert = document.querySelector('.cert')
+    if (!cert) return
+    try {
+      await new Promise(resolve => setTimeout(resolve, 200))
+      const canvas = await html2canvas(cert, {
+        scale: 4,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+        windowWidth: cert.scrollWidth,
+        windowHeight: cert.scrollHeight
+      })
+      const imgData = canvas.toDataURL('image/png', 1.0)
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      })
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
+      pdf.save(`IdrokAI-Sertifikat-${certUser.name}.pdf`)
+    } catch (err) {
+      console.error('PDF xatolik:', err)
+      alert('PDF saqlashda xatolik: ' + err.message)
+    }
   }
-}
 
-  const certId = demo
-    ? 'EDU-DEMO01'
-    : 'EDU-' + (String(user?.id || '0') + String(id || '0'))
-        .split('').map(c => c.charCodeAt(0)).reduce((a, b) => a + b, 0)
-        .toString(36).toUpperCase().padStart(6, '0')
-
-  const today = new Date().toLocaleDateString('uz-UZ', {
+  const today = (issuedAt ? new Date(issuedAt) : new Date()).toLocaleDateString('uz-UZ', {
     year: 'numeric', month: 'long', day: 'numeric'
   })
 
@@ -180,10 +160,10 @@ function Certificate({ demo = false }) {
           <Trophy size={80} />
         </div>
         <h2>Sertifikat hali tayyor emas</h2>
-        <p>{reason || 'Avval barcha module testlaridan muvaffaqiyatli o\'ting'}</p>
+        <p>{reason || 'Avval barcha modul testlaridan muvaffaqiyatli o\'ting'}</p>
         {certInfo?.modulesTotal > 0 && (
-          <p style={{ marginTop: 8, color: '#666' }}>
-            {certInfo.modulesPassed || 0} / {certInfo.modulesTotal} module topshirilgan
+          <p style={{ marginTop: 8, color: 'var(--text-muted)' }}>
+            {certInfo.modulesPassed || 0} / {certInfo.modulesTotal} modul topshirilgan
           </p>
         )}
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px', flexWrap: 'wrap' }}>
@@ -194,6 +174,8 @@ function Certificate({ demo = false }) {
       </div>
     </div>
   )
+
+  const lessonsCount = course.lessons?.length || course.darslar || 0
 
   return (
     <div className="cert-wrapper">
@@ -219,73 +201,86 @@ function Certificate({ demo = false }) {
           </button>
         </div>
 
-        {/* SERTIFIKAT */}
+        {/* ===== PREMIUM GRADIENT SERTIFIKAT ===== */}
         <div className="cert">
-          {/* Chap panel */}
-          <div className="cert-left">
-            <div className="cert-left-content">
-              <div className="cert-seal">
-                <Award size={48} />
-              </div>
-              <div className="cert-brand-name">IdrokAI</div>
-              <div className="cert-brand-line"></div>
-              <div className="cert-brand-text">
-                O'zbek tilida<br />bepul ta'lim<br />platformasi
-              </div>
-            </div>
-            <div className="cert-left-shape"></div>
-          </div>
+          {/* Dekorativ fon elementlari */}
+          <div className="cert-glow cert-glow-1"></div>
+          <div className="cert-glow cert-glow-2"></div>
+          <div className="cert-border-frame"></div>
 
-          {/* O'ng panel */}
-          <div className="cert-right">
-            <div className="cert-header">
+          <div className="cert-inner">
+            {/* Yuqori — brend */}
+            <div className="cert-top">
+              <div className="cert-logo">
+                <div className="cert-logo-badge">
+                  <Award size={26} />
+                </div>
+                <span className="cert-logo-text">IdrokAI</span>
+              </div>
               <div className="cert-kicker">CERTIFICATE OF ACHIEVEMENT</div>
-              <h1 className="cert-big-title">CERTIFICATE</h1>
             </div>
 
-            <div className="cert-body">
-              <p className="cert-presented">Ushbu sertifikat quyidagi shaxsga berildi</p>
-
+            {/* Markaz — asosiy */}
+            <div className="cert-main">
+              <h1 className="cert-title">SERTIFIKAT</h1>
+              <p className="cert-presented">Ushbu sertifikat quyidagi shaxsga taqdim etiladi</p>
               <h2 className="cert-person">{certUser.name}</h2>
-
-              <div className="cert-underline"></div>
-
+              <div className="cert-divider">
+                <span className="cert-divider-dot"></span>
+              </div>
               <p className="cert-achievement">
-                U <strong>{course.title}</strong> kursini muvaffaqiyatli yakunladi
-                va barcha talab qilingan testlardan o'tdi.
+                <strong>{course.title}</strong> kursini muvaffaqiyatli yakunladi
+                va barcha modul testlaridan o'tdi
               </p>
             </div>
 
-            <div className="cert-bottom">
-              <div className="cert-info-item">
-                <div className="cert-info-icon"><Calendar size={16} /></div>
-                <div>
-                  <div className="cert-info-label">Sana</div>
-                  <div className="cert-info-value">{today}</div>
+            {/* Pastki — ma'lumotlar + QR */}
+            <div className="cert-footer">
+              <div className="cert-footer-info">
+                <div className="cert-meta-item">
+                  <Calendar size={14} />
+                  <div>
+                    <span className="cert-meta-label">Berilgan sana</span>
+                    <span className="cert-meta-value">{today}</span>
+                  </div>
+                </div>
+                <div className="cert-meta-item">
+                  <BookOpen size={14} />
+                  <div>
+                    <span className="cert-meta-label">Darslar soni</span>
+                    <span className="cert-meta-value">{lessonsCount} ta dars</span>
+                  </div>
+                </div>
+                <div className="cert-meta-item">
+                  <ShieldCheck size={14} />
+                  <div>
+                    <span className="cert-meta-label">Sertifikat ID</span>
+                    <span className="cert-meta-value cert-code">{certCode || '—'}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="cert-info-item">
-                <div className="cert-info-icon"><BookOpen size={16} /></div>
-                <div>
-                  <div className="cert-info-label">Darslar</div>
-                  <div className="cert-info-value">{course.lessons?.length || course.darslar || 0} ta</div>
-                </div>
-              </div>
-
-              <div className="cert-info-item">
-                <div className="cert-info-icon"><CheckCircle2 size={16} /></div>
-                <div>
-                  <div className="cert-info-label">Sertifikat ID</div>
-                  <div className="cert-info-value">{certId}</div>
-                </div>
+              {/* QR kod */}
+              <div className="cert-qr">
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt="Verify QR" className="cert-qr-img" />
+                ) : (
+                  <div className="cert-qr-placeholder"></div>
+                )}
+                <span className="cert-qr-label">Skanerlab tekshiring</span>
               </div>
             </div>
 
-            {/* Watermark */}
             <div className="cert-watermark">IdrokAI</div>
           </div>
         </div>
+
+        {certCode && !demo && (
+          <p className="cert-verify-hint no-print">
+            <ShieldCheck size={14} />
+            Bu sertifikat haqiqiyligini <strong>{window.location.origin}/verify/{certCode}</strong> orqali tekshirish mumkin
+          </p>
+        )}
       </div>
     </div>
   )
