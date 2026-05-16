@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import Comments from '../components/Comments'
 import CourseRatings from '../components/CourseRatings'
 import Loading from '../components/Loading'
@@ -402,6 +403,7 @@ function CourseDetail() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

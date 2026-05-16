@@ -2,25 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Sparkles, ArrowRight, ArrowLeft, CheckCircle2, Bot,
-  User, Target, Clock, Heart, Briefcase, GraduationCap,
-  Loader2, BookOpen, Star, Trophy, Globe, Smartphone,
-  Palette, Gamepad2, BarChart3, Shield, Languages, Calculator
+  Target, Clock, Briefcase, Loader2, BookOpen, Star, Trophy
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import '../styles/onboarding.css'
-
-const ICON_MAP = {
-  globe: Globe,
-  smartphone: Smartphone,
-  bot: Bot,
-  palette: Palette,
-  gamepad: Gamepad2,
-  barchart: BarChart3,
-  shield: Shield,
-  briefcase: Briefcase,
-  languages: Languages,
-  calculator: Calculator
-}
 
 // Soddalashtirilgan: 3 ta asosiy savol — bottleneck'ni kamaytirish
 const STEPS = ['welcome', 'goal', 'field', 'time', 'result']
@@ -292,7 +277,6 @@ function Onboarding() {
             const isSelected = isMultiple
               ? currentValue?.includes(opt.value)
               : currentValue === opt.value
-            const OptIcon = opt.iconName ? ICON_MAP[opt.iconName] : null
 
             return (
               <button
@@ -300,11 +284,6 @@ function Onboarding() {
                 className={`onb-option ${isSelected ? 'onb-option-active' : ''}`}
                 onClick={() => selectOption(fieldKey, opt.value, isMultiple)}
               >
-                {OptIcon && (
-                  <div className="onb-option-icon">
-                    <OptIcon size={20} />
-                  </div>
-                )}
                 <div className="onb-option-text">
                   <div className="onb-option-label">{opt.label}</div>
                   {opt.desc && <div className="onb-option-desc">{opt.desc}</div>}

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import '../styles/profile.css'
 
 function Profile() {
@@ -426,6 +427,7 @@ function Profile() {
         )}
 
       </div>
+      <Footer />
     </div>
   )
 }

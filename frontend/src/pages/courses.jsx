@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import Loading from '../components/Loading'
 import '../styles/courses.css'
 
@@ -216,6 +217,7 @@ function Courses() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }
