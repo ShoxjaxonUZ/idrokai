@@ -102,6 +102,22 @@ router.post('/issue/:courseId', auth, async (req, res) => {
   }
 })
 
+// GET /api/certificate/my — foydalanuvchining barcha sertifikatlari
+router.get('/my', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT cert_code, course_id, course_title, lessons_count, issued_at
+       FROM certificates WHERE user_id = $1
+       ORDER BY issued_at DESC`,
+      [req.user.id]
+    )
+    res.json(result.rows)
+  } catch (err) {
+    console.error('[certificate] my error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
 // GET /api/certificate/verify/:code — public — QR orqali tekshirish
 router.get('/verify/:code', async (req, res) => {
   try {

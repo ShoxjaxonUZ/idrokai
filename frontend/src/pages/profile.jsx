@@ -28,31 +28,33 @@ function Profile() {
     if (!user) { navigate('/login'); return }
     document.title = "Profil — IdrokAI"
 
-    fetch(`${API_URL}/api/battle/leaderboard`)
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const me = data.find(p => p.name === user.name)
-          if (me) setRating(me)
-        }
-      })
-      .catch(console.error)
+    // Battle statistikasi — o'z reytingi (leaderboard TOP 20 emas, aniq o'z natija)
+    fetch(`${API_URL}/api/battle/my-stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setRating(data) })
+      .catch(() => {})
 
+    // Kurslar soni
     fetch(`${API_URL}/api/courses/my`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setEnrolledCount(data.length)
-          const certs = data.filter(e => {
-            const state = localStorage.getItem(`quiz_${user.id}_${e.course_id}`)
-            return state ? JSON.parse(state)?.passed : false
-          })
-          setCertCount(certs.length)
-        }
+        if (Array.isArray(data)) setEnrolledCount(data.length)
       })
-      .catch(console.error)
+      .catch(() => {})
+
+    // Sertifikatlar — server'dan (localStorage emas)
+    fetch(`${API_URL}/api/certificate/my`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) setCertCount(data.length)
+      })
+      .catch(() => {})
   }, [])
 
   const handleNameUpdate = async () => {

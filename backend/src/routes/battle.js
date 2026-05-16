@@ -652,4 +652,32 @@ router.get('/leaderboard', async (req, res) => {
   }
 })
 
+// GET /api/battle/my-stats — foydalanuvchining o'z battle statistikasi
+// (leaderboard TOP 20 bilan cheklangan — bu har doim o'z natijani qaytaradi)
+router.get('/my-stats', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT points, wins, losses, draws, total_battles
+       FROM ratings WHERE user_id = $1`,
+      [req.user.id]
+    )
+    if (result.rows.length === 0) {
+      return res.json({ points: 1000, wins: 0, losses: 0, draws: 0, total_battles: 0 })
+    }
+
+    // Reytingdagi o'rni
+    const rankResult = await pool.query(`
+      SELECT COUNT(*)::int + 1 AS rank
+      FROM ratings r
+      JOIN users u ON r.user_id = u.id
+      WHERE u.role != 'admin' AND r.points > $1
+    `, [result.rows[0].points])
+
+    res.json({ ...result.rows[0], rank: rankResult.rows[0]?.rank || null })
+  } catch (err) {
+    console.error('[battle] my-stats error:', err.message)
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
 module.exports = router
