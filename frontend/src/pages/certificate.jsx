@@ -11,18 +11,31 @@ import Navbar from '../components/Navbar'
 import Loading from '../components/Loading'
 import '../styles/certificate.css'
 
-function Certificate() {
+function Certificate({ demo = false }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const user = getUser()
 
-  const [course, setCourse] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [passed, setPassed] = useState(false)
+  // Demo namuna ma'lumotlari — ro'yxatdan o'tmasdan ko'rish uchun
+  const demoUser = { id: 0, name: user?.name || 'Aziz Karimov' }
+  const demoCourse = {
+    id: 'demo',
+    title: 'Python dasturlash asoslari',
+    lessons: new Array(24).fill(0),
+    darslar: 24
+  }
+
+  const [course, setCourse] = useState(demo ? demoCourse : null)
+  const [loading, setLoading] = useState(!demo)
+  const [passed, setPassed] = useState(demo)
   const [reason, setReason] = useState('')
   const [certInfo, setCertInfo] = useState(null)
 
   useEffect(() => {
+    if (demo) {
+      document.title = "Sertifikat namunasi — IdrokAI"
+      return
+    }
     let cancelled = false
     if (!user) { navigate('/login'); return }
     document.title = "Sertifikat — IdrokAI"
@@ -54,7 +67,10 @@ function Certificate() {
 
     load()
     return () => { cancelled = true }
-  }, [id])
+  }, [id, demo])
+
+  // Demo'da real user yoki namuna user
+  const certUser = demo ? demoUser : user
 
   const handlePrint = async () => {
   const cert = document.querySelector('.cert')
@@ -123,16 +139,18 @@ function Certificate() {
 
     // To'liq sahifani qoplash
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
-    pdf.save(`Sertifikat-${user.name}-${course.title}.pdf`)
+    pdf.save(`Sertifikat-${certUser.name}-${course.title}.pdf`)
   } catch (err) {
     console.error('PDF xatolik:', err)
     alert('PDF saqlashda xatolik: ' + err.message)
   }
 }
 
-  const certId = 'EDU-' + (String(user?.id || '0') + String(id || '0'))
-    .split('').map(c => c.charCodeAt(0)).reduce((a, b) => a + b, 0)
-    .toString(36).toUpperCase().padStart(6, '0')
+  const certId = demo
+    ? 'EDU-DEMO01'
+    : 'EDU-' + (String(user?.id || '0') + String(id || '0'))
+        .split('').map(c => c.charCodeAt(0)).reduce((a, b) => a + b, 0)
+        .toString(36).toUpperCase().padStart(6, '0')
 
   const today = new Date().toLocaleDateString('uz-UZ', {
     year: 'numeric', month: 'long', day: 'numeric'
@@ -184,9 +202,16 @@ function Certificate() {
       </div>
 
       <div className="cert-container">
+        {demo && (
+          <div className="cert-demo-banner no-print">
+            <Award size={16} />
+            <span>Bu — <strong>namuna sertifikat</strong>. Kursni tugatganingizda xuddi shunday, o'z ismingiz bilan beriladi.</span>
+          </div>
+        )}
+
         {/* Tugmalar */}
         <div className="cert-actions no-print">
-          <button className="btn-outline" onClick={() => navigate(`/courses/${id}`)}>
+          <button className="btn-outline" onClick={() => navigate(demo ? '/' : `/courses/${id}`)}>
             <ArrowLeft size={16} /> Orqaga
           </button>
           <button className="btn-primary" onClick={handlePrint}>
@@ -221,7 +246,7 @@ function Certificate() {
             <div className="cert-body">
               <p className="cert-presented">Ushbu sertifikat quyidagi shaxsga berildi</p>
 
-              <h2 className="cert-person">{user.name}</h2>
+              <h2 className="cert-person">{certUser.name}</h2>
 
               <div className="cert-underline"></div>
 

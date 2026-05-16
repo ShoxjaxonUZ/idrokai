@@ -48,6 +48,7 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/help" element={<Help />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/certificate-demo" element={<Certificate demo />} />
 
               <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
               <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
