@@ -7,7 +7,7 @@ const notifications = require('../lib/notifications')
 const router = express.Router()
 
 // GET /api/lesson-qa/:courseId/:lessonIndex — barcha savollar
-router.get('/:courseId/:lessonIndex(\\d+)', async (req, res) => {
+router.get('/:courseId/:lessonIndex', async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
     const idx = parseInt(lessonIndex, 10)
@@ -50,34 +50,6 @@ router.get('/:courseId/:lessonIndex(\\d+)', async (req, res) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[lesson-qa] get error:', err.message)
-    res.status(500).json({ message: 'Server xatosi' })
-  }
-})
-
-// POST — yangi savol berish
-router.post('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
-  try {
-    const { courseId, lessonIndex } = req.params
-    const idx = parseInt(lessonIndex, 10)
-    if (!Number.isInteger(idx) || idx < 0 || idx > 9999) {
-      return res.status(400).json({ message: "Lesson index noto'g'ri" })
-    }
-    const { question } = req.body || {}
-
-    const cleanQ = String(question || '').trim()
-    if (cleanQ.length < 5 || cleanQ.length > 1000) {
-      return res.status(400).json({ message: "Savol 5-1000 belgi bo'lishi kerak" })
-    }
-
-    const result = await pool.query(`
-      INSERT INTO lesson_questions (user_id, course_id, lesson_index, question)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, created_at
-    `, [req.user.id, courseId, idx, cleanQ])
-
-    res.json({ ok: true, id: result.rows[0].id })
-  } catch (err) {
-    console.error('[lesson-qa] post error:', err.message)
     res.status(500).json({ message: 'Server xatosi' })
   }
 })
@@ -167,6 +139,36 @@ router.post('/:id/upvote', auth, async (req, res) => {
       return res.json({ ok: true, voted: true })
     }
   } catch (err) {
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// POST /api/lesson-qa/:courseId/:lessonIndex — yangi savol berish
+// MUHIM: /:id/answer va /:id/upvote dan KEYIN — aks holda "answer"/"upvote"
+// segmentlari :lessonIndex sifatida ushlanib qoladi (Express 5 regex constraint yo'q).
+router.post('/:courseId/:lessonIndex', auth, async (req, res) => {
+  try {
+    const { courseId, lessonIndex } = req.params
+    const idx = parseInt(lessonIndex, 10)
+    if (!Number.isInteger(idx) || idx < 0 || idx > 9999) {
+      return res.status(400).json({ message: "Lesson index noto'g'ri" })
+    }
+    const { question } = req.body || {}
+
+    const cleanQ = String(question || '').trim()
+    if (cleanQ.length < 5 || cleanQ.length > 1000) {
+      return res.status(400).json({ message: "Savol 5-1000 belgi bo'lishi kerak" })
+    }
+
+    const result = await pool.query(`
+      INSERT INTO lesson_questions (user_id, course_id, lesson_index, question)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, created_at
+    `, [req.user.id, courseId, idx, cleanQ])
+
+    res.json({ ok: true, id: result.rows[0].id })
+  } catch (err) {
+    console.error('[lesson-qa] post error:', err.message)
     res.status(500).json({ message: 'Server xatosi' })
   }
 })

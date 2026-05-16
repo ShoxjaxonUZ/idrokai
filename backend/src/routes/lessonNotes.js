@@ -27,7 +27,7 @@ router.get('/course/:courseId', auth, async (req, res) => {
 })
 
 // GET /api/lesson-notes/:courseId/:lessonIndex
-router.get('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
+router.get('/:courseId/:lessonIndex', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
     const idx = parseInt(lessonIndex, 10)
@@ -47,7 +47,7 @@ router.get('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
 })
 
 // PUT /api/lesson-notes/:courseId/:lessonIndex
-router.put('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
+router.put('/:courseId/:lessonIndex', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
     const idx = parseInt(lessonIndex, 10)

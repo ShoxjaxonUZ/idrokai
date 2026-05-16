@@ -6,14 +6,18 @@ const { auth } = require('../middleware/auth')
 const router = express.Router()
 
 // GET /api/video-progress/:courseId/:lessonIndex
-router.get('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
+router.get('/:courseId/:lessonIndex', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
+    const idx = parseInt(lessonIndex, 10)
+    if (!Number.isInteger(idx) || idx < 0 || idx > 9999) {
+      return res.status(400).json({ message: "Lesson index noto'g'ri" })
+    }
     const result = await pool.query(
       `SELECT position_seconds, duration_seconds, updated_at
        FROM lesson_video_progress
        WHERE user_id = $1 AND course_id = $2 AND lesson_index = $3`,
-      [req.user.id, courseId, parseInt(lessonIndex)]
+      [req.user.id, courseId, idx]
     )
     res.json(result.rows[0] || { position_seconds: 0, duration_seconds: null })
   } catch (err) {
@@ -23,9 +27,13 @@ router.get('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
 })
 
 // PUT /api/video-progress/:courseId/:lessonIndex
-router.put('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
+router.put('/:courseId/:lessonIndex', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
+    const idx = parseInt(lessonIndex, 10)
+    if (!Number.isInteger(idx) || idx < 0 || idx > 9999) {
+      return res.status(400).json({ message: "Lesson index noto'g'ri" })
+    }
     const { position, duration } = req.body || {}
 
     const pos = Math.max(0, parseFloat(position) || 0)
@@ -39,7 +47,7 @@ router.put('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
          position_seconds = EXCLUDED.position_seconds,
          duration_seconds = COALESCE(EXCLUDED.duration_seconds, lesson_video_progress.duration_seconds),
          updated_at = NOW()`,
-      [req.user.id, courseId, parseInt(lessonIndex), pos, dur]
+      [req.user.id, courseId, idx, pos, dur]
     )
     res.json({ ok: true })
   } catch (err) {
@@ -49,13 +57,17 @@ router.put('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
 })
 
 // DELETE /api/video-progress/:courseId/:lessonIndex — reset (lesson tugaganda)
-router.delete('/:courseId/:lessonIndex(\\d+)', auth, async (req, res) => {
+router.delete('/:courseId/:lessonIndex', auth, async (req, res) => {
   try {
     const { courseId, lessonIndex } = req.params
+    const idx = parseInt(lessonIndex, 10)
+    if (!Number.isInteger(idx) || idx < 0 || idx > 9999) {
+      return res.status(400).json({ message: "Lesson index noto'g'ri" })
+    }
     await pool.query(
       `DELETE FROM lesson_video_progress
        WHERE user_id = $1 AND course_id = $2 AND lesson_index = $3`,
-      [req.user.id, courseId, parseInt(lessonIndex)]
+      [req.user.id, courseId, idx]
     )
     res.json({ ok: true })
   } catch (err) {
