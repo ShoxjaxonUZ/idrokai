@@ -64,7 +64,7 @@ function Home() {
   const token = getToken()
   const isAuth = !!(user && token)
   const [courses, setCourses] = useState([])
-  const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, satisfaction: null })
+  const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, certificates: 0 })
   const [openFaq, setOpenFaq] = useState(0)
 
   // Typewriter holati
@@ -135,9 +135,7 @@ function Home() {
           users: d.users || 0,
           courses: d.courses || 0,
           lessons: d.lessons || 0,
-          satisfaction: d.ratingsCount > 0 && d.avgRating
-            ? Math.round((d.avgRating / 5) * 100)
-            : null
+          certificates: d.certificates || 0
         })
       })
       .catch(() => { })
@@ -203,16 +201,14 @@ function Home() {
     }
   ]
 
-  // Asosiy statistikalar — real bazadan
+  // Asosiy statistikalar — real bazadan (6 ta karta)
   const bigStats = [
     { Icon: Users, value: stats.users, suffix: '', label: "O'quvchi", color: '#5B5BD6' },
     { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurs', color: '#0F9D77' },
     { Icon: Play, value: stats.lessons, suffix: '', label: 'Dars', color: '#DC8B1A' },
-    ...(stats.satisfaction != null
-      ? [{ Icon: Heart, value: stats.satisfaction, suffix: '%', label: 'Mamnunlik', color: '#EC4899' }]
-      : []),
+    { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikat', color: '#EC4899' },
     { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam', color: '#0788C7' },
-    { Icon: Award, value: 100, suffix: '%', label: 'Bepul', color: '#A78BFA' },
+    { Icon: Heart, value: 100, suffix: '%', label: 'Bepul', color: '#A78BFA' },
   ]
 
   // Bizning ustunliklarimiz — taqqoslash
