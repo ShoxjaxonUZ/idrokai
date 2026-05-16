@@ -2,6 +2,30 @@
    HOME — Soft Modern
    ============================================ */
 
+/* ========== SCROLL REVEAL ANIMATSIYA ========== */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Harakatni kamaytirish rejimida — darrov ko'rsatish */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* ========== HERO ========== */
 .hero-new {
   position: relative;
@@ -37,6 +61,37 @@
   align-items: center;
   position: relative;
   z-index: 1;
+}
+
+/* Hero entrance — stagger fade-up */
+.hero-content > * {
+  animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.hero-content .hero-badge { animation-delay: 0.05s; }
+.hero-content .hero-title { animation-delay: 0.15s; }
+.hero-content .hero-subtitle { animation-delay: 0.28s; }
+.hero-content .hero-actions { animation-delay: 0.4s; }
+.hero-content .hero-trust { animation-delay: 0.52s; }
+
+.hero-illustration {
+  animation: heroSlideIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroSlideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-content > *,
+  .hero-illustration {
+    animation: none !important;
+  }
 }
 
 .hero-content .hero-badge {
@@ -1031,6 +1086,33 @@
   font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
   font-size: 13px;
   line-height: 1.85;
+}
+
+/* Typewriter kod */
+.illu-code-typed {
+  min-height: 168px;
+}
+
+.illu-code-typed pre {
+  margin: 0;
+  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #E2E8F0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.illu-cursor {
+  display: inline-block;
+  color: #818CF8;
+  font-weight: 700;
+  animation: illuBlink 1s steps(2) infinite;
+}
+
+@keyframes illuBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .code-line {

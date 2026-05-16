@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
@@ -13,6 +13,13 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/home.css'
 
+// Hero typewriter — navbatma-navbat kod misollari yoziladi
+const CODE_SNIPPETS = [
+  { lang: 'main.py', code: "# Birinchi dasturim\ndef salomlash(ism):\n    return f\"Salom, {ism}!\"\n\nprint(salomlash(\"Aziz\"))\n# Natija: Salom, Aziz!" },
+  { lang: 'app.js', code: "// Sonlar yig'indisi\nconst sum = (a, b) => a + b;\n\nconsole.log(sum(7, 14));\n// Natija: 21" },
+  { lang: 'data.py', code: "# Eng katta sonni topish\nsonlar = [4, 9, 2, 17, 5]\neng_katta = max(sonlar)\n\nprint(eng_katta)\n# Natija: 17" }
+]
+
 function Home() {
   const navigate = useNavigate()
   const user = getUser()
@@ -21,6 +28,52 @@ function Home() {
   const [courses, setCourses] = useState([])
   const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0 })
   const [openFaq, setOpenFaq] = useState(0)
+
+  // Typewriter holati
+  const [snippetIdx, setSnippetIdx] = useState(0)
+  const [typedText, setTypedText] = useState('')
+
+  // Scroll-reveal — section'lar ko'ringanda fade-in
+  useEffect(() => {
+    if (isAuth) return
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' })
+
+    const els = document.querySelectorAll('.reveal')
+    els.forEach(el => observer.observe(el))
+    return () => observer.disconnect()
+  }, [isAuth, courses])
+
+  useEffect(() => {
+    if (isAuth) return
+    const snippet = CODE_SNIPPETS[snippetIdx]
+    const full = snippet.code
+    let pos = 0
+    let timer
+
+    // Yozish fazasi
+    const type = () => {
+      if (pos <= full.length) {
+        setTypedText(full.slice(0, pos))
+        pos++
+        timer = setTimeout(type, 38)
+      } else {
+        // To'liq yozilgach 2.6s kutib keyingisiga o'tish
+        timer = setTimeout(() => {
+          setTypedText('')
+          setSnippetIdx(i => (i + 1) % CODE_SNIPPETS.length)
+        }, 2600)
+      }
+    }
+    timer = setTimeout(type, 400)
+    return () => clearTimeout(timer)
+  }, [snippetIdx, isAuth])
 
   useEffect(() => {
     if (isAuth) return
@@ -45,6 +98,35 @@ function Home() {
 
   if (isAuth) {
     return <Navigate to="/dashboard" replace />
+  }
+
+  // Count-up komponent — raqamlar 0 dan haqiqiy qiymatga sanaydi
+  const CountUp = ({ value, suffix }) => {
+    const [display, setDisplay] = useState(0)
+    const ref = useRef(null)
+    useEffect(() => {
+      const el = ref.current
+      if (!el) return
+      const obs = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          obs.disconnect()
+          const target = Number(value) || 0
+          const duration = 1400
+          const start = performance.now()
+          const tick = (now) => {
+            const p = Math.min(1, (now - start) / duration)
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - p, 3)
+            setDisplay(Math.round(target * eased))
+            if (p < 1) requestAnimationFrame(tick)
+          }
+          requestAnimationFrame(tick)
+        }
+      }, { threshold: 0.4 })
+      obs.observe(el)
+      return () => obs.disconnect()
+    }, [value])
+    return <span ref={ref}>{display}<span className="big-stat-suffix">{suffix}</span></span>
   }
 
   const features = [
@@ -269,7 +351,7 @@ function Home() {
           {/* Hero illustration */}
           <div className="hero-illustration">
             <div className="illustration-wrap">
-              {/* Asosiy rasm/kartochka */}
+              {/* Asosiy kartochka — typewriter kod */}
               <div className="illu-main-card">
                 <div className="illu-header">
                   <div className="illu-dots">
@@ -277,15 +359,10 @@ function Home() {
                     <span></span>
                     <span></span>
                   </div>
-                  <div className="illu-tab">main.js</div>
+                  <div className="illu-tab">{CODE_SNIPPETS[snippetIdx].lang}</div>
                 </div>
-                <div className="illu-code">
-                  <div className="code-line"><span className="c-purple">const</span> <span className="c-blue">student</span> = {`{`}</div>
-                  <div className="code-line">  <span className="c-green">name</span>: <span className="c-yellow">'IdrokAI'</span>,</div>
-                  <div className="code-line">  <span className="c-green">goal</span>: <span className="c-yellow">'bilim'</span>,</div>
-                  <div className="code-line">  <span className="c-green">level</span>: <span className="c-pink">100</span></div>
-                  <div className="code-line">{`}`};</div>
-                  <div className="code-line code-comment">// O'rganishni boshlaylik</div>
+                <div className="illu-code illu-code-typed">
+                  <pre>{typedText}<span className="illu-cursor">▋</span></pre>
                 </div>
               </div>
 
@@ -332,7 +409,7 @@ function Home() {
       {/* BIG STATS — kuchli raqamlar */}
       <section className="big-stats-section">
         <div className="home-container">
-          <div className="big-stats-header">
+          <div className="big-stats-header reveal">
             <div className="section-badge">
               <TrendingUp size={14} /> Bizning ko'rsatkichlar
             </div>
@@ -342,12 +419,12 @@ function Home() {
 
           <div className="big-stats-grid">
             {bigStats.map((s, i) => (
-              <div key={i} className="big-stat-card">
+              <div key={i} className="big-stat-card reveal" style={{ transitionDelay: `${i * 70}ms` }}>
                 <div className="big-stat-icon" style={{ background: s.color + '15', color: s.color }}>
                   <s.Icon size={28} />
                 </div>
                 <div className="big-stat-value">
-                  {s.value}<span className="big-stat-suffix">{s.suffix}</span>
+                  <CountUp value={s.value} suffix={s.suffix} />
                 </div>
                 <div className="big-stat-label">{s.label}</div>
               </div>
@@ -360,7 +437,7 @@ function Home() {
       {courses.length > 0 && (
         <section className="home-section">
           <div className="home-container">
-            <div className="section-header">
+            <div className="section-header reveal">
               <div className="section-badge">
                 <BookOpen size={14} /> Kurslar
               </div>
@@ -368,7 +445,7 @@ function Home() {
               <p>Eng ko'p o'qilgan va sevilgan kurslar bilan tanishing</p>
             </div>
 
-            <div className="home-course-grid">
+            <div className="home-course-grid reveal">
               {courses.map(kurs => (
                 <div key={kurs.id} className="home-course-card" onClick={() => navigate(`/courses/${kurs.id}`)}>
                   <div className="home-course-thumb">
@@ -422,7 +499,7 @@ function Home() {
       {/* BIZNING USTUNLIKLAR */}
       <section className="home-section advantages-section">
         <div className="home-container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <div className="section-badge">
               <Sparkles size={14} /> Bizning ustunliklar
             </div>
@@ -430,7 +507,7 @@ function Home() {
             <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud bo'lgan imkoniyatlar</p>
           </div>
 
-          <div className="advantages-grid">
+          <div className="advantages-grid reveal">
             {advantages.map((a, i) => (
               <div key={i} className="advantage-card">
                 <div className="advantage-header">
@@ -453,7 +530,7 @@ function Home() {
       {/* QANDAY ISHLAYDI */}
       <section className="home-section steps-section">
         <div className="home-container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <div className="section-badge">
               <Target size={14} /> 3 bosqich
             </div>
@@ -461,7 +538,7 @@ function Home() {
             <p>Uch oddiy qadamda o'rganishni boshlang</p>
           </div>
 
-          <div className="steps-grid">
+          <div className="steps-grid reveal">
             {steps.map((s, i) => (
               <div key={i} className="step-card">
                 <div className="step-num">{s.num}</div>
@@ -480,7 +557,7 @@ function Home() {
       {/* YANGILIKLAR */}
       <section className="home-section news-section">
         <div className="home-container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <div className="section-badge">
               <Newspaper size={14} /> Yangiliklar
             </div>
@@ -488,7 +565,7 @@ function Home() {
             <p>Platformani doim yaxshilash uchun harakat qilamiz — har hafta yangi xususiyatlar</p>
           </div>
 
-          <div className="news-grid">
+          <div className="news-grid reveal">
             {news.map((n, i) => (
               <article key={i} className="news-card">
                 <div className="news-tag" style={{ background: n.tagColor + '15', color: n.tagColor, borderColor: n.tagColor + '30' }}>
@@ -511,7 +588,7 @@ function Home() {
       {/* TESTIMONIALS */}
       <section className="home-section testimonials-section">
         <div className="home-container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <div className="section-badge">
               <Quote size={14} /> Fikrlar
             </div>
@@ -519,7 +596,7 @@ function Home() {
             <p>Minglab baxtli o'quvchilarning ta'surotlari</p>
           </div>
 
-          <div className="testimonials-grid">
+          <div className="testimonials-grid reveal">
             {testimonials.map((t, i) => (
               <div key={i} className="testimonial-card">
                 <div className="testimonial-quote"><Quote size={32} /></div>
@@ -547,7 +624,7 @@ function Home() {
       {/* FAQ */}
       <section className="home-section faq-section">
         <div className="home-container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <div className="section-badge">
               <Lightbulb size={14} /> FAQ
             </div>
@@ -555,7 +632,7 @@ function Home() {
             <p>Sizni qiziqtirgan savollarga javoblar</p>
           </div>
 
-          <div className="faq-list">
+          <div className="faq-list reveal">
             {faqs.map((f, i) => (
               <div key={i} className={`faq-item ${openFaq === i ? 'faq-open' : ''}`}>
                 <button
@@ -580,7 +657,7 @@ function Home() {
       {!user && (
         <section className="cta-section">
           <div className="home-container">
-            <div className="cta-box-new">
+            <div className="cta-box-new reveal">
               <div className="cta-content">
                 <div className="cta-badge">
                   <Rocket size={14} /> Bugundan boshlang
