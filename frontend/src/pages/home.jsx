@@ -64,7 +64,7 @@ function Home() {
   const token = getToken()
   const isAuth = !!(user && token)
   const [courses, setCourses] = useState([])
-  const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0 })
+  const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, satisfaction: null })
   const [openFaq, setOpenFaq] = useState(0)
 
   // Typewriter holati
@@ -117,19 +117,28 @@ function Home() {
     if (isAuth) return
     document.title = "IdrokAI — O'zbek tilida bepul ta'lim"
 
+    // Mashhur kurslar ro'yxati
     fetch(`${API_URL}/api/teacher/all-courses`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setCourses(data.slice(0, 6))
-          const totalStudents = data.reduce((acc, c) => acc + (c.students_count || 0), 0)
-          const totalLessons = data.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)
-          setStats({
-            users: totalStudents || 150,
-            courses: data.length,
-            lessons: totalLessons
-          })
         }
+      })
+      .catch(() => { })
+
+    // Real statistika — bazadan
+    fetch(`${API_URL}/api/stats`)
+      .then(r => r.json())
+      .then(d => {
+        setStats({
+          users: d.users || 0,
+          courses: d.courses || 0,
+          lessons: d.lessons || 0,
+          satisfaction: d.ratingsCount > 0 && d.avgRating
+            ? Math.round((d.avgRating / 5) * 100)
+            : null
+        })
       })
       .catch(() => { })
   }, [isAuth])
@@ -194,12 +203,14 @@ function Home() {
     }
   ]
 
-  // Asosiy statistikalar — kuchli ko'rinish
+  // Asosiy statistikalar — real bazadan
   const bigStats = [
-    { Icon: Users, value: stats.users || 500, suffix: '+', label: "Faol o'quvchi", color: '#5B5BD6' },
-    { Icon: BookOpen, value: stats.courses || 50, suffix: '+', label: 'Kurs', color: '#0F9D77' },
-    { Icon: Play, value: stats.lessons || 1000, suffix: '+', label: 'Dars', color: '#DC8B1A' },
-    { Icon: Heart, value: 95, suffix: '%', label: 'Mamnunlik', color: '#EC4899' },
+    { Icon: Users, value: stats.users, suffix: '', label: "O'quvchi", color: '#5B5BD6' },
+    { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurs', color: '#0F9D77' },
+    { Icon: Play, value: stats.lessons, suffix: '', label: 'Dars', color: '#DC8B1A' },
+    ...(stats.satisfaction != null
+      ? [{ Icon: Heart, value: stats.satisfaction, suffix: '%', label: 'Mamnunlik', color: '#EC4899' }]
+      : []),
     { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam', color: '#0788C7' },
     { Icon: Award, value: 100, suffix: '%', label: 'Bepul', color: '#A78BFA' },
   ]
@@ -352,7 +363,7 @@ function Home() {
                     <Star key={i} size={14} fill="#f59e0b" color="#f59e0b" />
                   ))}
                 </div>
-                <span><strong>{stats.users}+</strong> o'quvchi bizni tanlagan</span>
+                <span><strong>{stats.users}</strong> o'quvchi bizni tanlagan</span>
               </div>
             </div>
           </div>
@@ -381,7 +392,7 @@ function Home() {
                   <BookOpen size={20} />
                 </div>
                 <div>
-                  <div className="float-title">{stats.courses}+ kurs</div>
+                  <div className="float-title">{stats.courses} kurs</div>
                   <div className="float-sub">Barcha sohalar</div>
                 </div>
               </div>
@@ -391,7 +402,7 @@ function Home() {
                   <Trophy size={20} />
                 </div>
                 <div>
-                  <div className="float-title">{stats.users}+ o'quvchi</div>
+                  <div className="float-title">{stats.users} o'quvchi</div>
                   <div className="float-sub">Faol talabalar</div>
                 </div>
               </div>
@@ -675,7 +686,7 @@ function Home() {
                   Bepul ta'lim <span className="gradient-text">hozir boshlanadi</span>
                 </h2>
                 <p>
-                  Ro'yxatdan o'ting va {stats.courses}+ kurslarga ega bo'ling.
+                  Ro'yxatdan o'ting va {stats.courses} kurslarga ega bo'ling.
                   Hech qanday to'lov yo'q. Faqat bilim.
                 </p>
                 <div className="cta-actions">
