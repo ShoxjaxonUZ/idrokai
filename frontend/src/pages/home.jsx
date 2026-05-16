@@ -13,6 +13,44 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/home.css'
 
+// Count-up — raqam 0 dan haqiqiy qiymatga sanaydi (ko'ringanda).
+// Home'dan TASHQARIDA — aks holda typewriter re-render'da remount bo'ladi.
+function CountUp({ value, suffix }) {
+  const [display, setDisplay] = useState(0)
+  const ref = useRef(null)
+  const doneRef = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    // Animatsiya tugagandan keyin value o'zgarsa (fetch) — darrov sync
+    if (doneRef.current) {
+      setDisplay(Number(value) || 0)
+      return
+    }
+    const obs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !doneRef.current) {
+        doneRef.current = true
+        obs.disconnect()
+        const target = Number(value) || 0
+        const duration = 1400
+        const start = performance.now()
+        const tick = (now) => {
+          const p = Math.min(1, (now - start) / duration)
+          const eased = 1 - Math.pow(1 - p, 3)
+          setDisplay(Math.round(target * eased))
+          if (p < 1) requestAnimationFrame(tick)
+        }
+        requestAnimationFrame(tick)
+      }
+    }, { threshold: 0.4 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [value])
+
+  return <span ref={ref}>{display}<span className="big-stat-suffix">{suffix}</span></span>
+}
+
 // Hero typewriter — navbatma-navbat kod misollari yoziladi
 const CODE_SNIPPETS = [
   { lang: 'main.py', code: "# Birinchi dasturim\ndef salomlash(ism):\n    return f\"Salom, {ism}!\"\n\nprint(salomlash(\"Aziz\"))\n# Natija: Salom, Aziz!" },
@@ -98,35 +136,6 @@ function Home() {
 
   if (isAuth) {
     return <Navigate to="/dashboard" replace />
-  }
-
-  // Count-up komponent — raqamlar 0 dan haqiqiy qiymatga sanaydi
-  const CountUp = ({ value, suffix }) => {
-    const [display, setDisplay] = useState(0)
-    const ref = useRef(null)
-    useEffect(() => {
-      const el = ref.current
-      if (!el) return
-      const obs = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          obs.disconnect()
-          const target = Number(value) || 0
-          const duration = 1400
-          const start = performance.now()
-          const tick = (now) => {
-            const p = Math.min(1, (now - start) / duration)
-            // ease-out cubic
-            const eased = 1 - Math.pow(1 - p, 3)
-            setDisplay(Math.round(target * eased))
-            if (p < 1) requestAnimationFrame(tick)
-          }
-          requestAnimationFrame(tick)
-        }
-      }, { threshold: 0.4 })
-      obs.observe(el)
-      return () => obs.disconnect()
-    }, [value])
-    return <span ref={ref}>{display}<span className="big-stat-suffix">{suffix}</span></span>
   }
 
   const features = [
