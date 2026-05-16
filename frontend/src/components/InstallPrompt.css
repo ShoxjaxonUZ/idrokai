@@ -46,16 +46,35 @@
 }
 
 .install-prompt-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
-  color: #fff;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.install-prompt-icon img {
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius);
+  display: block;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+/* Qurilma turi belgisi — desktop / laptop / planshet / mobil */
+.install-prompt-device {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .install-prompt-text {

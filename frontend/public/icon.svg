@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="idrokaiBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B5BD6"/>
+      <stop offset="0.52" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#F472B6"/>
+    </linearGradient>
+    <radialGradient id="idrokaiGlow" cx="0.32" cy="0.28" r="0.85">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Gradient fon -->
+  <rect width="512" height="512" rx="116" fill="url(#idrokaiBg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#idrokaiGlow)"/>
+
+  <!-- Graduation cap (markazda, oq) -->
+  <g transform="translate(256 248)" fill="none" stroke="#ffffff"
+     stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Shapka tepasi (romb) -->
+    <path d="M0 -86 L150 -22 L0 42 L-150 -22 Z" fill="#ffffff" stroke="none"/>
+    <!-- Shapka tagi (kavsh) -->
+    <path d="M-86 -2 V58 C-86 84 86 84 86 58 V-2"/>
+    <!-- Popuk (tassel) -->
+    <path d="M150 -22 V70"/>
+    <circle cx="150" cy="86" r="20" fill="#ffffff" stroke="none"/>
+  </g>
+</svg>
