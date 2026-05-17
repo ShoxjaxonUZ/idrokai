@@ -5,7 +5,7 @@ import {
   GraduationCap, Sun, Moon, Menu, Settings,
   User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy
 } from 'lucide-react'
-import { getUser, clearAuth } from '../lib/api'
+import { getUser, clearAuth, apiPost } from '../lib/api'
 import NotificationBell from './NotificationBell'
 import '../styles/navbar.css'
 
@@ -30,7 +30,9 @@ function Navbar() {
     setDropdownOpen(false)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Joriy qurilma sessiyasini serverdan ham o'chirish
+    try { await apiPost('/api/auth/logout') } catch {}
     clearAuth()
     navigate('/')
     setMenuOpen(false)

@@ -46,11 +46,38 @@ const validateEmail = (raw) => {
 
 const generateVerificationToken = () => crypto.randomBytes(32).toString('hex')
 
-const signToken = (user) => jwt.sign(
-  { id: user.id, email: user.email, tv: user.token_version || 0 },
+const signToken = (user, jti) => jwt.sign(
+  { id: user.id, email: user.email, tv: user.token_version || 0, jti },
   process.env.JWT_SECRET,
   { expiresIn: TOKEN_TTL }
 )
+
+// Bitta akkaunt bir vaqtda nechta qurilmada faol tura oladi
+const DEVICE_LIMIT = 2
+
+// User-agent'dan o'qiladigan qurilma nomi: "Chrome — Windows"
+const parseDevice = (ua = '') => {
+  let browser = 'Brauzer'
+  if (/Edg\//.test(ua)) browser = 'Edge'
+  else if (/OPR\/|Opera/.test(ua)) browser = 'Opera'
+  else if (/Firefox\//.test(ua)) browser = 'Firefox'
+  else if (/Chrome\//.test(ua)) browser = 'Chrome'
+  else if (/Safari\//.test(ua)) browser = 'Safari'
+
+  let os = 'Qurilma'
+  if (/Windows/.test(ua)) os = 'Windows'
+  else if (/iPhone/.test(ua)) os = 'iPhone'
+  else if (/iPad/.test(ua)) os = 'iPad'
+  else if (/Android/.test(ua)) os = 'Android'
+  else if (/Mac OS X|Macintosh/.test(ua)) os = 'macOS'
+  else if (/Linux/.test(ua)) os = 'Linux'
+
+  return `${browser} - ${os}`
+}
+
+const getClientIp = (req) =>
+  (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+  req.socket?.remoteAddress || ''
 
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'Verification_Eduzybot'
 
@@ -330,7 +357,52 @@ router.post('/login', loginLimiter, async (req, res) => {
       })
     }
 
-    const token = signToken(user)
+    // ====== Qurilma sessiyalari ======
+    // Foydalanuvchi tanlagan qurilmani chiqarish (parol yuqorida tasdiqlandi)
+    const replaceSessionId = typeof req.body.replaceSessionId === 'string'
+      ? req.body.replaceSessionId : null
+    if (replaceSessionId) {
+      await pool.query(
+        'DELETE FROM user_sessions WHERE id = $1 AND user_id = $2',
+        [replaceSessionId, user.id]
+      )
+    }
+
+    const sessRes = await pool.query(
+      `SELECT id, device_label, ip, last_active_at
+       FROM user_sessions WHERE user_id = $1
+       ORDER BY last_active_at DESC`,
+      [user.id]
+    )
+
+    // Limit oshgan — login to'xtatiladi, foydalanuvchi qurilma tanlaydi
+    if (sessRes.rows.length >= DEVICE_LIMIT) {
+      return res.json({
+        deviceLimitReached: true,
+        limit: DEVICE_LIMIT,
+        devices: sessRes.rows.map(s => ({
+          id: s.id,
+          label: s.device_label,
+          ip: s.ip,
+          lastActive: s.last_active_at
+        }))
+      })
+    }
+
+    // Yangi sessiya yaratish
+    const jti = crypto.randomUUID()
+    await pool.query(
+      `INSERT INTO user_sessions (id, user_id, device_label, user_agent, ip)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        jti, user.id,
+        parseDevice(req.headers['user-agent']),
+        (req.headers['user-agent'] || '').slice(0, 400),
+        getClientIp(req)
+      ]
+    )
+
+    const token = signToken(user, jti)
 
     res.json({
       token,
@@ -353,6 +425,61 @@ router.get('/me', authMiddleware, async (req, res) => {
     res.json(result.rows[0])
   } catch {
     res.status(500).json({ message: 'Xatolik yuz berdi' })
+  }
+})
+
+// ====== Qurilma sessiyalari ======
+
+// Aktiv qurilmalar ro'yxati
+router.get('/sessions', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, device_label, ip, created_at, last_active_at
+       FROM user_sessions WHERE user_id = $1
+       ORDER BY last_active_at DESC`,
+      [req.user.id]
+    )
+    res.json(result.rows.map(s => ({
+      id: s.id,
+      label: s.device_label,
+      ip: s.ip,
+      createdAt: s.created_at,
+      lastActive: s.last_active_at,
+      current: s.id === req.user.jti
+    })))
+  } catch (err) {
+    console.error('[sessions] list error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// Qurilmani chiqarib yuborish (sessiyani o'chirish)
+router.delete('/sessions/:id', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM user_sessions WHERE id = $1 AND user_id = $2 RETURNING id',
+      [req.params.id, req.user.id]
+    )
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Sessiya topilmadi' })
+    }
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('[sessions] delete error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// Chiqish — joriy qurilma sessiyasini o'chirish
+router.post('/logout', authMiddleware, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM user_sessions WHERE id = $1 AND user_id = $2',
+      [req.user.jti, req.user.id]
+    )
+    res.json({ ok: true })
+  } catch {
+    res.status(500).json({ message: 'Server xatosi' })
   }
 })
 

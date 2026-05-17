@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   User, Swords, Lock, LogOut, Save, Crown, Gem, Star,
-  Sprout, Shield, GraduationCap, AlertTriangle, ArrowRight, Trophy
+  Sprout, Shield, GraduationCap, AlertTriangle, ArrowRight, Trophy,
+  Monitor, X
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -24,6 +25,7 @@ function Profile() {
   const [enrolledCount, setEnrolledCount] = useState(0)
   const [certCount, setCertCount] = useState(0)
   const [activeTab, setActiveTab] = useState('profile')
+  const [sessions, setSessions] = useState([])
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
@@ -56,7 +58,41 @@ function Profile() {
         if (Array.isArray(data)) setCertCount(data.length)
       })
       .catch(() => {})
+
+    // Aktiv qurilma sessiyalari
+    fetch(`${API_URL}/api/auth/sessions`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) setSessions(data)
+      })
+      .catch(() => {})
   }, [])
+
+  const handleRemoveSession = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/sessions/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setSessions(prev => prev.filter(s => s.id !== id))
+      }
+    } catch {}
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } catch {}
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    navigate('/')
+  }
 
   const handleNameUpdate = async () => {
     if (!nameForm.name.trim()) return setNameMsg({ text: 'Ism bo\'sh bo\'lmasin', ok: false })
@@ -408,18 +444,67 @@ function Profile() {
               <Save size={16} /> {passLoading ? 'Saqlanmoqda...' : 'Parolni yangilash'}
             </button>
 
+            <h3 style={{ marginTop: '28px' }}><Monitor size={18} /> Aktiv qurilmalar</h3>
+            <p style={{ color: 'var(--text-soft)', fontSize: '14px', marginBottom: '14px' }}>
+              Akkauntingiz kirgan qurilmalar. Notanish qurilmani chiqarib yuboring.
+            </p>
+            {sessions.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Hozircha ma'lumot yo'q.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {sessions.map(s => (
+                  <div key={s.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '12px 14px', border: '1px solid var(--border)',
+                    borderRadius: '10px', background: 'var(--bg)'
+                  }}>
+                    <Monitor size={22} style={{ color: 'var(--primary-light)', flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontWeight: 600, fontSize: '14px',
+                        display: 'flex', alignItems: 'center', gap: '8px'
+                      }}>
+                        {s.label || 'Qurilma'}
+                        {s.current && (
+                          <span style={{
+                            fontSize: '11px', fontWeight: 700, color: '#22c55e',
+                            background: 'rgba(34,197,94,0.12)', padding: '2px 8px',
+                            borderRadius: '20px'
+                          }}>Joriy</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-soft)' }}>
+                        {s.ip || '—'}
+                        {s.lastActive ? ` · ${new Date(s.lastActive).toLocaleString('uz')}` : ''}
+                      </div>
+                    </div>
+                    {!s.current && (
+                      <button
+                        onClick={() => handleRemoveSession(s.id)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '5px',
+                          padding: '7px 11px', background: 'rgba(239,68,68,0.1)',
+                          color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)',
+                          borderRadius: '8px', cursor: 'pointer', fontSize: '12px',
+                          fontWeight: 600, flexShrink: 0, fontFamily: 'inherit'
+                        }}
+                      >
+                        <X size={13} /> Chiqarish
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="danger-card" style={{ marginTop: '24px' }}>
               <h3 style={{ color: '#ef4444', marginBottom: '8px' }}>
                 <AlertTriangle size={18} /> Hisobdan chiqish
               </h3>
               <p style={{ color: 'var(--text-soft)', fontSize: '14px', marginBottom: '16px' }}>
-                Barcha qurilmalardan chiqish uchun tugmani bosing.
+                Bu qurilmadan chiqasiz — sessiya yopiladi.
               </p>
-              <button className="btn-danger" onClick={() => {
-                localStorage.removeItem('token')
-                localStorage.removeItem('user')
-                navigate('/')
-              }}>
+              <button className="btn-danger" onClick={handleLogout}>
                 <LogOut size={16} /> Chiqish
               </button>
             </div>

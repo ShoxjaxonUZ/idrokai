@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Mail, Lock, Eye, EyeOff, LogIn, GraduationCap,
-  AlertCircle, ArrowRight
+  AlertCircle, ArrowRight, Monitor, LogOut, ShieldAlert
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import '../styles/auth.css'
@@ -17,12 +17,13 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [needVerification, setNeedVerification] = useState(false)
   const [resendStatus, setResendStatus] = useState('')
+  const [deviceLimit, setDeviceLimit] = useState(null)
 
   useEffect(() => {
     document.title = "Kirish — Eduzy"
   }, [])
 
-  const handleLogin = async () => {
+  const handleLogin = async (replaceSessionId = null) => {
     setError('')
     setNeedVerification(false)
     if (!form.email || !form.password) {
@@ -34,10 +35,19 @@ function Login() {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(
+          replaceSessionId ? { ...form, replaceSessionId } : form
+        )
       })
       const data = await res.json()
       if (res.ok) {
+        // Qurilma limiti — login to'xtatildi, qurilma tanlash kerak
+        if (data.deviceLimitReached) {
+          setDeviceLimit({ devices: data.devices || [], limit: data.limit })
+          setLoading(false)
+          return
+        }
+        setDeviceLimit(null)
         localStorage.setItem('token', data.token)
         localStorage.setItem('user', JSON.stringify(data.user))
 
@@ -81,6 +91,79 @@ function Login() {
       setResendStatus('error')
       setError('Server xatosi')
     }
+  }
+
+  // Qurilma limiti ekrani — login to'xtatilgan, qurilma tanlash kerak
+  if (deviceLimit) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-logo">
+            <div className="auth-logo-icon">
+              <ShieldAlert size={28} />
+            </div>
+            <div className="auth-logo-text">Eduzy</div>
+          </div>
+
+          <h1 className="auth-title">Qurilma limiti</h1>
+          <p className="auth-sub">
+            Bu akkaunt allaqachon {deviceLimit.limit} ta qurilmada faol.
+            Davom etish uchun bittasini chiqarib yuboring.
+          </p>
+
+          {error && (
+            <div className="auth-error">
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+            {deviceLimit.devices.map(d => (
+              <div key={d.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 14px', border: '1px solid var(--border)',
+                borderRadius: 10, background: 'var(--card)'
+              }}>
+                <Monitor size={22} style={{ color: 'var(--primary-light)', flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{d.label || 'Qurilma'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
+                    {d.ip || '—'}
+                    {d.lastActive ? ` · ${new Date(d.lastActive).toLocaleString('uz')}` : ''}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleLogin(d.id)}
+                  disabled={loading}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '8px 12px', background: '#dc2626', color: '#fff',
+                    border: 'none', borderRadius: 8, cursor: 'pointer',
+                    fontSize: 12.5, fontWeight: 600, flexShrink: 0, fontFamily: 'inherit'
+                  }}
+                >
+                  <LogOut size={14} /> Chiqarish
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { setDeviceLimit(null); setError('') }}
+            style={{
+              width: '100%', padding: '10px', background: 'transparent',
+              border: '1px solid var(--border)', borderRadius: 8,
+              cursor: 'pointer', color: 'var(--text-soft)',
+              fontFamily: 'inherit', fontWeight: 500
+            }}
+          >
+            Bekor qilish
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -156,7 +239,7 @@ function Login() {
 
         <button
           className="btn-primary full auth-btn"
-          onClick={handleLogin}
+          onClick={() => handleLogin()}
           disabled={loading}
         >
           {loading ? (

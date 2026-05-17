@@ -19,10 +19,23 @@ const auth = async (req, res, next) => {
     return res.status(401).json({ message: 'Token noto\'g\'ri yoki muddati o\'tgan' })
   }
 
-  // Token versiyasi + role — bitta query'da olib kelinadi.
-  // requireRole keyinchalik req.user.role'ni qayta DB'dan o'qimaydi.
+  // jti yo'q — eski (sessiyasiz) token. Qurilma boshqaruvi joriy etilgach
+  // bunday tokenlar kuchsiz: foydalanuvchi qayta kirishi kerak.
+  if (!decoded.jti) {
+    return res.status(401).json({ message: 'Sessiya tugagan, qayta kiring' })
+  }
+
+  // Token versiyasi + role + sessiya mavjudligi — bitta query'da.
   try {
-    const r = await pool.query('SELECT id, token_version, role FROM users WHERE id = $1', [decoded.id])
+    const r = await pool.query(
+      `SELECT u.token_version, u.role,
+              EXISTS(
+                SELECT 1 FROM user_sessions s
+                WHERE s.id = $2 AND s.user_id = u.id
+              ) AS session_ok
+       FROM users u WHERE u.id = $1`,
+      [decoded.id, decoded.jti]
+    )
     if (r.rows.length === 0) {
       return res.status(401).json({ message: 'Foydalanuvchi topilmadi' })
     }
@@ -32,6 +45,15 @@ const auth = async (req, res, next) => {
     if (dbVersion !== tokenVersion) {
       return res.status(401).json({ message: 'Sessiya tugagan, qayta kiring' })
     }
+    // Sessiya o'chirilgan — bu qurilma boshqa qurilmadan chiqarib yuborilgan.
+    if (!row.session_ok) {
+      return res.status(401).json({ message: 'Bu qurilma boshqa joydan chiqarib yuborilgan. Qayta kiring.' })
+    }
+    // Oxirgi faollik vaqti — har so'rovda emas, 5 daqiqada bir marta (yuk kam).
+    pool.query(
+      "UPDATE user_sessions SET last_active_at = NOW() WHERE id = $1 AND last_active_at < NOW() - INTERVAL '5 minutes'",
+      [decoded.jti]
+    ).catch(() => {})
     req.user = { ...decoded, role: row.role || 'student' }
     next()
   } catch (err) {
