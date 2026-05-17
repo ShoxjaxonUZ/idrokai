@@ -159,7 +159,7 @@ const sendAttackAlert = async (entry) => {
 const sendStartup = async () => {
   if (!isConfigured() || !SECURITY_ALERTS_ENABLED) return false
   return sendMessage(
-    `🛡️ *IdrokAI xavfsizlik tizimi yoqildi*\n\nServer vaqti: ${md(new Date().toISOString())}`,
+    `🛡️ *Eduzy xavfsizlik tizimi yoqildi*\n\nServer vaqti: ${md(new Date().toISOString())}`,
     { silent: true }
   )
 }
@@ -199,7 +199,7 @@ const sendTo = async (chatId, text, opts = {}) => {
 // Tasdiqlash kodini yuborish
 const sendVerificationCode = async (chatId, name, code) => {
   const text = [
-    `🎓 *IdrokAI tasdiqlash kodi*`,
+    `🎓 *Eduzy tasdiqlash kodi*`,
     '',
     `Salom, ${md(name || 'foydalanuvchi')}\\!`,
     '',

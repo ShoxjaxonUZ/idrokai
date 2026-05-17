@@ -23,7 +23,7 @@ function Courses() {
   const [allCourses, setAllCourses] = useState([])
 
   useEffect(() => {
-    document.title = "Kurslar — IdrokAI"
+    document.title = "Kurslar — Eduzy"
     fetch(`${API_URL}/api/teacher/all-courses`)
       .then(r => r.json())
       .then(data => {

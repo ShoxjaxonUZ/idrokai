@@ -60,7 +60,7 @@ const lookup = async (rawIp) => {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), 5000)
     const res = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, {
-      headers: { 'User-Agent': 'IdrokAI-Security/1.0' },
+      headers: { 'User-Agent': 'Eduzy-Security/1.0' },
       signal: ctrl.signal
     })
     clearTimeout(timer)

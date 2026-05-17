@@ -4,4 +4,4 @@ Disallow: /admin
 Disallow: /dashboard
 Disallow: /profile
 
-Sitemap: https://idrokai.uz/sitemap.xml
+Sitemap: https://eduzy.uz/sitemap.xml

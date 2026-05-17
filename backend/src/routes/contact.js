@@ -236,7 +236,7 @@ router.post('/admin/:id/reply', auth, adminOnly, async (req, res) => {
         if (chatId) {
           const md = telegram.md
           const text = [
-            `📨 *IdrokAI \\- Sizning xabaringizga javob*`,
+            `📨 *Eduzy \\- Sizning xabaringizga javob*`,
             '',
             `Salom, ${md(msg.name)}\\!`,
             '',

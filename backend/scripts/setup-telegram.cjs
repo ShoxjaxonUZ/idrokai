@@ -73,7 +73,7 @@ const TOKEN = process.env.TELEGRAM_BOT_TOKEN
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: recommended.id,
-        text: '🛡️ IdrokAI xavfsizlik bot ishladi!\n\nBu test xabari. Endi haqiqiy hujumlar aniqlansa sizga xabar keladi.',
+        text: '🛡️ Eduzy xavfsizlik bot ishladi!\n\nBu test xabari. Endi haqiqiy hujumlar aniqlansa sizga xabar keladi.',
         disable_notification: false
       })
     })

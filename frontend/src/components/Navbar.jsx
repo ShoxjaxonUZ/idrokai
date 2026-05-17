@@ -62,7 +62,7 @@ function Navbar() {
             <div className="logo-icon">
               <GraduationCap size={22} />
             </div>
-            <span className="logo-text">IdrokAI</span>
+            <span className="logo-text">Eduzy</span>
           </div>
 
           {/* Center links — guest ham ko'ra oladi (preview) */}

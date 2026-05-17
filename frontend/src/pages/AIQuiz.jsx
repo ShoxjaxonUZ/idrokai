@@ -42,7 +42,7 @@ function AIQuiz() {
   }
 
   useEffect(() => {
-    document.title = "AI Test — IdrokAI"
+    document.title = "AI Test — Eduzy"
     if (!user) return
     checkBlock()
   }, [])

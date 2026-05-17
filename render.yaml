@@ -3,7 +3,7 @@
 
 services:
   - type: web
-    name: idrokai-api
+    name: eduzy-api
     runtime: node
     region: frankfurt
     plan: free
@@ -19,7 +19,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_EMAIL
-        value: admin@idrokai.uz
+        value: admin@eduzy.uz
       - key: ADMIN_PASSWORD
         sync: false
       - key: GROQ_API_KEY
@@ -42,7 +42,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
-        value: "IdrokAI <onboarding@resend.dev>"
+        value: "Eduzy <onboarding@resend.dev>"
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
@@ -52,7 +52,7 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: SMTP_FROM
-        value: "IdrokAI <noreply@idrokai.uz>"
+        value: "Eduzy <noreply@eduzy.uz>"
       # S3-mos object storage (Cloudflare R2 yoki Backblaze B2)
       - key: R2_ACCOUNT_ID
         sync: false

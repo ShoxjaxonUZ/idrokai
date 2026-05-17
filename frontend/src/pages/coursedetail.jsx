@@ -52,7 +52,7 @@ function CourseDetail() {
             return { title: `${i + 1}-dars`, video: '', desc: '' }
           })
           setCourse({ ...found, lessons: normalizedLessons })
-          document.title = `${found.title} — IdrokAI`
+          document.title = `${found.title} — Eduzy`
 
           // Module testlarni tekshirish
           if (token) {

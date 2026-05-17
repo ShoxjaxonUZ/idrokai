@@ -49,7 +49,7 @@ router.post('/complete', auth, async (req, res) => {
     const coursesRes = await pool.query('SELECT id, title, category, daraja, description FROM courses')
     const allCourses = coursesRes.rows
 
-    const prompt = `Sen IdrokAI ta'lim platformasining konsultantsisan. Foydalanuvchining ma'lumotlariga qarab eng mos KURSLARNI tavsiya qil.
+    const prompt = `Sen Eduzy ta'lim platformasining konsultantsisan. Foydalanuvchining ma'lumotlariga qarab eng mos KURSLARNI tavsiya qil.
 
 FOYDALANUVCHI MA'LUMOTLARI:
 - Yosh guruhi: ${ageGroup}
@@ -165,7 +165,7 @@ router.post('/chat', auth, async (req, res) => {
 
     const turns = cleanMessages.filter(m => m.role === 'user').length
 
-    const systemPrompt = `Sen IdrokAI ta'lim platformasining do'stona AI konsultantsisan. O'ZBEK TILIDA suhbatlash.
+    const systemPrompt = `Sen Eduzy ta'lim platformasining do'stona AI konsultantsisan. O'ZBEK TILIDA suhbatlash.
 
 FOYDALANUVCHI HAQIDA OLDINDAN MA'LUMOT:
 - Yosh: ${cleanString(profile.ageGroup, 30) || 'noma\'lum'}
@@ -182,7 +182,7 @@ SUHBAT QOIDALARI:
 HOZIRGI HOLAT: Suhbatda ${turns} ta javob bor.
 
 ${turns >= 3
-  ? `MUHIM: Endi yetarli ma'lumot to'plandi. Foydalanuvchiga qisqacha xulosa ayting va IdrokAI platformasidagi mos kurslarni tavsiya qilishga tayyorligingizni bildiring.`
+  ? `MUHIM: Endi yetarli ma'lumot to'plandi. Foydalanuvchiga qisqacha xulosa ayting va Eduzy platformasidagi mos kurslarni tavsiya qilishga tayyorligingizni bildiring.`
   : `HOZIR: Foydalanuvchini chuqurroq tushunish uchun yana 1-2 ta savol bering.`
 }
 

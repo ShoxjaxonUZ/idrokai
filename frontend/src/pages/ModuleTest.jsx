@@ -32,7 +32,7 @@ function ModuleTest() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
-    document.title = `Modul ${moduleIdx + 1} testi — IdrokAI`
+    document.title = `Modul ${moduleIdx + 1} testi — Eduzy`
     loadData()
   }, [courseId, moduleIndex])
 

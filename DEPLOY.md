@@ -1,4 +1,4 @@
-# 🚀 IdrokAI — Bepul Deploy Qo'llanmasi
+# 🚀 Eduzy — Bepul Deploy Qo'llanmasi
 
 Saytni internetga **butunlay bepul** chiqarish uchun:
 - **Frontend** → Vercel
@@ -24,7 +24,7 @@ Sizda quyidagi akkauntlar kerak (hammasi bepul):
 ## 📦 Bosqich 1: GitHub'ga yuklash
 
 ### 1.1. Yangi repo yarating
-GitHub.com → yashil **"New"** tugma → repo nomi: `idrokai` → **Private** tanlang → **Create repository**
+GitHub.com → yashil **"New"** tugma → repo nomi: `eduzy` → **Private** tanlang → **Create repository**
 
 ### 1.2. Lokalda terminalda (loyiha papkasida):
 
@@ -33,11 +33,11 @@ cd d:/Desktop/eduuz1
 
 git init
 git add .
-git commit -m "IdrokAI: dastlabki commit"
+git commit -m "Eduzy: dastlabki commit"
 git branch -M main
 
 # GitHub repo URL'ini nusxalang (yashil "Code" tugma) va quyidagi joyga qo'ying:
-git remote add origin https://github.com/SIZNING-USERNAME/idrokai.git
+git remote add origin https://github.com/SIZNING-USERNAME/eduzy.git
 
 git push -u origin main
 ```
@@ -53,14 +53,14 @@ git push -u origin main
 1. **https://neon.tech** ga kiring → **"Sign up with GitHub"**
 2. Birinchi marta kirsangiz: avtomatik proyekt yaratiladi yoki **"Create Project"** bosing
 3. Sozlamalar:
-   - **Project name**: `idrokai`
-   - **Database name**: `idrokai`
+   - **Project name**: `eduzy`
+   - **Database name**: `eduzy`
    - **Region**: **AWS Frankfurt** (eu-central-1) — eng tez O'zbekistondan
    - **Postgres version**: 16 (default)
 4. **"Create project"** bosing
 5. **Connection string** chiqadi (yashil **"Show password"** tugmasi orqali):
    ```
-   postgresql://user:password@ep-xxxxx.eu-central-1.aws.neon.tech/idrokai?sslmode=require
+   postgresql://user:password@ep-xxxxx.eu-central-1.aws.neon.tech/eduzy?sslmode=require
    ```
 6. **Bu havolani saqlab qo'ying** — keyingi bosqichda kerak.
 
@@ -75,12 +75,12 @@ git push -u origin main
 
 ### 3.2. Yangi Web Service
 1. Yashil **"New +"** tugma → **"Web Service"**
-2. **"Connect a repository"** → `idrokai` repongizni tanlang → **"Connect"**
+2. **"Connect a repository"** → `eduzy` repongizni tanlang → **"Connect"**
 
 ### 3.3. Sozlamalar
 | Maydon | Qiymat |
 |--------|--------|
-| **Name** | `idrokai-api` |
+| **Name** | `eduzy-api` |
 | **Region** | **Frankfurt (EU Central)** |
 | **Branch** | `main` |
 | **Root Directory** | `backend` |
@@ -98,18 +98,18 @@ Pastga aylanring → **"Environment Variables"** bo'limi → har biri uchun **"A
 | `NODE_ENV` | `production` |
 | `DATABASE_URL` | (Neon'dan olgan connection string) |
 | `JWT_SECRET` | (kuchli random string — pastdagi buyruq orqali olishingiz mumkin) |
-| `ADMIN_EMAIL` | `admin@idrokai.uz` |
+| `ADMIN_EMAIL` | `admin@eduzy.uz` |
 | `ADMIN_PASSWORD` | `Admin1234` (yoki o'zingiz tanlagan kuchli parol) |
 | `GROQ_API_KEY` | (sizdagi `gsk_...` kalit) |
-| `CORS_ORIGIN` | `https://idrokai.vercel.app` (Vercel deploy'dan keyin yangilanadi) |
-| `APP_URL` | `https://idrokai.vercel.app` |
+| `CORS_ORIGIN` | `https://eduzy.vercel.app` (Vercel deploy'dan keyin yangilanadi) |
+| `APP_URL` | `https://eduzy.vercel.app` |
 | `TELEGRAM_BOT_TOKEN` | (sizniki) |
 | `TELEGRAM_CHAT_ID` | (sizniki) |
 | `SMTP_HOST` | `smtp.gmail.com` |
 | `SMTP_PORT` | `587` |
 | `SMTP_USER` | (sizning gmail) |
 | `SMTP_PASS` | (Google App Password — quyida ko'rsatma) |
-| `SMTP_FROM` | `IdrokAI <noreply@idrokai.uz>` |
+| `SMTP_FROM` | `Eduzy <noreply@eduzy.uz>` |
 
 **JWT_SECRET yaratish** (lokalda bir marta):
 ```bash
@@ -121,9 +121,9 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 Logs'da `🚀 Server 10000 portda ishlamoqda` chiqsa — backend ishladi!
 
-URL: `https://idrokai-api.onrender.com` (yoki sizga berilgan).
+URL: `https://eduzy-api.onrender.com` (yoki sizga berilgan).
 
-**Test:** brauzerda `https://idrokai-api.onrender.com/health` ni oching → `{"status":"ok"}` chiqishi kerak.
+**Test:** brauzerda `https://eduzy-api.onrender.com/health` ni oching → `{"status":"ok"}` chiqishi kerak.
 
 ✅ **Backend production'da.**
 
@@ -136,12 +136,12 @@ URL: `https://idrokai-api.onrender.com` (yoki sizga berilgan).
 
 ### 4.2. Yangi proyekt
 1. **"Add New..."** → **"Project"**
-2. `idrokai` repo ro'yxatda paydo bo'ladi → **"Import"**
+2. `eduzy` repo ro'yxatda paydo bo'ladi → **"Import"**
 
 ### 4.3. Sozlamalar
 | Maydon | Qiymat |
 |--------|--------|
-| **Project Name** | `idrokai` |
+| **Project Name** | `eduzy` |
 | **Framework Preset** | Vite (avtomatik aniqlanadi) |
 | **Root Directory** | **"Edit"** bosib → `frontend` ni tanlang |
 | **Build Command** | `npm run build` (default) |
@@ -152,12 +152,12 @@ URL: `https://idrokai-api.onrender.com` (yoki sizga berilgan).
 
 | Key | Value |
 |-----|-------|
-| `VITE_API_URL` | `https://idrokai-api.onrender.com` (Render'dan olingan URL) |
+| `VITE_API_URL` | `https://eduzy-api.onrender.com` (Render'dan olingan URL) |
 
 ### 4.5. Deploy
 **"Deploy"** tugmasini bosing → 1-2 daqiqa.
 
-URL: `https://idrokai.vercel.app` (yoki shunga o'xshash).
+URL: `https://eduzy.vercel.app` (yoki shunga o'xshash).
 
 ✅ **Frontend production'da.**
 
@@ -167,10 +167,10 @@ URL: `https://idrokai.vercel.app` (yoki shunga o'xshash).
 
 Endi Vercel URL'ini bilamiz, Render'dagi `CORS_ORIGIN` ni yangilash kerak:
 
-1. Render dashboard → `idrokai-api` proyekti → **"Environment"** tab
+1. Render dashboard → `eduzy-api` proyekti → **"Environment"** tab
 2. `CORS_ORIGIN` ni toping → **Edit** → qiymatni Vercel URL'ga o'zgartiring:
    ```
-   https://idrokai.vercel.app
+   https://eduzy.vercel.app
    ```
 3. **"Save Changes"** → backend avtomatik qayta deploy bo'ladi (~2 daq)
 
@@ -186,8 +186,8 @@ Render Free plan'da backend 15 daqiqa ishlatilmasa "uxlaydi" (cold start ~30s). 
 2. Email tasdiqlang → login
 3. **"Add New Monitor"**
    - **Monitor Type**: HTTP(s)
-   - **Friendly Name**: `IdrokAI Backend`
-   - **URL**: `https://idrokai-api.onrender.com/health`
+   - **Friendly Name**: `Eduzy Backend`
+   - **URL**: `https://eduzy-api.onrender.com/health`
    - **Monitoring Interval**: **5 minutes**
 4. **"Create Monitor"**
 
@@ -202,9 +202,9 @@ Foydalanuvchilar haqiqiy email orqali ro'yxatdan o'tishi uchun:
 1. **https://myaccount.google.com/security** ga kiring
 2. **2-Step Verification** yoqilgan bo'lishi shart (yoqilmagan bo'lsa avval yoqing)
 3. **https://myaccount.google.com/apppasswords** ga kiring
-4. **App name**: `IdrokAI`
+4. **App name**: `Eduzy`
 5. **Generate** bosing → **16-belgili parolni nusxalang** (masalan: `abcd efgh ijkl mnop`)
-6. Render dashboard → `idrokai-api` → Environment:
+6. Render dashboard → `eduzy-api` → Environment:
    - `SMTP_USER` = `sizninggmail@gmail.com`
    - `SMTP_PASS` = nusxalangan 16-belgili parol (bo'shliqsiz: `abcdefghijklmnop`)
 7. Save → backend qayta deploy
@@ -215,14 +215,14 @@ Foydalanuvchilar haqiqiy email orqali ro'yxatdan o'tishi uchun:
 
 ## ✅ Bosqich 8: Yakuniy test
 
-1. **Frontend**: `https://idrokai.vercel.app` ochiladimi?
-2. **Health check**: `https://idrokai-api.onrender.com/health` → `{"status":"ok"}` qaytaradimi?
+1. **Frontend**: `https://eduzy.vercel.app` ochiladimi?
+2. **Health check**: `https://eduzy-api.onrender.com/health` → `{"status":"ok"}` qaytaradimi?
 3. **Register**: yangi haqiqiy email bilan ro'yxatdan o'ting → emailga link kelishi
 4. **Login**: tasdiqlangandan keyin login ishlaydimi?
-5. **Admin**: `admin@idrokai.uz` / `Admin1234` bilan kiring → `/admin` ochiladimi?
+5. **Admin**: `admin@eduzy.uz` / `Admin1234` bilan kiring → `/admin` ochiladimi?
 6. **Telegram**: Telegram'da xavfsizlik xabari kelganmi?
 
-Hammasi ✅ bo'lsa — investorlarga `https://idrokai.vercel.app` URL'ini yuborishingiz mumkin!
+Hammasi ✅ bo'lsa — investorlarga `https://eduzy.vercel.app` URL'ini yuborishingiz mumkin!
 
 ---
 
@@ -251,20 +251,20 @@ Hammasi ✅ bo'lsa — investorlarga `https://idrokai.vercel.app` URL'ini yubori
 
 ## 🎓 Investor demo uchun maslahat
 
-1. **Demo akkaunt** yarating: `demo@idrokai.uz` / `DemoUser123` — kurs ro'yxatdan o'tgan, ba'zi darslar tugatilgan
+1. **Demo akkaunt** yarating: `demo@eduzy.uz` / `DemoUser123` — kurs ro'yxatdan o'tgan, ba'zi darslar tugatilgan
 2. **Sample data**: 3-5 ta kurs, 5-10 ta foydalanuvchi yarating
 3. **Battle demo**: ikkita brauzerda ikkita akkaunt bilan battle o'ynab ko'ring (investor ishlayotganini ko'rishi uchun)
 4. **AI Teacher**: matematika/dasturlash savollar bilan AI'ni sinab ko'ring
 5. **Sertifikat**: bitta foydalanuvchi kursni tugatib sertifikat olganini ko'rsating
 
 **Qisqa pitch**:
-> "IdrokAI — O'zbek tilida bepul AI-ta'lim platformasi. AI Teacher, kunlik masalalar, code battle va sertifikatlar bilan foydalanuvchilarni intensiv ravishda o'rgatadi."
+> "Eduzy — O'zbek tilida bepul AI-ta'lim platformasi. AI Teacher, kunlik masalalar, code battle va sertifikatlar bilan foydalanuvchilarni intensiv ravishda o'rgatadi."
 
 ---
 
 ## 🚀 Keyingi qadamlar (deploy'dan keyin)
 
-- [ ] Domen sotib olish: `idrokai.uz` (uznic.uz, ~80,000 so'm/yil)
+- [ ] Domen sotib olish: `eduzy.uz` (uznic.uz, ~80,000 so'm/yil)
 - [ ] Vercel'da custom domain ulash
 - [ ] Render'da custom domain ulash
 - [ ] Cloudflare orqali DDoS himoyasi (bepul)

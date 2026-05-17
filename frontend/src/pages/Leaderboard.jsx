@@ -19,7 +19,7 @@ function Leaderboard() {
   const [tab, setTab] = useState('all')
 
   useEffect(() => {
-    document.title = "Top o'quvchilar — IdrokAI"
+    document.title = "Top o'quvchilar — Eduzy"
     loadData()
   }, [])
 
@@ -94,7 +94,7 @@ function Leaderboard() {
           <h1>
             Eng faol <span className="gradient-text">o'quvchilar</span>
           </h1>
-          <p>IdrokAI jamoasining eng yaxshi qatnashchilari va g'oliblar reytingi</p>
+          <p>Eduzy jamoasining eng yaxshi qatnashchilari va g'oliblar reytingi</p>
         </div>
 
         {/* Mening o'rnim */}

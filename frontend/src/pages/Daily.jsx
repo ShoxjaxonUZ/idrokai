@@ -54,7 +54,7 @@ function Daily() {
   }
 
   useEffect(() => {
-    document.title = "Kunlik masala — IdrokAI"
+    document.title = "Kunlik masala — Eduzy"
     if (!user) {
       // Guest uchun namuna masala
       setChallenge(GUEST_SAMPLE_CHALLENGE)

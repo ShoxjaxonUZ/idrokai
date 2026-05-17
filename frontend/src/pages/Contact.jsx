@@ -19,7 +19,7 @@ function Contact() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    document.title = "Aloqa — IdrokAI"
+    document.title = "Aloqa — Eduzy"
   }, [])
 
   const handleSubmit = async (e) => {
@@ -89,7 +89,7 @@ function Contact() {
                 </div>
                 <div>
                   <div className="contact-info-label">Email</div>
-                  <a href="mailto:info@idrokai.uz" className="contact-info-value">info@idrokai.uz</a>
+                  <a href="mailto:info@eduzy.uz" className="contact-info-value">info@eduzy.uz</a>
                 </div>
               </div>
 

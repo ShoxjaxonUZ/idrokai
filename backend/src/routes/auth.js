@@ -52,7 +52,7 @@ const signToken = (user) => jwt.sign(
   { expiresIn: TOKEN_TTL }
 )
 
-const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'Verification_IdrokAIbot'
+const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'Verification_Eduzybot'
 
 router.post('/register', async (req, res) => {
   try {

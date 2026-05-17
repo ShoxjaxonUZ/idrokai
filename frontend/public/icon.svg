@@ -1,19 +1,19 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="idrokaiBg" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="eduzyBg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#5B5BD6"/>
       <stop offset="0.52" stop-color="#A78BFA"/>
       <stop offset="1" stop-color="#F472B6"/>
     </linearGradient>
-    <radialGradient id="idrokaiGlow" cx="0.32" cy="0.28" r="0.85">
+    <radialGradient id="eduzyGlow" cx="0.32" cy="0.28" r="0.85">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <!-- Gradient fon -->
-  <rect width="512" height="512" rx="116" fill="url(#idrokaiBg)"/>
-  <rect width="512" height="512" rx="116" fill="url(#idrokaiGlow)"/>
+  <rect width="512" height="512" rx="116" fill="url(#eduzyBg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#eduzyGlow)"/>
 
   <!-- Graduation cap (markazda, oq) -->
   <g transform="translate(256 248)" fill="none" stroke="#ffffff"

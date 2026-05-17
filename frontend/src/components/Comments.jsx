@@ -137,7 +137,7 @@ function Comments({ courseId }) {
                     <div className="comment-author">{c.user_name}</div>
                     <div className="comment-date">{formatDate(c.created_at)}</div>
                   </div>
-                  {(user?.id === c.user_id || user?.email === 'admin@idrokai.uz') && (
+                  {(user?.id === c.user_id || user?.role === 'admin') && (
                     <button
                       className="comment-delete"
                       onClick={() => handleDelete(c.id)}

@@ -1,4 +1,4 @@
-# IdrokAI — O'zbek tilida bepul ta'lim platformasi
+# Eduzy — O'zbek tilida bepul ta'lim platformasi
 
 AI-powered ta'lim platformasi: kurslar, AI Teacher, kunlik masala, code battle, sertifikatlar.
 
@@ -44,4 +44,4 @@ Tezkor: Vercel (frontend) + Render (backend) + Neon (DB) — barchasi bepul.
 
 ## Litsenziya
 
-Barcha huquqlar himoyalangan © IdrokAI
+Barcha huquqlar himoyalangan © Eduzy

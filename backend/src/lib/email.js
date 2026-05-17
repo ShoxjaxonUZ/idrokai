@@ -12,7 +12,7 @@ const SMTP_USER = process.env.SMTP_USER
 const SMTP_PASS = process.env.SMTP_PASS
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const BREVO_API_KEY = process.env.BREVO_API_KEY
-const BREVO_FROM = process.env.BREVO_FROM || process.env.SMTP_FROM || 'IdrokAI <noreply@idrokai.uz>'
+const BREVO_FROM = process.env.BREVO_FROM || process.env.SMTP_FROM || 'Eduzy <noreply@eduzy.uz>'
 const APP_URL = process.env.APP_URL || 'http://localhost:5173'
 
 // Gmail uchun From address SMTP_USER bilan mos kelishi shart (aks holda block qiladi)
@@ -20,12 +20,12 @@ const APP_URL = process.env.APP_URL || 'http://localhost:5173'
 let SMTP_FROM = process.env.SMTP_FROM
 if (SMTP_HOST?.includes('gmail') && SMTP_USER) {
   // Gmail — From email aynan SMTP_USER bo'lishi shart
-  SMTP_FROM = `IdrokAI <${SMTP_USER}>`
+  SMTP_FROM = `Eduzy <${SMTP_USER}>`
 } else if (!SMTP_FROM) {
-  SMTP_FROM = `IdrokAI <${SMTP_USER || 'noreply@idrokai.uz'}>`
+  SMTP_FROM = `Eduzy <${SMTP_USER || 'noreply@eduzy.uz'}>`
 }
 
-const RESEND_FROM = process.env.RESEND_FROM || 'IdrokAI <onboarding@resend.dev>'
+const RESEND_FROM = process.env.RESEND_FROM || 'Eduzy <onboarding@resend.dev>'
 
 let transporter = null
 let provider = 'none'
@@ -83,10 +83,10 @@ const escapeHtml = (s) => {
 
 // Brevo "from" maydonini parse qiladi: "Name <email@host.com>" -> {name, email}
 const parseFrom = (str) => {
-  if (!str) return { name: 'IdrokAI', email: 'noreply@idrokai.uz' }
+  if (!str) return { name: 'Eduzy', email: 'noreply@eduzy.uz' }
   const m = String(str).match(/^(.*?)\s*<([^>]+)>$/)
-  if (m) return { name: m[1].trim() || 'IdrokAI', email: m[2].trim() }
-  return { name: 'IdrokAI', email: String(str).trim() }
+  if (m) return { name: m[1].trim() || 'Eduzy', email: m[2].trim() }
+  return { name: 'Eduzy', email: String(str).trim() }
 }
 
 const sendViaBrevo = async ({ to, subject, html, text, from }) => {
@@ -200,12 +200,12 @@ const buildVerificationHtml = (name, link) => `<!DOCTYPE html>
 <body>
   <div class="card">
     <div class="header">
-      <h1>🎓 IdrokAI</h1>
+      <h1>🎓 Eduzy</h1>
       <p style="margin: 8px 0 0; opacity: 0.9;">Bilim — kelajagingiz kaliti</p>
     </div>
     <div class="body">
       <h2>Salom, ${escapeHtml(name)}!</h2>
-      <p>IdrokAI platformasiga ro'yxatdan o'tganingiz uchun rahmat 🎉</p>
+      <p>Eduzy platformasiga ro'yxatdan o'tganingiz uchun rahmat 🎉</p>
       <p>Hisobingizni faollashtirish uchun quyidagi tugmani bosing:</p>
       <div style="text-align: center;">
         <a href="${link}" class="button">✓ Emailni tasdiqlash</a>
@@ -222,7 +222,7 @@ const buildVerificationHtml = (name, link) => `<!DOCTYPE html>
       </p>
     </div>
     <div class="footer">
-      © IdrokAI — bepul ta'lim platformasi<br>
+      © Eduzy — bepul ta'lim platformasi<br>
       <a href="${APP_URL}" style="color: #8b5cf6;">${APP_URL.replace(/^https?:\/\//, '')}</a>
     </div>
   </div>
@@ -231,9 +231,9 @@ const buildVerificationHtml = (name, link) => `<!DOCTYPE html>
 
 const sendVerificationEmail = async (toEmail, name, token) => {
   const link = `${APP_URL}/verify-email?token=${encodeURIComponent(token)}`
-  const subject = 'IdrokAI — Email manzilingizni tasdiqlang'
+  const subject = 'Eduzy — Email manzilingizni tasdiqlang'
   const html = buildVerificationHtml(name, link)
-  const text = `Salom, ${name}!\n\nIdrokAI'ga ro'yxatdan o'tganingiz uchun rahmat.\n\nHisobingizni faollashtirish uchun quyidagi havolani oching:\n${link}\n\nHavola 24 soat amal qiladi.\n\nAgar ro'yxatdan o'tmagan bo'lsangiz, bu xabarni e'tiborsiz qoldiring.\n\nIdrokAI`
+  const text = `Salom, ${name}!\n\nEduzy'ga ro'yxatdan o'tganingiz uchun rahmat.\n\nHisobingizni faollashtirish uchun quyidagi havolani oching:\n${link}\n\nHavola 24 soat amal qiladi.\n\nAgar ro'yxatdan o'tmagan bo'lsangiz, bu xabarni e'tiborsiz qoldiring.\n\nEduzy`
 
   return sendMail({ to: toEmail, subject, html, text })
 }
@@ -242,7 +242,7 @@ const sendVerificationEmail = async (toEmail, name, token) => {
 const sendTestEmail = async (toEmail) => {
   return sendMail({
     to: toEmail,
-    subject: 'IdrokAI — SMTP test xabari',
+    subject: 'Eduzy — SMTP test xabari',
     html: `<h2>✅ SMTP to'g'ri sozlangan!</h2><p>Bu test xabari. Agar buni o'qib turgan bo'lsangiz, email tizimi ishlayapti.</p><p>Provayder: <strong>${provider}</strong></p>`,
     text: `SMTP test — provayder: ${provider}`
   })

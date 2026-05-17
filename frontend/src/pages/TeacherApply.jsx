@@ -18,7 +18,7 @@ function TeacherApply() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
-    document.title = "O'qituvchi bo'lish — IdrokAI"
+    document.title = "O'qituvchi bo'lish — Eduzy"
 
     fetch(`${API_URL}/api/teacher/my-status`, {
       headers: { Authorization: `Bearer ${token}` }

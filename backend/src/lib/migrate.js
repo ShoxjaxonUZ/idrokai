@@ -235,7 +235,7 @@ const runMigrations = async () => {
 }
 
 const ensureAdminUser = async () => {
-  const email = (process.env.ADMIN_EMAIL || 'admin@idrokai.uz').toLowerCase()
+  const email = (process.env.ADMIN_EMAIL || 'admin@eduzy.uz').toLowerCase()
   const password = process.env.ADMIN_PASSWORD
 
   if (!password) {

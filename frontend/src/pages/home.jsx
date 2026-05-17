@@ -115,7 +115,7 @@ function Home() {
 
   useEffect(() => {
     if (isAuth) return
-    document.title = "IdrokAI — O'zbek tilida bepul ta'lim"
+    document.title = "Eduzy — O'zbek tilida bepul ta'lim"
 
     // Mashhur kurslar ro'yxati
     fetch(`${API_URL}/api/teacher/all-courses`)
@@ -181,7 +181,7 @@ function Home() {
     {
       name: "Alijon Karimov",
       role: "Junior Frontend Developer",
-      text: "IdrokAI da Python va JavaScript kurslarini o'rganib, bugun ish topdim. Darslar juda tushunarli va praktik. Ajoyib platforma!",
+      text: "Eduzy da Python va JavaScript kurslarini o'rganib, bugun ish topdim. Darslar juda tushunarli va praktik. Ajoyib platforma!",
       avatar: "A",
       color: "#8b5cf6"
     },
@@ -217,7 +217,7 @@ function Home() {
       Icon: Bot,
       title: 'AI Teacher 4 sohada',
       desc: "Dasturlash, matematika, fizika va ingliz tili bo'yicha 24/7 individual yordam",
-      highlight: 'Faqat IdrokAI'
+      highlight: 'Faqat Eduzy'
     },
     {
       Icon: Swords,
@@ -289,7 +289,7 @@ function Home() {
 
   const faqs = [
     {
-      q: "IdrokAI haqiqatan ham bepulmi?",
+      q: "Eduzy haqiqatan ham bepulmi?",
       a: "Ha, barcha kurslar to'liq bepul. Hech qanday yashirin to'lov yo'q. Siz istalgan vaqtda istalgan kursni o'rganishingiz mumkin."
     },
     {
@@ -306,7 +306,7 @@ function Home() {
     },
     {
       q: "Mobil qurilmada ishlaydimi?",
-      a: "Albatta! IdrokAI butunlay moslashuvchan — telefon, planshet va kompyuterda bir xil qulaylikda ishlaydi."
+      a: "Albatta! Eduzy butunlay moslashuvchan — telefon, planshet va kompyuterda bir xil qulaylikda ishlaydi."
     }
   ]
 
@@ -519,7 +519,7 @@ function Home() {
             <div className="section-badge">
               <Sparkles size={14} /> Bizning ustunliklar
             </div>
-            <h2>Nima uchun <span className="gradient-text">aynan IdrokAI</span>?</h2>
+            <h2>Nima uchun <span className="gradient-text">aynan Eduzy</span>?</h2>
             <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud bo'lgan imkoniyatlar</p>
           </div>
 
@@ -535,7 +535,7 @@ function Home() {
                 <h3>{a.title}</h3>
                 <p>{a.desc}</p>
                 <div className="advantage-check">
-                  <Check size={14} /> IdrokAI'da mavjud
+                  <Check size={14} /> Eduzy'da mavjud
                 </div>
               </div>
             ))}

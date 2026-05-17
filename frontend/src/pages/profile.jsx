@@ -27,7 +27,7 @@ function Profile() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
-    document.title = "Profil — IdrokAI"
+    document.title = "Profil — Eduzy"
 
     // Battle statistikasi — o'z reytingi (leaderboard TOP 20 emas, aniq o'z natija)
     fetch(`${API_URL}/api/battle/my-stats`, {

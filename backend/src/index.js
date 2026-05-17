@@ -147,7 +147,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
 }))
 
 app.get('/', (req, res) => {
-  res.json({ message: 'IdrokAI API ishlamoqda!' })
+  res.json({ message: 'Eduzy API ishlamoqda!' })
 })
 
 // Health check (UptimeRobot, Render uchun)
@@ -220,7 +220,7 @@ const start = async () => {
     }
 
     // Telegram webhook'ni avtomatik o'rnatish (production'da)
-    // RENDER_EXTERNAL_URL Render avtomatik beradi (masalan https://idrokai-api.onrender.com)
+    // RENDER_EXTERNAL_URL Render avtomatik beradi (masalan https://eduzy-api.onrender.com)
     const externalUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL
     if (process.env.TELEGRAM_BOT_TOKEN && externalUrl) {
       const webhookUrl = `${externalUrl.replace(/\/$/, '')}/api/telegram/webhook`

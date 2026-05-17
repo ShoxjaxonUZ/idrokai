@@ -38,12 +38,12 @@ function Certificate({ demo = false }) {
 
   useEffect(() => {
     if (demo) {
-      document.title = "Sertifikat namunasi — IdrokAI"
+      document.title = "Sertifikat namunasi — Eduzy"
       return
     }
     let cancelled = false
     if (!user) { navigate('/login'); return }
-    document.title = "Sertifikat — IdrokAI"
+    document.title = "Sertifikat — Eduzy"
 
     const load = async () => {
       try {
@@ -125,7 +125,7 @@ function Certificate({ demo = false }) {
       const pdfWidth = pdf.internal.pageSize.getWidth()
       const pdfHeight = pdf.internal.pageSize.getHeight()
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST')
-      pdf.save(`IdrokAI-Sertifikat-${certUser.name}.pdf`)
+      pdf.save(`Eduzy-Sertifikat-${certUser.name}.pdf`)
     } catch (err) {
       console.error('PDF xatolik:', err)
       alert('PDF saqlashda xatolik: ' + err.message)
@@ -215,7 +215,7 @@ function Certificate({ demo = false }) {
                 <div className="cert-logo-badge">
                   <Award size={26} />
                 </div>
-                <span className="cert-logo-text">IdrokAI</span>
+                <span className="cert-logo-text">Eduzy</span>
               </div>
               <div className="cert-kicker">CERTIFICATE OF ACHIEVEMENT</div>
             </div>
@@ -271,7 +271,7 @@ function Certificate({ demo = false }) {
               </div>
             </div>
 
-            <div className="cert-watermark">IdrokAI</div>
+            <div className="cert-watermark">Eduzy</div>
           </div>
         </div>
 

@@ -15,7 +15,7 @@ const pool = require('../src/db')
   console.log('\n⚠️  DB MA\'LUMOTLARINI TOZALASH')
   console.log('   Admin va schema saqlanadi, qolgan hammasi o\'chiriladi.\n')
 
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@idrokai.uz').toLowerCase()
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@eduzy.uz').toLowerCase()
 
   try {
     // 1. Admin id'ni topib qo'yamiz

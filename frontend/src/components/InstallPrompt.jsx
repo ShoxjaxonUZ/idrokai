@@ -20,17 +20,17 @@ function detectDevice() {
 const DEVICE_COPY = {
   mobile: {
     Icon: Smartphone,
-    title: "IdrokAI'ni telefonga o'rnatish",
+    title: "Eduzy'ni telefonga o'rnatish",
     desc: "Bosh ekranga ikona qo'shing — ilovadek tez va qulay",
   },
   tablet: {
     Icon: Tablet,
-    title: "IdrokAI'ni planshetga o'rnatish",
+    title: "Eduzy'ni planshetga o'rnatish",
     desc: "Bosh ekranga ikona qo'shing — ilovadek tez va qulay",
   },
   desktop: {
     Icon: Monitor,
-    title: "IdrokAI'ni kompyuterga o'rnatish",
+    title: "Eduzy'ni kompyuterga o'rnatish",
     desc: "Alohida oynada ochiladi — brauzersiz, ilovadek tez",
   },
 }
@@ -108,7 +108,7 @@ export default function InstallPrompt() {
   // Brend ikonasi + qurilma turi belgisi
   const PromptIcon = () => (
     <div className="install-prompt-icon">
-      <img src="/icon.svg" alt="IdrokAI" width="32" height="32" />
+      <img src="/icon.svg" alt="Eduzy" width="32" height="32" />
       <span className="install-prompt-device" title={device}>
         <DeviceIcon size={12} />
       </span>
@@ -117,8 +117,8 @@ export default function InstallPrompt() {
 
   if (isIOS && iosHint) {
     const iosTitle = device === 'tablet'
-      ? "IdrokAI'ni planshetga qo'shing"
-      : "IdrokAI'ni telefonga qo'shing"
+      ? "Eduzy'ni planshetga qo'shing"
+      : "Eduzy'ni telefonga qo'shing"
     return (
       <div className="install-prompt install-prompt-ios">
         <button className="install-prompt-close" onClick={dismiss} aria-label="Yopish">

@@ -19,7 +19,7 @@ function Footer() {
             <div className="footer-logo-icon">
               <GraduationCap size={20} />
             </div>
-            <span className="footer-logo">IdrokAI</span>
+            <span className="footer-logo">Eduzy</span>
           </div>
           <p className="footer-desc">
             O'zbek tilida bepul ta'lim platformasi. Dasturlash, matematika, til o'rganish va boshqa ko'plab kurslar.
@@ -67,7 +67,7 @@ function Footer() {
             <ul className="footer-contact">
               <li>
                 <Mail size={14} />
-                <a href="mailto:info@idrokai.uz">info@idrokai.uz</a>
+                <a href="mailto:info@eduzy.uz">info@eduzy.uz</a>
               </li>
               <li>
                 <Phone size={14} />
@@ -85,8 +85,8 @@ function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
-          <span>© {year} IdrokAI. Barcha huquqlar himoyalangan.</span>
-          <span>Made with by IdrokAI Team</span>
+          <span>© {year} Eduzy. Barcha huquqlar himoyalangan.</span>
+          <span>Made with by Eduzy Team</span>
         </div>
       </div>
     </footer>

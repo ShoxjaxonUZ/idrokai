@@ -14,7 +14,7 @@ function About() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = "Biz haqimizda — IdrokAI"
+    document.title = "Biz haqimizda — Eduzy"
   }, [])
 
   const values = [
@@ -40,7 +40,7 @@ function About() {
   const timeline = [
     {
       year: '2024',
-      title: 'IdrokAI g\'oyasi',
+      title: 'Eduzy g\'oyasi',
       desc: "O'zbek tilida sifatli, bepul ta'lim platformasi yaratish g'oyasi paydo bo'ldi",
       Icon: Lightbulb,
       color: '#DC8B1A'
@@ -94,7 +94,7 @@ function About() {
           </div>
           <h1>O'zbek tilida <span className="gradient-text">sifatli ta'lim</span> uchun</h1>
           <p>
-            IdrokAI — O'zbekistondagi zamonaviy ta'lim platformasi.
+            Eduzy — O'zbekistondagi zamonaviy ta'lim platformasi.
             Bepul kurslar, sun'iy intellekt yordami va real vaqtda musobaqalar bilan
             har kim o'rganishni boshlay oladi.
           </p>
@@ -165,7 +165,7 @@ function About() {
               <Calendar size={14} /> Bizning hikoyamiz
             </div>
             <h2>Bosqichma-bosqich <span className="gradient-text">rivojlanish</span></h2>
-            <p>IdrokAI qanday yaratildi va qaerga ketmoqda</p>
+            <p>Eduzy qanday yaratildi va qaerga ketmoqda</p>
           </div>
 
           <div className="timeline">
@@ -188,7 +188,7 @@ function About() {
         <div className="page-section">
           <div className="section-header-page">
             <h2>Nima uchun <span className="gradient-text">bizni tanlashadi</span></h2>
-            <p>IdrokAI ni boshqa platformalardan ajratib turuvchi sabablar</p>
+            <p>Eduzy ni boshqa platformalardan ajratib turuvchi sabablar</p>
           </div>
 
           <div className="values-grid values-grid-8">

@@ -1,7 +1,7 @@
 {
-  "name": "idrokai-backend",
+  "name": "eduzy-backend",
   "version": "1.0.0",
-  "description": "IdrokAI ta'lim platformasi — backend API",
+  "description": "Eduzy ta'lim platformasi — backend API",
   "main": "src/index.js",
   "engines": {
     "node": ">=20.0.0"

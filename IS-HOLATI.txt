@@ -1,5 +1,5 @@
 ═══════════════════════════════════════════════════════════════
-  EduUz / IdrokAI — IS HOLATI
+  EduUz / Eduzy — IS HOLATI
   Sana: 2026-05-12
   Commit: 3384289 (main, origin/main bilan sinxron)
 ═══════════════════════════════════════════════════════════════
@@ -45,7 +45,7 @@ FRONTEND:
      orqali emas. Soxta sertifikat ko'rinishi imkonsiz.
      user.name[0] crash initial() helper bilan tuzatildi.
 
-  9. admin.jsx — hardcoded "admin@idrokai.uz" tekshiruvi o'rniga
+  9. admin.jsx — hardcoded "admin@eduzy.uz" tekshiruvi o'rniga
      user.role === 'admin' check.
 
  10. Battle.jsx — agressiv client-side bloklash (F12, right-click,
@@ -81,7 +81,7 @@ GIT:
 PRODUCTION (qilish kerak):
   ⚠️  Render dashboard'da env vars qo'shilmagan:
       RESEND_API_KEY  ← .env'dagi qiymati
-      RESEND_FROM     ← IdrokAI <onboarding@resend.dev>
+      RESEND_FROM     ← Eduzy <onboarding@resend.dev>
       APP_URL         ← Vercel frontend domeni
       CORS_ORIGIN     ← Vercel frontend domeni
 
@@ -113,9 +113,9 @@ ERTAGA ISHLASH UCHUN
    Resend account egasiga (sizning email'ingiz) yuboriladi.
    Boshqa userlarga email yuborish uchun:
    - Resend dashboard → Domains → Add Domain
-   - Sizning domeningiz (masalan idrokai.uz)
+   - Sizning domeningiz (masalan eduzy.uz)
    - DNS records qo'shish (SPF, DKIM)
-   - Tasdiqlash → RESEND_FROM ni "IdrokAI <noreply@idrokai.uz>"
+   - Tasdiqlash → RESEND_FROM ni "Eduzy <noreply@eduzy.uz>"
      ga o'zgartirish
 
 5) HALI TUZATILMAGAN MUMKIN ISHLAR (audit'dan qolgan):

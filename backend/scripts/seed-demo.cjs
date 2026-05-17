@@ -102,9 +102,9 @@ const COURSES = [
 ]
 
 const DEMO_USERS = [
-  { name: 'Bekzod Karimov', email: 'demo.bekzod@idrokai.uz', password: 'Demo1234', role: 'student' },
-  { name: 'Sevara O\'roqova', email: 'demo.sevara@idrokai.uz', password: 'Demo1234', role: 'student' },
-  { name: 'Aziz Rahimov', email: 'demo.teacher@idrokai.uz', password: 'Demo1234', role: 'teacher' }
+  { name: 'Bekzod Karimov', email: 'demo.bekzod@eduzy.uz', password: 'Demo1234', role: 'student' },
+  { name: 'Sevara O\'roqova', email: 'demo.sevara@eduzy.uz', password: 'Demo1234', role: 'student' },
+  { name: 'Aziz Rahimov', email: 'demo.teacher@eduzy.uz', password: 'Demo1234', role: 'teacher' }
 ]
 
 ;(async () => {
@@ -130,7 +130,7 @@ const DEMO_USERS = [
 
     // 2. Kurslar
     console.log('\n📚 Demo kurslar:')
-    const teacherId = userIds['demo.teacher@idrokai.uz']
+    const teacherId = userIds['demo.teacher@eduzy.uz']
     for (const c of COURSES) {
       await pool.query(
         `INSERT INTO courses (id, title, category, daraja, emoji, description, about, image, lessons, darslar, teacher_id, created_at)
@@ -147,8 +147,8 @@ const DEMO_USERS = [
 
     // 3. Test enrollments — Bekzod Python va JS ga yozilgan
     console.log('\n🎓 Demo o\'qish progressi:')
-    const bekzodId = userIds['demo.bekzod@idrokai.uz']
-    const sevaraId = userIds['demo.sevara@idrokai.uz']
+    const bekzodId = userIds['demo.bekzod@eduzy.uz']
+    const sevaraId = userIds['demo.sevara@eduzy.uz']
 
     await pool.query(
       `INSERT INTO enrollments (user_id, course_id, progress, created_at)
@@ -188,9 +188,9 @@ const DEMO_USERS = [
 
     console.log('\n✅ Demo ma\'lumot tayyor!')
     console.log('\n📋 INVESTOR DEMO uchun:')
-    console.log('   • Admin login:    admin@idrokai.uz / Admin1234')
-    console.log('   • Student login:  demo.bekzod@idrokai.uz / Demo1234')
-    console.log('   • Teacher login:  demo.teacher@idrokai.uz / Demo1234')
+    console.log('   • Admin login:    admin@eduzy.uz / Admin1234')
+    console.log('   • Student login:  demo.bekzod@eduzy.uz / Demo1234')
+    console.log('   • Teacher login:  demo.teacher@eduzy.uz / Demo1234')
     console.log('   • 5 ta kurs (108 ta dars)')
     console.log('   • Demo progress va reytinglar mavjud\n')
 

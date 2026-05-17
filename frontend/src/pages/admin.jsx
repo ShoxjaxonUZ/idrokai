@@ -80,7 +80,7 @@ function Admin() {
       navigate('/')
       return
     }
-    document.title = "Admin Panel — IdrokAI"
+    document.title = "Admin Panel — Eduzy"
     loadData()
   }, [])
 
@@ -527,7 +527,7 @@ function Admin() {
             <div className="admin-brand-icon"><Sparkles size={20} /></div>
             <div className="admin-brand-text">
               <strong>Admin Panel</strong>
-              <span>IdrokAI boshqaruvi</span>
+              <span>Eduzy boshqaruvi</span>
             </div>
           </div>
 

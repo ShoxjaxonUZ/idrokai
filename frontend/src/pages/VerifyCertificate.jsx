@@ -16,7 +16,7 @@ function VerifyCertificate() {
   const [result, setResult] = useState(null) // { valid, certificate }
 
   useEffect(() => {
-    document.title = "Sertifikat tekshiruvi — IdrokAI"
+    document.title = "Sertifikat tekshiruvi — Eduzy"
     fetch(`${API_URL}/api/certificate/verify/${encodeURIComponent(code)}`)
       .then(r => r.json())
       .then(data => setResult(data))
@@ -51,7 +51,7 @@ function VerifyCertificate() {
             </div>
             <h1>Sertifikat tasdiqlandi</h1>
             <p className="verify-sub">
-              Bu sertifikat IdrokAI platformasi tomonidan rasman berilgan
+              Bu sertifikat Eduzy platformasi tomonidan rasman berilgan
             </p>
 
             <div className="verify-details">
@@ -111,7 +111,7 @@ function VerifyCertificate() {
             </div>
             <h1>Sertifikat topilmadi</h1>
             <p className="verify-sub">
-              <strong>{code}</strong> kodli sertifikat IdrokAI bazasida mavjud emas.
+              <strong>{code}</strong> kodli sertifikat Eduzy bazasida mavjud emas.
               Kod noto'g'ri kiritilgan yoki sertifikat haqiqiy emas.
             </p>
             <button className="btn-outline verify-cta" onClick={() => navigate('/')}>

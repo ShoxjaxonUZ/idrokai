@@ -72,7 +72,7 @@ function Battle() {
 
   // Sahifa yuklanganda
   useEffect(() => {
-    document.title = "Code Battle — IdrokAI"
+    document.title = "Code Battle — Eduzy"
     loadLeaderboard()
 
     if (!user) return
@@ -766,7 +766,7 @@ function Battle() {
               </button>
               <a
                 className="battle-share-btn battle-share-tg"
-                href={`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/battle?join=${currentBattle.id}`)}&text=${encodeURIComponent(`IdrokAI Battle xonaga qo'shiling! ID: ${currentBattle.id}`)}`}
+                href={`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/battle?join=${currentBattle.id}`)}&text=${encodeURIComponent(`Eduzy Battle xonaga qo'shiling! ID: ${currentBattle.id}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -774,7 +774,7 @@ function Battle() {
               </a>
               <a
                 className="battle-share-btn battle-share-wa"
-                href={`https://wa.me/?text=${encodeURIComponent(`IdrokAI Battle xonaga qo'shiling! ${window.location.origin}/battle?join=${currentBattle.id}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(`Eduzy Battle xonaga qo'shiling! ${window.location.origin}/battle?join=${currentBattle.id}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

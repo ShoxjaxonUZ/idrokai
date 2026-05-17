@@ -6,7 +6,7 @@ import '../styles/pages.css'
 
 function Privacy() {
   useEffect(() => {
-    document.title = "Maxfiylik siyosati — IdrokAI"
+    document.title = "Maxfiylik siyosati — Eduzy"
   }, [])
 
   return (
@@ -30,7 +30,7 @@ function Privacy() {
                 <Database size={24} />
               </div>
               <h3>1. Qanday ma'lumotlar yig'amiz?</h3>
-              <p>IdrokAI platformasi quyidagi ma'lumotlarni to'playdi:</p>
+              <p>Eduzy platformasi quyidagi ma'lumotlarni to'playdi:</p>
               <ul>
                 <li><strong>Shaxsiy ma'lumotlar:</strong> Ism, email manzil</li>
                 <li><strong>O'quv ma'lumotlari:</strong> Kurs progressi, test natijalari</li>
@@ -80,7 +80,7 @@ function Privacy() {
                 <li><strong>Kirish:</strong> O'z ma'lumotlaringizni ko'rish</li>
                 <li><strong>O'zgartirish:</strong> Profil ma'lumotlarini yangilash</li>
                 <li><strong>O'chirish:</strong> Akkauntingizni butunlay o'chirish</li>
-                <li><strong>Shikoyat:</strong> info@idrokai.uz orqali murojaat qilish</li>
+                <li><strong>Shikoyat:</strong> info@eduzy.uz orqali murojaat qilish</li>
               </ul>
             </div>
 
@@ -105,7 +105,7 @@ function Privacy() {
                 Maxfiylik siyosatiga oid savollaringiz bo'lsa, biz bilan bog'laning:
               </p>
               <ul>
-                <li>Email: <a href="mailto:info@idrokai.uz" style={{ color: 'var(--primary-light)' }}>info@idrokai.uz</a></li>
+                <li>Email: <a href="mailto:info@eduzy.uz" style={{ color: 'var(--primary-light)' }}>info@eduzy.uz</a></li>
                 <li>Telefon: <a href="tel:+998901234567" style={{ color: 'var(--primary-light)' }}>+998 90 123 45 67</a></li>
               </ul>
             </div>

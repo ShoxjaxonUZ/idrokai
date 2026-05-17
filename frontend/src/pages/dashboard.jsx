@@ -90,7 +90,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
-    document.title = "Dashboard — IdrokAI"
+    document.title = "Dashboard — Eduzy"
     loadMessages()
     loadDailyStatus()
 

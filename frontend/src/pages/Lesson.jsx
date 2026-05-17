@@ -209,8 +209,8 @@ function Lesson() {
                 setCourse({ ...found, lessons: normalizedLessons })
                 setLesson(normalizedLessons[index] || null)
                 document.title = normalizedLessons[index]
-                    ? `${normalizedLessons[index].title} — IdrokAI`
-                    : 'Dars — IdrokAI'
+                    ? `${normalizedLessons[index].title} — Eduzy`
+                    : 'Dars — Eduzy'
 
                 // Modul testlar holatini local normalizedLessons asosida yuklash (course state'iga bog'liq emas)
                 if (token) {

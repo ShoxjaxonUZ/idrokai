@@ -11,7 +11,7 @@ function NotFound() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = "404 — Sahifa topilmadi — IdrokAI"
+    document.title = "404 — Sahifa topilmadi — Eduzy"
   }, [])
 
   const quickLinks = [

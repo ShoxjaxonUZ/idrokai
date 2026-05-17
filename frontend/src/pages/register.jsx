@@ -20,7 +20,7 @@ function Register() {
   const [pollingStatus, setPollingStatus] = useState('waiting') // waiting | verified
 
   useEffect(() => {
-    document.title = "Ro'yxatdan o'tish — IdrokAI"
+    document.title = "Ro'yxatdan o'tish — Eduzy"
   }, [])
 
   const passwordStrength = () => {
@@ -217,7 +217,7 @@ function Register() {
           <div className="auth-logo-icon">
             <GraduationCap size={28} />
           </div>
-          <div className="auth-logo-text">IdrokAI</div>
+          <div className="auth-logo-text">Eduzy</div>
         </div>
 
         <h1 className="auth-title">Ro'yxatdan o'tish</h1>

@@ -32,7 +32,7 @@ function Notifications() {
   const [filter, setFilter] = useState('all')
 
   useEffect(() => {
-    document.title = "Bildirishnomalar — IdrokAI"
+    document.title = "Bildirishnomalar — Eduzy"
     loadNotifications()
   }, [])
 

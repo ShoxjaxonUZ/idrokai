@@ -43,7 +43,7 @@ function TeacherDashboard() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
-    document.title = "O'qituvchi paneli — IdrokAI"
+    document.title = "O'qituvchi paneli — Eduzy"
 
     fetch(`${API_URL}/api/teacher/my-status`, {
       headers: { Authorization: `Bearer ${token}` }

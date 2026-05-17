@@ -84,7 +84,7 @@ router.post('/webhook', async (req, res) => {
       )
 
       await telegram.sendTo(chatId,
-        `🎉 *Tasdiqlandingiz\\!*\n\nSalom, *${md(user.name)}*\\!\n\nEndi saytga qaytib tizimga kiring\\.\n\n_IdrokAI — bilim olib, kelajakka tayyorlaning\\._`)
+        `🎉 *Tasdiqlandingiz\\!*\n\nSalom, *${md(user.name)}*\\!\n\nEndi saytga qaytib tizimga kiring\\.\n\n_Eduzy — bilim olib, kelajakka tayyorlaning\\._`)
 
       return
     }
@@ -92,7 +92,7 @@ router.post('/webhook', async (req, res) => {
     // Oddiy /start (token'siz)
     if (text === '/start') {
       await telegram.sendTo(chatId,
-        `👋 *Salom\\!*\n\nBu *IdrokAI tasdiqlash boti*\\.\n\nRo'yxatdan o'tish uchun:\n1\\. Saytda *Ro'yxatdan o'tish* sahifasiga kiring\n2\\. Ma'lumotlaringizni to'ldiring\n3\\. *Telegram orqali tasdiqlash* tugmasini bosing\n\nShunda bot avtomatik sizni tanib oladi\\.`)
+        `👋 *Salom\\!*\n\nBu *Eduzy tasdiqlash boti*\\.\n\nRo'yxatdan o'tish uchun:\n1\\. Saytda *Ro'yxatdan o'tish* sahifasiga kiring\n2\\. Ma'lumotlaringizni to'ldiring\n3\\. *Telegram orqali tasdiqlash* tugmasini bosing\n\nShunda bot avtomatik sizni tanib oladi\\.`)
       return
     }
 

@@ -13,7 +13,7 @@ const STEPS = ['welcome', 'goal', 'field', 'time', 'result']
 const QUESTIONS = {
   goal: {
     title: 'Asosiy maqsadingiz nima?',
-    subtitle: "IdrokAI'dan nimaga erishmoqchisiz?",
+    subtitle: "Eduzy'dan nimaga erishmoqchisiz?",
     Icon: Target,
     options: [
       { value: 'kasb', label: 'Yangi kasb egallash', desc: 'IT, dizayn, biznes va boshqalar' },
@@ -64,7 +64,7 @@ function Onboarding() {
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
-    document.title = "Konsultatsiya — IdrokAI"
+    document.title = "Konsultatsiya — Eduzy"
     checkStatus()
   }, [])
 
@@ -147,7 +147,7 @@ function Onboarding() {
           </div>
           <h1>Salom, {user?.name}!</h1>
           <p className="onb-welcome-sub">
-            IdrokAI ga xush kelibsiz! Sizga eng mos kurslarni tavsiya qilish uchun
+            Eduzy ga xush kelibsiz! Sizga eng mos kurslarni tavsiya qilish uchun
             bir necha savol so'raymiz. Atigi 1-2 daqiqa vaqtingizni oladi.
           </p>
 

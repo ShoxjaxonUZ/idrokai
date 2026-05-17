@@ -19,7 +19,7 @@ function Login() {
   const [resendStatus, setResendStatus] = useState('')
 
   useEffect(() => {
-    document.title = "Kirish — IdrokAI"
+    document.title = "Kirish — Eduzy"
   }, [])
 
   const handleLogin = async () => {
@@ -90,7 +90,7 @@ function Login() {
           <div className="auth-logo-icon">
             <GraduationCap size={28} />
           </div>
-          <div className="auth-logo-text">IdrokAI</div>
+          <div className="auth-logo-text">Eduzy</div>
         </div>
 
         <h1 className="auth-title">Xush kelibsiz</h1>

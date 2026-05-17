@@ -61,7 +61,7 @@ function AITeacher() {
   }
 
   useEffect(() => {
-    document.title = "AI Teacher — IdrokAI"
+    document.title = "AI Teacher — Eduzy"
     if (!user) return
 
     const saved = localStorage.getItem(`ai_chat_${user.id}`)

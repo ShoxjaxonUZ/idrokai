@@ -12,7 +12,7 @@ function Help() {
   const [openFaq, setOpenFaq] = useState(0)
 
   useEffect(() => {
-    document.title = "Yordam — IdrokAI"
+    document.title = "Yordam — Eduzy"
   }, [])
 
   const faqs = [
