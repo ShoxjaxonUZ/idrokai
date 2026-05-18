@@ -124,6 +124,8 @@ function ModuleTest() {
       if (res.ok) {
         setResult(data)
         setView('result')
+      } else {
+        addNotification(data.message || 'Testni yuborishda xatolik', 'error')
       }
     } catch {
       addNotification('Server xatosi', 'error')

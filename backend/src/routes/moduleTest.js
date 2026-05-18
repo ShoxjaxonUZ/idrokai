@@ -180,7 +180,9 @@ router.post('/submit', auth, async (req, res) => {
   try {
     const { courseId, moduleIndex, answers } = req.body
     const moduleIdx = parseInt(moduleIndex, 10)
-    if (!courseId || Number.isNaN(moduleIdx) || !Array.isArray(answers)) {
+    // answers — savol indeksi -> tanlangan variant ({0:2, 1:0, ...}) obyekti.
+    // Array ham, obyekt ham qabul qilinadi: ikkalasida ham answers[i] ishlaydi.
+    if (!courseId || Number.isNaN(moduleIdx) || !answers || typeof answers !== 'object') {
       return res.status(400).json({ message: 'Noto\'g\'ri so\'rov' })
     }
     const today = getTodayDate()
