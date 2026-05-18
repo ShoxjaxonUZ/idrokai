@@ -21,6 +21,14 @@ function Login() {
 
   useEffect(() => {
     document.title = "Kirish — Eduzy"
+    // Boshqa qurilmadan chiqarib yuborilgan bo'lsa — sababni ko'rsatamiz
+    try {
+      const reason = sessionStorage.getItem('authKickReason')
+      if (reason) {
+        setError(reason)
+        sessionStorage.removeItem('authKickReason')
+      }
+    } catch {}
   }, [])
 
   const handleLogin = async (replaceSessionId = null) => {

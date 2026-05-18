@@ -102,3 +102,29 @@ export const apiGet = (path, opts) => api(path, { ...opts, method: 'GET' })
 export const apiPost = (path, body, opts) => api(path, { ...opts, method: 'POST', body })
 export const apiPut = (path, body, opts) => api(path, { ...opts, method: 'PUT', body })
 export const apiDelete = (path, opts) => api(path, { ...opts, method: 'DELETE' })
+
+// Global 401 ushlovchi — qurilma sessiyasi boshqa joydan chiqarib yuborilsa
+// (yoki sessiya tugasa) istalgan fetch 401 qaytaradi. Bunda foydalanuvchini
+// darhol login sahifasiga, sabab bilan, olib o'tamiz. Barcha sahifalar
+// to'g'ridan-to'g'ri fetch ishlatgani uchun window.fetch'ni o'raymiz.
+if (typeof window !== 'undefined' && !window.__authInterceptor) {
+  window.__authInterceptor = true
+  const origFetch = window.fetch.bind(window)
+  window.fetch = async (...args) => {
+    const res = await origFetch(...args)
+    if (res.status === 401) {
+      try {
+        const data = await res.clone().json()
+        const msg = data?.message || ''
+        if (/chiqarib yuborilgan|sessiya tug/i.test(msg)) {
+          clearAuth()
+          if (!window.location.pathname.startsWith('/login')) {
+            try { sessionStorage.setItem('authKickReason', msg) } catch {}
+            window.location.href = '/login'
+          }
+        }
+      } catch {}
+    }
+    return res
+  }
+}
