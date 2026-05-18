@@ -8,7 +8,6 @@ const { auth: authMiddleware } = require('../middleware/auth')
 const { validatePassword, loginLimiter } = require('../middleware/security')
 const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
-const email = require('../lib/email')
 const telegram = require('../lib/telegram')
 
 // 6 raqamli tasdiqlash kodini generatsiya qilish

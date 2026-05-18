@@ -36,30 +36,27 @@ function CourseDetail() {
 
   const loadCourse = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/teacher/all-courses`)
-      const data = await res.json()
-      if (Array.isArray(data)) {
-        const found = data.find(k => String(k.id) === String(id))
-        if (found) {
-          const normalizedLessons = (found.lessons || []).map((l, i) => {
-            if (!l) return { title: `${i + 1}-dars`, video: '', desc: '' }
-            if (typeof l === 'string') return { title: l, video: '', desc: '' }
-            if (typeof l === 'object') return {
-              title: l.title || `${i + 1}-dars`,
-              video: l.videoUrl || l.video || '',
-              desc: l.description || l.desc || ''
-            }
-            return { title: `${i + 1}-dars`, video: '', desc: '' }
-          })
-          setCourse({ ...found, lessons: normalizedLessons })
-          document.title = `${found.title} — Eduzy`
+      const res = await fetch(`${API_URL}/api/courses/${id}`)
+      if (res.ok) {
+        const found = await res.json()
+        const normalizedLessons = (found.lessons || []).map((l, i) => {
+          if (!l) return { title: `${i + 1}-dars`, video: '', desc: '' }
+          if (typeof l === 'string') return { title: l, video: '', desc: '' }
+          if (typeof l === 'object') return {
+            title: l.title || `${i + 1}-dars`,
+            video: l.videoUrl || l.video || '',
+            desc: l.description || l.desc || ''
+          }
+          return { title: `${i + 1}-dars`, video: '', desc: '' }
+        })
+        setCourse({ ...found, lessons: normalizedLessons })
+        document.title = `${found.title} — Eduzy`
 
-          // Module testlarni tekshirish
-          if (token) {
-            const totalModules = Math.ceil(normalizedLessons.length / LESSONS_PER_TEST)
-            for (let i = 0; i < totalModules; i++) {
-              fetchModuleTestStatus(i)
-            }
+        // Module testlarni tekshirish
+        if (token) {
+          const totalModules = Math.ceil(normalizedLessons.length / LESSONS_PER_TEST)
+          for (let i = 0; i < totalModules; i++) {
+            fetchModuleTestStatus(i)
           }
         }
       }

@@ -197,4 +197,19 @@ router.get('/progress/:course_id', auth, async (req, res) => {
   }
 })
 
+// Bitta kursni id bo'yicha olish (public). MUHIM: /:id eng oxirida —
+// /my, /progress kabi literal/aniq yo'llar undan oldin turishi shart.
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM courses WHERE id = $1', [String(req.params.id)])
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Kurs topilmadi' })
+    }
+    res.json(result.rows[0])
+  } catch (err) {
+    console.error('[courses] get by id error:', err.message)
+    res.status(500).json({ message: 'Xatolik yuz berdi' })
+  }
+})
+
 module.exports = router
