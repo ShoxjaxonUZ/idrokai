@@ -8,7 +8,6 @@ import {
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import Comments from '../components/Comments'
 import CourseRatings from '../components/CourseRatings'
 import Loading from '../components/Loading'
 import '../styles/coursedetail.css'
@@ -343,8 +342,6 @@ function CourseDetail() {
               <h3><Star size={20} /> Reyting va sharhlar</h3>
               <CourseRatings courseId={id} enrolled={enrolled} />
             </div>
-
-            <Comments courseId={id} />
           </div>
 
           {/* Sidebar */}
