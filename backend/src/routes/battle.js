@@ -204,6 +204,19 @@ JAVOB FAQAT JSON formatda:
   }
 }
 
+// Haftalik turnir balli — faqat g'alaba uchun qo'shiladi. Lazy-reset:
+// saqlangan hafta joriy haftadan farq qilsa, hisob shu g'alabadan qayta boshlanadi.
+const addWeeklyPoints = async (client, userId, pts) => {
+  await client.query(`
+    UPDATE ratings SET
+      weekly_points = CASE
+        WHEN week_start = date_trunc('week', NOW())::date THEN weekly_points + $2
+        ELSE $2 END,
+      week_start = date_trunc('week', NOW())::date
+    WHERE user_id = $1
+  `, [userId, pts])
+}
+
 // Atomic finish: lock battle row first, only finish once.
 const finishBattle = async (battleId) => {
   const client = await pool.connect()
@@ -239,6 +252,11 @@ const finishBattle = async (battleId) => {
               updated_at = NOW()
           WHERE user_id = $3
         `, [pointsChange, sub.score, sub.user_id])
+
+        // Haftalik turnir — solo g'alaba (60+ ball)
+        if (sub.score >= 60) {
+          await addWeeklyPoints(client, sub.user_id, pointsChange)
+        }
 
         await client.query(`
           UPDATE battles SET status = 'finished', finished_at = NOW(), winner_id = $1
@@ -282,6 +300,8 @@ const finishBattle = async (battleId) => {
           SET points = points + 25, wins = wins + 1, total_battles = total_battles + 1, updated_at = NOW()
           WHERE user_id = $1
         `, [sub.user_id])
+        // Haftalik turnir — multiplayer g'alaba
+        await addWeeklyPoints(client, sub.user_id, 25)
       } else if (winnerId) {
         await client.query(`
           UPDATE ratings
@@ -662,6 +682,26 @@ router.get('/leaderboard', async (req, res) => {
     `)
     res.json(result.rows)
   } catch (err) {
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
+// GET /api/battle/weekly — joriy hafta turnir reytingi
+router.get('/weekly', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.name, r.weekly_points
+      FROM ratings r
+      JOIN users u ON r.user_id = u.id
+      WHERE u.role != 'admin'
+        AND r.week_start = date_trunc('week', NOW())::date
+        AND r.weekly_points > 0
+      ORDER BY r.weekly_points DESC
+      LIMIT 10
+    `)
+    res.json(result.rows)
+  } catch (err) {
+    console.error('[battle] weekly error:', err.message)
     res.status(500).json({ message: 'Xatolik' })
   }
 })

@@ -5,7 +5,7 @@ import {
   Clock, Send, Code, Shield, Crown, Medal, Award, Code2,
   User, UserPlus, Hash, Play, CheckCircle2, Loader2, Minus, AlertCircle,
   Share2, MessageCircle, Link as LinkIcon, Check, History, ChevronRight,
-  BarChart3
+  BarChart3, Flame
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -48,6 +48,7 @@ function Battle() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [leaderboard, setLeaderboard] = useState([])
+  const [weekly, setWeekly] = useState([])
   const [history, setHistory] = useState([])
   const [loadingAction, setLoadingAction] = useState('')
 
@@ -83,6 +84,7 @@ function Battle() {
   useEffect(() => {
     document.title = "Code Battle — Eduzy"
     loadLeaderboard()
+    loadWeekly()
 
     if (!user) return
     loadHistory()
@@ -153,6 +155,14 @@ function Battle() {
       const res = await fetch(`${API_URL}/api/battle/leaderboard`)
       const data = await res.json()
       if (Array.isArray(data)) setLeaderboard(data.slice(0, 10))
+    } catch { }
+  }
+
+  const loadWeekly = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/battle/weekly`)
+      const data = await res.json()
+      if (Array.isArray(data)) setWeekly(data)
     } catch { }
   }
 
@@ -997,6 +1007,31 @@ function Battle() {
             </button>
           </div>
         </div>
+
+        {weekly.length > 0 && (
+          <div className="battle-leaderboard">
+            <h3><Flame size={22} style={{ color: '#f97316' }} /> Haftalik turnir</h3>
+            <p style={{ color: 'var(--text-soft)', fontSize: 13, margin: '-4px 0 14px' }}>
+              Har dushanba yangilanadi — bu hafta eng ko'p g'alaba qozonganlar
+            </p>
+            <div className="leaderboard-list">
+              {weekly.map((p, i) => (
+                <div key={p.id} className={`leaderboard-item ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
+                  <div className="leaderboard-rank">
+                    {i === 0 ? <Crown size={20} color="#f59e0b" /> :
+                      i === 1 ? <Medal size={20} color="#94a3b8" /> :
+                        i === 2 ? <Award size={20} color="#f97316" /> :
+                          `#${i + 1}`}
+                  </div>
+                  <div className="leaderboard-name">{p.name}</div>
+                  <div className="leaderboard-stats">
+                    <span className="leaderboard-points">{p.weekly_points}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="battle-leaderboard">
           <h3><Trophy size={22} style={{ color: '#f59e0b' }} /> Top o'yinchilar</h3>
