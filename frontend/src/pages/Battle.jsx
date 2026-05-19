@@ -49,12 +49,20 @@ function Battle() {
   const [error, setError] = useState('')
   const [leaderboard, setLeaderboard] = useState([])
   const [weekly, setWeekly] = useState([])
+  const [ratingTab, setRatingTab] = useState('weekly')
   const [history, setHistory] = useState([])
   const [loadingAction, setLoadingAction] = useState('')
 
   const timerRef = useRef(null)
   const pollRef = useRef(null)
   const isLockedRef = useRef(false)
+
+  // Reyting o'rni belgisi — 1/2/3 uchun ikona, qolganlar uchun raqam
+  const rankIcon = (i) =>
+    i === 0 ? <Crown size={20} color="#f59e0b" /> :
+    i === 1 ? <Medal size={20} color="#94a3b8" /> :
+    i === 2 ? <Award size={20} color="#f97316" /> :
+    `#${i + 1}`
 
   // Guest helper — interaktiv action'larda register sahifaga yo'naltirish
   const requireAuth = () => {
@@ -1008,62 +1016,67 @@ function Battle() {
           </div>
         </div>
 
-        {weekly.length > 0 && (
-          <div className="battle-leaderboard">
-            <h3><Flame size={22} style={{ color: '#f97316' }} /> Haftalik turnir</h3>
-            <p style={{ color: 'var(--text-soft)', fontSize: 13, margin: '-4px 0 14px' }}>
-              Har dushanba yangilanadi — bu hafta eng ko'p g'alaba qozonganlar
-            </p>
-            <div className="leaderboard-list">
-              {weekly.map((p, i) => (
-                <div key={p.id} className={`leaderboard-item ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
-                  <div className="leaderboard-rank">
-                    {i === 0 ? <Crown size={20} color="#f59e0b" /> :
-                      i === 1 ? <Medal size={20} color="#94a3b8" /> :
-                        i === 2 ? <Award size={20} color="#f97316" /> :
-                          `#${i + 1}`}
-                  </div>
-                  <div className="leaderboard-name">{p.name}</div>
-                  <div className="leaderboard-stats">
-                    <span className="leaderboard-points">{p.weekly_points}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
+        {/* Reyting — haftalik turnir va umumiy top bitta blokda, tab bilan */}
         <div className="battle-leaderboard">
-          <h3><Trophy size={22} style={{ color: '#f59e0b' }} /> Top o'yinchilar</h3>
-          {leaderboard.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px' }}>
-              Hozircha o'yinchilar yo'q
-            </p>
+          <div className="lang-buttons" style={{ marginBottom: 16 }}>
+            <button
+              className={`lang-btn ${ratingTab === 'weekly' ? 'lang-active' : ''}`}
+              onClick={() => setRatingTab('weekly')}
+            >
+              <Flame size={16} /> Haftalik turnir
+            </button>
+            <button
+              className={`lang-btn ${ratingTab === 'all' ? 'lang-active' : ''}`}
+              onClick={() => setRatingTab('all')}
+            >
+              <Trophy size={16} /> Top o'yinchilar
+            </button>
+          </div>
+
+          {ratingTab === 'weekly' ? (
+            weekly.length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>
+                Bu hafta hali g'olib yo'q — birinchi bo'ling!
+              </p>
+            ) : (
+              <div className="leaderboard-list">
+                {weekly.map((p, i) => (
+                  <div key={p.id} className={`leaderboard-item ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
+                    <div className="leaderboard-rank">{rankIcon(i)}</div>
+                    <div className="leaderboard-name">{p.name}</div>
+                    <div className="leaderboard-stats">
+                      <span className="leaderboard-points">{p.weekly_points}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           ) : (
-            <div className="leaderboard-list">
-              {leaderboard.slice(0, 10).map((p, i) => (
-                <div key={p.id} className={`leaderboard-item ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
-                  <div className="leaderboard-rank">
-                    {i === 0 ? <Crown size={20} color="#f59e0b" /> :
-                      i === 1 ? <Medal size={20} color="#94a3b8" /> :
-                        i === 2 ? <Award size={20} color="#f97316" /> :
-                          `#${i + 1}`}
+            leaderboard.length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>
+                Hozircha o'yinchilar yo'q
+              </p>
+            ) : (
+              <div className="leaderboard-list">
+                {leaderboard.slice(0, 10).map((p, i) => (
+                  <div key={p.id} className={`leaderboard-item ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
+                    <div className="leaderboard-rank">{rankIcon(i)}</div>
+                    <div className="leaderboard-name">{p.name}</div>
+                    <div className="leaderboard-stats">
+                      <span className="leaderboard-points">{p.points}</span>
+                      <span className="leaderboard-record">{p.wins}W {p.losses}L</span>
+                    </div>
                   </div>
-                  <div className="leaderboard-name">{p.name}</div>
-                  <div className="leaderboard-stats">
-                    <span className="leaderboard-points">{p.points}</span>
-                    <span className="leaderboard-record">{p.wins}W {p.losses}L</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </div>
 
         {user && history.length > 0 && (
           <div className="battle-leaderboard" style={{ marginTop: 24 }}>
             <h3><History size={22} style={{ color: 'var(--primary-light)' }} /> Battle tarixi</h3>
-            <div className="leaderboard-list">
+            <div className="battle-history-list">
               {history.map(h => {
                 const oc = h.outcome === 'win'
                   ? { label: "G'alaba", color: '#22c55e' }
@@ -1076,32 +1089,32 @@ function Battle() {
                 return (
                   <div
                     key={h.id}
-                    className="leaderboard-item"
-                    style={{ cursor: 'pointer' }}
+                    className="battle-history-row"
                     onClick={() => viewBattleResult(h.id)}
                   >
-                    <div style={{
+                    <span style={{
                       fontSize: 11, fontWeight: 700, color: oc.color,
-                      background: oc.color + '1f', padding: '4px 10px',
+                      background: oc.color + '1f', padding: '3px 9px',
                       borderRadius: 20, whiteSpace: 'nowrap', flexShrink: 0
                     }}>
                       {oc.label}
-                    </div>
-                    <div className="leaderboard-name" style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {h.problemTitle || 'Masala'}
-                      </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
-                        {rivals} · {h.language}
-                      </div>
-                    </div>
-                    <div className="leaderboard-stats">
-                      <span className="leaderboard-points">{h.myScore ?? 0} ball</span>
-                      <span className="leaderboard-record">
-                        {h.finishedAt ? new Date(h.finishedAt).toLocaleDateString('uz') : ''}
-                      </span>
-                    </div>
-                    <ChevronRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                    </span>
+                    <span style={{
+                      flex: 1, minWidth: 0, fontWeight: 600, fontSize: 14,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                    }}>
+                      {h.problemTitle || 'Masala'}
+                    </span>
+                    <span style={{
+                      fontSize: 12.5, color: 'var(--text-soft)', whiteSpace: 'nowrap',
+                      flexShrink: 0, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis'
+                    }}>
+                      {rivals}
+                    </span>
+                    <span className="leaderboard-points" style={{ flexShrink: 0 }}>
+                      {h.myScore ?? 0}b
+                    </span>
+                    <ChevronRight size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                   </div>
                 )
               })}

@@ -908,6 +908,30 @@
   gap: 6px;
 }
 
+/* Battle tarixi — kompakt bir qatorli ro'yxat */
+.battle-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.battle-history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.battle-history-row:hover {
+  transform: translateX(2px);
+  border-color: var(--border-hover);
+}
+
 .leaderboard-item {
   display: grid;
   grid-template-columns: 36px 1fr auto;
