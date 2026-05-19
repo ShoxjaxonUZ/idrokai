@@ -680,4 +680,54 @@ router.get('/my-stats', auth, async (req, res) => {
   }
 })
 
+// GET /api/battle/history — foydalanuvchining tugagan battle'lari.
+// Yechimlarni ko'rish — mavjud /status/:id orqali (finished battle kodlarni qaytaradi).
+router.get('/history', auth, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT b.id, b.mode, b.language, b.problem_title, b.finished_at, b.winner_id,
+             bs.score AS my_score, bs.time_taken AS my_time,
+             (
+               SELECT COALESCE(json_agg(json_build_object(
+                 'name', u2.name,
+                 'score', bs2.score
+               )), '[]'::json)
+               FROM battle_players bp2
+               JOIN users u2 ON u2.id = bp2.user_id
+               LEFT JOIN battle_submissions bs2
+                 ON bs2.battle_id = b.id AND bs2.user_id = bp2.user_id
+               WHERE bp2.battle_id = b.id AND bp2.user_id != $1
+             ) AS opponents
+      FROM battle_players bp
+      JOIN battles b ON b.id = bp.battle_id
+      LEFT JOIN battle_submissions bs ON bs.battle_id = b.id AND bs.user_id = $1
+      WHERE bp.user_id = $1 AND b.status = 'finished'
+      ORDER BY b.finished_at DESC NULLS LAST
+      LIMIT 30
+    `, [req.user.id])
+
+    const history = result.rows.map(r => {
+      let outcome
+      if (r.winner_id === req.user.id) outcome = 'win'
+      else if (r.winner_id) outcome = 'loss'
+      else outcome = 'draw'
+      return {
+        id: r.id,
+        mode: r.mode,
+        language: r.language,
+        problemTitle: r.problem_title,
+        finishedAt: r.finished_at,
+        myScore: r.my_score,
+        myTime: r.my_time,
+        outcome,
+        opponents: r.opponents || []
+      }
+    })
+    res.json(history)
+  } catch (err) {
+    console.error('[battle] history error:', err.message)
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
 module.exports = router

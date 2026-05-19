@@ -4,7 +4,7 @@ import {
   Swords, Plus, Users, Trophy, Copy, LogOut, Zap,
   Clock, Send, Code, Shield, Crown, Medal, Award, Code2,
   User, UserPlus, Hash, Play, CheckCircle2, Loader2, Minus, AlertCircle,
-  Share2, MessageCircle, Link as LinkIcon, Check
+  Share2, MessageCircle, Link as LinkIcon, Check, History, ChevronRight
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -40,6 +40,7 @@ function Battle() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [leaderboard, setLeaderboard] = useState([])
+  const [history, setHistory] = useState([])
   const [loadingAction, setLoadingAction] = useState('')
 
   const timerRef = useRef(null)
@@ -76,6 +77,7 @@ function Battle() {
     loadLeaderboard()
 
     if (!user) return
+    loadHistory()
 
     const savedBattleId = localStorage.getItem('active_battle')
     if (savedBattleId) {
@@ -143,6 +145,30 @@ function Battle() {
       const res = await fetch(`${API_URL}/api/battle/leaderboard`)
       const data = await res.json()
       if (Array.isArray(data)) setLeaderboard(data.slice(0, 10))
+    } catch { }
+  }
+
+  const loadHistory = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/battle/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (Array.isArray(data)) setHistory(data)
+    } catch { }
+  }
+
+  // Tarixdan o'tgan battle yechimlarini ko'rish — mavjud result ekrani
+  const viewBattleResult = async (battleId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/battle/status/${battleId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setCurrentBattle(data)
+        setView('result')
+      }
     } catch { }
   }
 
@@ -973,6 +999,55 @@ function Battle() {
             </div>
           )}
         </div>
+
+        {user && history.length > 0 && (
+          <div className="battle-leaderboard" style={{ marginTop: 24 }}>
+            <h3><History size={22} style={{ color: 'var(--primary-light)' }} /> Battle tarixi</h3>
+            <div className="leaderboard-list">
+              {history.map(h => {
+                const oc = h.outcome === 'win'
+                  ? { label: "G'alaba", color: '#22c55e' }
+                  : h.outcome === 'loss'
+                    ? { label: "Mag'lubiyat", color: '#ef4444' }
+                    : { label: 'Durang', color: '#94a3b8' }
+                const rivals = h.mode === 'solo'
+                  ? 'Solo'
+                  : (h.opponents || []).map(o => o.name).join(', ') || 'Raqib'
+                return (
+                  <div
+                    key={h.id}
+                    className="leaderboard-item"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => viewBattleResult(h.id)}
+                  >
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, color: oc.color,
+                      background: oc.color + '1f', padding: '4px 10px',
+                      borderRadius: 20, whiteSpace: 'nowrap', flexShrink: 0
+                    }}>
+                      {oc.label}
+                    </div>
+                    <div className="leaderboard-name" style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {h.problemTitle || 'Masala'}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-soft)' }}>
+                        {rivals} · {h.language}
+                      </div>
+                    </div>
+                    <div className="leaderboard-stats">
+                      <span className="leaderboard-points">{h.myScore ?? 0} ball</span>
+                      <span className="leaderboard-record">
+                        {h.finishedAt ? new Date(h.finishedAt).toLocaleDateString('uz') : ''}
+                      </span>
+                    </div>
+                    <ChevronRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {showJoinModal && (
           <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
