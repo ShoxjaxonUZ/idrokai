@@ -4,7 +4,8 @@ import {
   Swords, Plus, Users, Trophy, Copy, LogOut, Zap,
   Clock, Send, Code, Shield, Crown, Medal, Award, Code2,
   User, UserPlus, Hash, Play, CheckCircle2, Loader2, Minus, AlertCircle,
-  Share2, MessageCircle, Link as LinkIcon, Check, History, ChevronRight
+  Share2, MessageCircle, Link as LinkIcon, Check, History, ChevronRight,
+  BarChart3
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -19,6 +20,12 @@ const LANGUAGES = [
   { id: 'java', name: 'Java' },
 ]
 
+const DIFFICULTIES = [
+  { id: 'oson', name: 'Oson' },
+  { id: 'orta', name: "O'rta" },
+  { id: 'qiyin', name: 'Qiyin' },
+]
+
 function Battle() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -31,6 +38,7 @@ function Battle() {
   const [view, setView] = useState('lobby')
   const [language, setLanguage] = useState('python')
   const [maxPlayers, setMaxPlayers] = useState(2)
+  const [difficulty, setDifficulty] = useState('orta')
   const [joinId, setJoinId] = useState('')
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [currentBattle, setCurrentBattle] = useState(null)
@@ -284,7 +292,7 @@ function Battle() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ language, maxPlayers })
+        body: JSON.stringify({ language, maxPlayers, difficulty })
       })
       const data = await res.json()
       if (res.ok) {
@@ -354,7 +362,7 @@ function Battle() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ language })
+        body: JSON.stringify({ language, difficulty })
       })
       const data = await res.json()
       if (res.ok) {
@@ -386,7 +394,7 @@ function Battle() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ language })
+        body: JSON.stringify({ language, difficulty })
       })
       const data = await res.json()
       if (res.ok) {
@@ -903,6 +911,23 @@ function Battle() {
                 onClick={() => setLanguage(lang.id)}
               >
                 <Code2 size={16} /> {lang.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="lang-selector">
+          <div className="lang-selector-label">
+            <BarChart3 size={14} /> Qiyinlik darajasi
+          </div>
+          <div className="lang-buttons">
+            {DIFFICULTIES.map(d => (
+              <button
+                key={d.id}
+                className={`lang-btn ${difficulty === d.id ? 'lang-active' : ''}`}
+                onClick={() => setDifficulty(d.id)}
+              >
+                {d.name}
               </button>
             ))}
           </div>
