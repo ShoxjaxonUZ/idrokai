@@ -22,8 +22,61 @@ const LANGUAGES = [
   { id: 'java', name: 'Java' },
 ]
 
-// HTML/CSS uchun live preview ko'rsatiladi (chap tomonda iframe)
-const VISUAL_LANGS = ['html', 'css']
+// Live preview qo'llab-quvvatlanadigan tillar
+// HTML/CSS — vizual render, JavaScript — console output
+const PREVIEW_LANGS = ['html', 'css', 'javascript']
+
+// JavaScript kodi uchun console capture wrapper
+const buildJSPreview = (jsCode) => {
+  const safe = String(jsCode || '').replace(/<\/script>/gi, '<\\/script>')
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body{font-family:'Fira Code',Consolas,monospace;background:#0F172A;color:#E2E8F0;padding:14px;margin:0;font-size:13px;line-height:1.6}
+  .label{color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .label::before{content:'';width:6px;height:6px;background:#22c55e;border-radius:50%;display:inline-block}
+  .log{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);white-space:pre-wrap;word-break:break-word}
+  .log:last-child{border-bottom:none}
+  .log-error{color:#f87171}
+  .log-warn{color:#fbbf24}
+  .log-info{color:#60a5fa}
+  .empty{color:#64748b;font-style:italic}
+</style>
+</head>
+<body>
+<div class="label">Console output</div>
+<div id="__out"></div>
+<script>
+(function(){
+  var out=document.getElementById('__out');
+  function fmt(x){
+    if(x===null)return 'null';
+    if(x===undefined)return 'undefined';
+    if(typeof x==='object'){try{return JSON.stringify(x,null,2)}catch(e){return String(x)}}
+    return String(x);
+  }
+  function append(args,cls){
+    var d=document.createElement('div');
+    d.className='log '+(cls||'');
+    d.textContent=Array.prototype.map.call(args,fmt).join(' ');
+    out.appendChild(d);
+  }
+  console.log=function(){append(arguments,'')};
+  console.error=function(){append(arguments,'log-error')};
+  console.warn=function(){append(arguments,'log-warn')};
+  console.info=function(){append(arguments,'log-info')};
+  window.addEventListener('error',function(e){append([(e.message||'Xato')+' ('+(e.lineno||'?')+':'+(e.colno||'?')+')'],'log-error');e.preventDefault()});
+  try{
+${safe}
+  }catch(e){append(['Xato: '+(e.message||e)],'log-error')}
+  if(!out.children.length){out.innerHTML='<div class="empty">// console.log() chaqiring — natija shu yerda ko\\'rinadi</div>'}
+})();
+</script>
+</body>
+</html>`
+}
 
 function Battle() {
   const navigate = useNavigate()
@@ -41,6 +94,8 @@ function Battle() {
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [currentBattle, setCurrentBattle] = useState(null)
   const [code, setCode] = useState('')
+  // Preview iframe har bir bosishda qayta render bo'lmasligi uchun debounced kod
+  const [previewCode, setPreviewCode] = useState('')
   const [timeLeft, setTimeLeft] = useState(300)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -155,6 +210,12 @@ function Battle() {
       localStorage.setItem(`battle_code_${currentBattle.id}`, code)
     }
   }, [code, currentBattle, view])
+
+  // Preview kodini debounce qilish — har bir bosishda iframe qayta yuklanmasligi uchun
+  useEffect(() => {
+    const t = setTimeout(() => setPreviewCode(code), 600)
+    return () => clearTimeout(t)
+  }, [code])
 
   const loadLeaderboard = async () => {
     try {
@@ -545,7 +606,14 @@ function Battle() {
   // ============ PLAYING SCREEN ============
   if (view === 'playing' && currentBattle) {
     const isSolo = currentBattle.mode === 'solo'
-    const isVisual = VISUAL_LANGS.includes(currentBattle.language)
+    const lang = currentBattle.language
+    const hasPreview = PREVIEW_LANGS.includes(lang)
+    const isJSPreview = lang === 'javascript'
+    const previewSrc = hasPreview
+      ? (isJSPreview
+          ? buildJSPreview(previewCode || code || currentBattle.template || '')
+          : (previewCode || code || currentBattle.template || ''))
+      : ''
     const totalPlayers = currentBattle.players?.length || 1
     const submittedCount = currentBattle.players?.filter(p => p.submitted).length || 0
 
@@ -582,14 +650,14 @@ function Battle() {
 
         <div className="battle-layout">
           <div className="battle-problem">
-            {isVisual ? (
+            {hasPreview ? (
               <>
-                <h3><Eye size={16} /> Live preview</h3>
+                <h3><Eye size={16} /> {isJSPreview ? 'Console preview' : 'Live preview'}</h3>
                 <iframe
-                  className="battle-preview-frame"
-                  srcDoc={code || currentBattle.template}
+                  className={`battle-preview-frame ${isJSPreview ? 'preview-console' : ''}`}
+                  srcDoc={previewSrc}
                   title="Live preview"
-                  sandbox="allow-same-origin"
+                  sandbox={isJSPreview ? 'allow-scripts' : 'allow-same-origin'}
                 />
                 <details className="preview-problem-details" open>
                   <summary><Code size={14} /> Masala: {currentBattle.problem_title}</summary>
@@ -647,7 +715,7 @@ function Battle() {
             <div className="editor-header">
               <span>{({
                 python: 'main.py', javascript: 'main.js',
-                html: 'index.html', css: 'style.html',
+                html: 'index.html', css: 'style.css',
                 cpp: 'main.cpp', java: 'Main.java'
               })[currentBattle.language] || 'main.txt'}</span>
               <span>{code.length} belgi</span>

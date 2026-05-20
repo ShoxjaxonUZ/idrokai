@@ -1044,7 +1044,7 @@
   .result-banner { padding: 28px 18px; }
 }
 
-/* HTML/CSS battle uchun live preview */
+/* HTML/CSS/JS battle uchun live preview */
 .battle-preview-frame {
   width: 100%;
   flex: 1;
@@ -1053,6 +1053,12 @@
   border-radius: var(--radius);
   background: #fff;
   margin-top: 10px;
+}
+
+/* JavaScript — console output iframe ichida o'z dark fonini render qiladi */
+.battle-preview-frame.preview-console {
+  background: #0F172A;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .preview-problem-details {
