@@ -1061,6 +1061,34 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+/* Difficulty badge — battle paytida ko'rinadi */
+.battle-diff-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+}
+
+.battle-diff-badge.diff-oson {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.battle-diff-badge.diff-orta {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.battle-diff-badge.diff-qiyin {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
 .preview-problem-details {
   margin-top: 12px;
   padding: 10px 14px;

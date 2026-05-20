@@ -9,112 +9,331 @@ const { groqFetch } = require('../lib/groq')
 
 const MAX_CODE_LEN = 10000
 
+// HTML/CSS preview iframe uchun standart skafold (newlines kafolatlanadi)
+const HTML_SCAFFOLD = (body, css) => `<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<style>
+${(css || '/* CSS shu yerga */').trim()}
+</style>
+</head>
+<body>
+${(body || '<!-- HTML shu yerga -->').trim()}
+</body>
+</html>`
+
+// React preview iframe uchun komponent template
+const REACT_TEMPLATE = (componentCode = '') => `${componentCode}
+
+ReactDOM.createRoot(document.getElementById('__root')).render(<App />);`
+
 const PROBLEMS = {
   python: [
-    { id: 'py-1', title: 'Sonlar yig\'indisi', text: `Berilgan ikki sonni qo'shing va natijani qaytaring.\n\nMisol:\nsum(3, 5) → 8\nsum(10, 20) → 30`, template: `def sum(a, b):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(sum(3, 5))` },
-    { id: 'py-2', title: 'Eng katta son', text: `Berilgan ro'yxatdan eng katta sonni toping.\n\nMisol:\nmax_num([1, 5, 3, 9, 2]) → 9`, template: `def max_num(nums):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(max_num([1, 5, 3, 9, 2]))` },
-    { id: 'py-3', title: 'Palindrom', text: `So'z palindrom yoki yo'qligini tekshiring.\n\nMisol:\nis_palindrom("madam") → True\nis_palindrom("hello") → False`, template: `def is_palindrom(word):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(is_palindrom("madam"))` },
-    { id: 'py-4', title: 'Faktorial', text: `N sonning faktorialini hisoblang.\nN! = 1*2*3*...*N\n\nMisol:\nfactorial(5) → 120`, template: `def factorial(n):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(factorial(5))` },
-    { id: 'py-5', title: 'Juft sonlar', text: `1 dan N gacha juft sonlar yig'indisini toping.\n\nMisol:\neven_sum(10) → 30 (2+4+6+8+10)`, template: `def even_sum(n):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(even_sum(10))` }
-  ],
-  javascript: [
-    { id: 'js-1', title: 'Sonlar yig\'indisi', text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`, template: `function sum(a, b) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(sum(3, 5));` },
-    { id: 'js-2', title: 'Eng katta son', text: `Massivdan eng katta sonni toping.\n\nmaxNum([1, 5, 3, 9]) → 9`, template: `function maxNum(nums) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(maxNum([1, 5, 3, 9]));` },
-    { id: 'js-3', title: 'Massivni teskari', text: `Massivni teskari aylantirib qaytaring.\n\nreverse([1,2,3,4]) → [4,3,2,1]`, template: `function reverse(arr) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(reverse([1,2,3,4]));` },
-    { id: 'js-4', title: 'Unli harflar', text: `String dagi unli harflar (a,e,i,o,u) sonini hisoblang.\n\ncountVowels("hello") → 2`, template: `function countVowels(str) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(countVowels("hello"));` },
-    { id: 'js-5', title: 'Fibonachchi', text: `Fibonachchi N-elementi.\n1, 1, 2, 3, 5, 8, 13, 21...\n\nfib(8) → 21`, template: `function fib(n) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(fib(8));` }
-  ],
-  cpp: [
-    { id: 'cpp-1', title: 'Sonlar yig\'indisi', text: `Ikki sonni qo'shadigan funksiya.\n\nsum(3, 5) → 8`, template: `#include <iostream>\nusing namespace std;\n\nint sum(int a, int b) {\n    // Kodingizni yozing\n    return 0;\n}\n\nint main() {\n    cout << sum(3, 5) << endl;\n    return 0;\n}` },
-    { id: 'cpp-2', title: 'Faktorial', text: `N sonning faktorialini hisoblang.\n\nfactorial(5) → 120`, template: `#include <iostream>\nusing namespace std;\n\nint factorial(int n) {\n    // Kodingizni yozing\n    return 0;\n}\n\nint main() {\n    cout << factorial(5) << endl;\n    return 0;\n}` }
-  ],
-  java: [
-    { id: 'java-1', title: 'Sonlar yig\'indisi', text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`, template: `public class Main {\n    public static int sum(int a, int b) {\n        // Kodingizni yozing\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(sum(3, 5));\n    }\n}` }
-  ],
-  html: [
+    // === OSON ===
     {
-      id: 'html-1',
-      title: 'Tugma yaratish',
-      text: `"Bosing" matnli tugma yarating.\n\nTalab:\n- Yashil fon (#22c55e)\n- Oq matn\n- 10px ichki bo'shliq\n- Yumaloq burchaklar (8px)`,
-      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga */\n  </style>\n</head>\n<body>\n  <!-- HTML shu yerga -->\n</body>\n</html>`
+      id: 'py-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Berilgan ikki sonni qo'shing va natijani qaytaring.\n\nMisol:\nsum(3, 5) → 8`,
+      template: `def sum(a, b):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(sum(3, 5))`
     },
     {
-      id: 'html-2',
-      title: 'Karta yaratish',
-      text: `Profil kartasini yarating.\n\nTalab:\n- Ism (sarlavha)\n- Qisqa tavsif\n- Soya bilan\n- 300px keng`,
-      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga */\n  </style>\n</head>\n<body>\n  <!-- HTML shu yerga -->\n</body>\n</html>`
+      id: 'py-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `Berilgan ismni qabul qilib, 'Salom, ISM!' qaytaring.\n\nMisol:\ngreet('Ali') → 'Salom, Ali!'`,
+      template: `def greet(name):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(greet('Ali'))`
+    },
+    // === ORTA ===
+    {
+      id: 'py-m1', difficulty: 'orta', title: "Eng katta son",
+      text: `Berilgan ro'yxatdan eng katta sonni toping.\n\nMisol:\nmax_num([1, 5, 3, 9, 2]) → 9`,
+      template: `def max_num(nums):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(max_num([1, 5, 3, 9, 2]))`
+    },
+    {
+      id: 'py-m2', difficulty: 'orta', title: "Palindrom",
+      text: `So'z palindrom yoki yo'qligini tekshiring.\n\nMisol:\nis_palindrom("madam") → True`,
+      template: `def is_palindrom(word):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(is_palindrom("madam"))`
+    },
+    {
+      id: 'py-m3', difficulty: 'orta', title: "Faktorial",
+      text: `N sonning faktorialini hisoblang.\nN! = 1*2*3*...*N\n\nMisol:\nfactorial(5) → 120`,
+      template: `def factorial(n):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(factorial(5))`
+    },
+    // === QIYIN ===
+    {
+      id: 'py-h1', difficulty: 'qiyin', title: "Tublik tekshiruvi",
+      text: `Sonning tub son ekanligini tekshiring.\n\nMisol:\nis_prime(7) → True\nis_prime(8) → False`,
+      template: `def is_prime(n):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(is_prime(7))`
+    },
+    {
+      id: 'py-h2', difficulty: 'qiyin', title: "Anagram",
+      text: `Ikki so'z anagram (bir xil harflardan) ekanligini aniqlang.\n\nMisol:\nis_anagram("listen", "silent") → True`,
+      template: `def is_anagram(a, b):\n    # Kodingizni shu yerga yozing\n    pass\n\nprint(is_anagram("listen", "silent"))`
+    }
+  ],
+  javascript: [
+    // === OSON ===
+    {
+      id: 'js-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`,
+      template: `function sum(a, b) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(sum(3, 5));`
+    },
+    {
+      id: 'js-e2', difficulty: 'oson', title: "String uzunligi",
+      text: `Stringning uzunligini qaytaring.\n\nstrLen("hello") → 5`,
+      template: `function strLen(s) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(strLen("hello"));`
+    },
+    // === ORTA ===
+    {
+      id: 'js-m1', difficulty: 'orta', title: "Eng katta son",
+      text: `Massivdan eng katta sonni toping.\n\nmaxNum([1, 5, 3, 9]) → 9`,
+      template: `function maxNum(nums) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(maxNum([1, 5, 3, 9]));`
+    },
+    {
+      id: 'js-m2', difficulty: 'orta', title: "Massivni teskari",
+      text: `Massivni teskari aylantiring.\n\nreverse([1,2,3,4]) → [4,3,2,1]`,
+      template: `function reverse(arr) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(reverse([1,2,3,4]));`
+    },
+    {
+      id: 'js-m3', difficulty: 'orta', title: "Unli harflar",
+      text: `String dagi unli harflar (a,e,i,o,u) sonini hisoblang.\n\ncountVowels("hello") → 2`,
+      template: `function countVowels(str) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(countVowels("hello"));`
+    },
+    // === QIYIN ===
+    {
+      id: 'js-h1', difficulty: 'qiyin', title: "Fibonachchi",
+      text: `Fibonachchi N-elementi.\n1, 1, 2, 3, 5, 8, 13, 21...\n\nfib(8) → 21`,
+      template: `function fib(n) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(fib(8));`
+    },
+    {
+      id: 'js-h2', difficulty: 'qiyin', title: "Eng uzun so'z",
+      text: `Jumladan eng uzun so'zni qaytaring.\n\nlongestWord("bu eng katta so'z") → "katta"`,
+      template: `function longestWord(s) {\n    // Kodingizni shu yerga yozing\n}\n\nconsole.log(longestWord("bu eng katta so'z"));`
+    }
+  ],
+  typescript: [
+    // === OSON ===
+    {
+      id: 'ts-e1', difficulty: 'oson', title: "Tip annotation",
+      text: `sum funksiyasini number tiplari bilan yozing.\n\nsum(3, 5) → 8`,
+      template: `function sum(a: number, b: number): number {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\nconsole.log(sum(3, 5));`
+    },
+    {
+      id: 'ts-e2', difficulty: 'oson', title: "Interface",
+      text: `User interface yarating va getName funksiyasini yozing.\n\nUser: { name: string, age: number }\ngetName({name:'Ali',age:20}) → 'Ali'`,
+      template: `interface User {\n    // shu yerga maydonlar\n}\n\nfunction getName(u: User): string {\n    // shu yerga\n    return '';\n}\n\nconsole.log(getName({name:'Ali', age:20}));`
+    },
+    // === ORTA ===
+    {
+      id: 'ts-m1', difficulty: 'orta', title: "Generic funksiya",
+      text: `Generic <T> bilan massivning birinchi elementini qaytaruvchi funksiya.\n\nfirst([1,2,3]) → 1\nfirst(['a','b']) → 'a'`,
+      template: `function first<T>(arr: T[]): T | undefined {\n    // Kodingizni shu yerga yozing\n    return undefined;\n}\n\nconsole.log(first([1,2,3]));\nconsole.log(first(['a','b']));`
+    },
+    {
+      id: 'ts-m2', difficulty: 'orta', title: "Union type",
+      text: `string | number qabul qiluvchi funksiya. String bo'lsa parseInt, son bo'lsa 0 qaytaring.\n\nparseValue("42") → 42\nparseValue(99) → 0`,
+      template: `function parseValue(v: string | number): number {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\nconsole.log(parseValue("42"));\nconsole.log(parseValue(99));`
+    },
+    // === QIYIN ===
+    {
+      id: 'ts-h1', difficulty: 'qiyin', title: "Filter generic",
+      text: `Generic filterArr<T> — predicate true bo'lgan elementlarni qaytaradi.\n\nfilterArr([1,2,3,4], x => x > 2) → [3,4]`,
+      template: `function filterArr<T>(arr: T[], pred: (x: T) => boolean): T[] {\n    // Kodingizni shu yerga yozing\n    return [];\n}\n\nconsole.log(filterArr([1,2,3,4], x => x > 2));`
+    }
+  ],
+  react: [
+    // === OSON ===
+    {
+      id: 'rx-e1', difficulty: 'oson', title: "Salom komponent",
+      text: `App komponenti.\n\n- "Salom, React!" matnini h1 ichida ko'rsating`,
+      template: REACT_TEMPLATE(`function App() {\n  // Kodingizni shu yerga yozing\n  return <div>...</div>;\n}`)
+    },
+    {
+      id: 'rx-e2', difficulty: 'oson', title: "Props",
+      text: `Greet komponenti props.name ni qabul qilib "Salom, NAME!" chiqaradi.\n\n<Greet name="Ali" /> → "Salom, Ali!"`,
+      template: REACT_TEMPLATE(`function Greet(props) {\n  // Kodingizni shu yerga yozing\n  return <div>...</div>;\n}\n\nfunction App() {\n  return <Greet name="Ali" />;\n}`)
+    },
+    // === ORTA ===
+    {
+      id: 'rx-m1', difficulty: 'orta', title: "Counter (useState)",
+      text: `useState bilan Counter.\n\n- "Bosishlar: N" matni\n- Tugma bosilganda N oshadi`,
+      template: REACT_TEMPLATE(`function App() {\n  // React.useState ishlating\n  return <div>...</div>;\n}`)
+    },
+    {
+      id: 'rx-m2', difficulty: 'orta', title: "Controlled input",
+      text: `Input va h2 — foydalanuvchi yozgan matn h2 da real vaqtda chiqsin.\n\n- useState\n- input + h2`,
+      template: REACT_TEMPLATE(`function App() {\n  // Controlled input + h2\n  return <div>...</div>;\n}`)
+    },
+    // === QIYIN ===
+    {
+      id: 'rx-h1', difficulty: 'qiyin', title: "Todo list",
+      text: `Todo list:\n- input + qo'shish tugmasi\n- ro'yxat\n- har birida o'chirish tugmasi`,
+      template: REACT_TEMPLATE(`function App() {\n  // useState bilan ro'yxat boshqaring\n  return <div>...</div>;\n}`)
+    }
+  ],
+  html: [
+    // === OSON ===
+    {
+      id: 'html-e1', difficulty: 'oson', title: "Tugma yaratish",
+      text: `"Bosing" matnli tugma.\n\nTalab:\n- Yashil fon (#22c55e)\n- Oq matn\n- 10px ichki bo'shliq\n- Yumaloq burchaklar (8px)`,
+      template: HTML_SCAFFOLD('<!-- shu yerga button -->', '/* shu yerga stil */')
+    },
+    {
+      id: 'html-e2', difficulty: 'oson', title: "Sarlavha + paragraf",
+      text: `Sahifa yarating:\n- h1: "Mening sayam"\n- p: 2 jumla matn\n- markazlashtirilgan`,
+      template: HTML_SCAFFOLD('<!-- shu yerga h1 va p -->', 'body { text-align: center; font-family: sans-serif; }')
+    },
+    // === ORTA ===
+    {
+      id: 'html-m1', difficulty: 'orta', title: "Profil karta",
+      text: `Profil kartasi:\n- Ism (h2)\n- Qisqa tavsif (p)\n- Soya bilan\n- 300px keng, oq fon`,
+      template: HTML_SCAFFOLD('<!-- shu yerga karta -->', '/* shu yerga stil */')
+    },
+    {
+      id: 'html-m2', difficulty: 'orta', title: "Ro'yxat",
+      text: `3 ta vazifa bilan ul:\n- "Birinchi vazifa"\n- "Ikkinchi vazifa"\n- "Uchinchi vazifa"\n\nHar bir li chap tomonda • bilan`,
+      template: HTML_SCAFFOLD('<!-- shu yerga ul -->', 'ul { list-style: disc; padding-left: 20px; }')
+    },
+    // === QIYIN ===
+    {
+      id: 'html-h1', difficulty: 'qiyin', title: "Login forma",
+      text: `Login formani yarating:\n- Email input (type=email)\n- Parol input (type=password)\n- "Kirish" tugma\n- Forma markazda, ramka va soya bilan`,
+      template: HTML_SCAFFOLD('<!-- shu yerga forma -->', '/* shu yerga stil */')
     }
   ],
   css: [
+    // === OSON ===
     {
-      id: 'css-1',
-      title: 'Markazga joylash',
-      text: `Quti elementini ekran markaziga joylang.\n\nQuti 200x200px, ko'k fonli (#5B5BD6).\nFlexbox yoki grid ishlatishingiz mumkin.`,
-      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga — .box markazga joylasin */\n\n  </style>\n</head>\n<body>\n  <div class="box">Quti</div>\n</body>\n</html>`
+      id: 'css-e1', difficulty: 'oson', title: "Markazga joylash",
+      text: `.box klassini ekran markaziga joylang (flexbox yoki grid).\n\nQuti 200x200px, ko'k fonli (#5B5BD6).`,
+      template: HTML_SCAFFOLD('<div class="box">Quti</div>', `body {\n  margin: 0;\n  min-height: 100vh;\n}\n\n.box {\n  width: 200px;\n  height: 200px;\n  background: #5B5BD6;\n  /* shu yerga markazga joylash */\n}`)
     },
     {
-      id: 'css-2',
-      title: 'Tugma stilini berish',
-      text: `Tugmaga chiroyli stil bering.\n\nTalab:\n- Gradient fon (indigo -> pushti)\n- Oq matn, qalin\n- Hover effekti (rangini o'zgartiradi)\n- Yumaloq burchaklar`,
-      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga */\n\n  </style>\n</head>\n<body>\n  <button>Bosing</button>\n</body>\n</html>`
+      id: 'css-e2', difficulty: 'oson', title: "Rang va matn",
+      text: `Tayyor h1 ni quyidagicha bezing:\n- Ko'k rang (#0ea5e9)\n- 32px o'lcham\n- Qalin\n- Markazda`,
+      template: HTML_SCAFFOLD('<h1>Salom dunyo</h1>', `h1 {\n  /* shu yerga */\n}`)
+    },
+    // === ORTA ===
+    {
+      id: 'css-m1', difficulty: 'orta', title: "Tugma stili",
+      text: `Tugmaga gradient stil bering:\n- Fon: linear-gradient(135deg, #6366f1, #ec4899)\n- Oq matn, qalin\n- Hover'da rangini o'zgartiring\n- Yumaloq burchaklar (8px)`,
+      template: HTML_SCAFFOLD('<button class="btn">Bosing</button>', `body {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  margin: 0;\n}\n\n.btn {\n  /* shu yerga */\n}`)
+    },
+    {
+      id: 'css-m2', difficulty: 'orta', title: "Card grid",
+      text: `3 ta karta — grid bilan tartiblang:\n- 3 ta ustun\n- 16px gap\n- Har bir karta oq fon, ramka, soya bilan`,
+      template: HTML_SCAFFOLD('<div class="grid">\n  <div class="card">1</div>\n  <div class="card">2</div>\n  <div class="card">3</div>\n</div>', `body { padding: 20px; background: #f1f5f9; }\n\n.grid {\n  /* shu yerga */\n}\n\n.card {\n  /* shu yerga */\n}`)
+    },
+    // === QIYIN ===
+    {
+      id: 'css-h1', difficulty: 'qiyin', title: "Hover animatsiya",
+      text: `Kartaga smooth hover effekti:\n- Hover'da 8px yuqori ko'tariladi\n- Soya kattalashadi\n- Transition 0.3s ease\n- Border-radius 12px`,
+      template: HTML_SCAFFOLD('<div class="card">\n  <h3>Sarlavha</h3>\n  <p>Karta matni</p>\n</div>', `body { display: flex; justify-content: center; padding-top: 80px; background: #f8fafc; }\n\n.card {\n  width: 280px;\n  padding: 20px;\n  background: #fff;\n  /* shu yerga animatsiya */\n}`)
     }
   ]
 }
 
+// 3 daraja
+const DIFFICULTIES = ['oson', 'orta', 'qiyin']
+
 const SUPPORTED_LANGS = Object.keys(PROBLEMS)
 
-const getRandomProblem = (lang = 'python') => {
+// Reyting balliga qarab darajani aniqlash
+const getDifficultyFromRating = async (userId) => {
+  try {
+    const r = await pool.query('SELECT points FROM ratings WHERE user_id = $1', [userId])
+    const points = r.rows[0]?.points ?? 1000
+    if (points < 1050) return 'oson'
+    if (points > 1300) return 'qiyin'
+    return 'orta'
+  } catch {
+    return 'orta'
+  }
+}
+
+const getRandomProblem = (lang = 'python', difficulty = 'orta') => {
   const list = PROBLEMS[lang] || PROBLEMS.python
-  return list[Math.floor(Math.random() * list.length)]
+  const filtered = list.filter(p => p.difficulty === difficulty)
+  const choices = filtered.length > 0 ? filtered : list
+  return choices[Math.floor(Math.random() * choices.length)]
+}
+
+const LANG_NAMES = {
+  python: 'Python', javascript: 'JavaScript', typescript: 'TypeScript',
+  react: 'React (JSX)', html: 'HTML', css: 'CSS'
+}
+
+const DIFF_TEXT = {
+  oson: "oson (yangi boshlovchi uchun — 2-3 daqiqada yechiladigan, asosiy sintaksis)",
+  orta: "o'rta (5 daqiqada yechiladigan, biroz fikrlash kerak)",
+  qiyin: "qiyin (5 daqiqada bajariladigan, lekin algoritmik fikr yoki murakkab mantiq talab qiladi)"
 }
 
 // AI orqali masala yaratish — agar AI muvaffaqiyatsiz bo'lsa, fallback berila beradi
-const generateAIProblem = async (language) => {
-  const langName = {
-    python: 'Python', javascript: 'JavaScript', cpp: 'C++', java: 'Java',
-    html: 'HTML', css: 'CSS'
-  }[language] || 'Python'
+const generateAIProblem = async (language, difficulty = 'orta') => {
+  const langName = LANG_NAMES[language] || 'JavaScript'
+  const diffText = DIFF_TEXT[difficulty] || DIFF_TEXT.orta
 
-  const isVisual = ['html', 'css'].includes(language)
+  let prompt
+  if (language === 'html' || language === 'css') {
+    // HTML/CSS — AI faqat title, text, body, css ni qaytaradi. Skafold serverda yopiladi
+    prompt = `Sen frontend battle uchun masala yaratuvchi AI san. ${langName} bilan kichik vizual element masalasini yarat.
 
-  const prompt = isVisual
-    ? `Sen frontend battle uchun masala yaratuvchi AI san. ${langName} bilan kichik vizual element yaratish masalasini yarat.
-
-DARAJA: o'rta (5 daqiqada yechiladigan)
-TIL: ${langName}
+DARAJA: ${diffText}
 
 QOIDALAR:
-1. Masala kichik vizual element yaratish (tugma, karta, forma, layout, animatsiya)
+1. Masala — kichik vizual element (tugma, karta, forma, layout, animatsiya)
 2. Natija qanday ko'rinishi aniq tasvirlangan (rang, o'lcham, joylashuv)
 3. O'zbek tilida (lotin yozuvi)
-4. Template — to'liq HTML hujjat (DOCTYPE bilan), foydalanuvchi to'ldiradigan joy kommentariya bilan belgilangan
-5. ${language === 'css' ? "<style> tegi ichida foydalanuvchi joyi bo'sh bo'lsin, kerakli HTML elementlar tayyor" : 'body ichida foydalanuvchi joyi bo\'sh, style tayyor yoki minimal'}
+4. ${language === 'css' ? 'CSS battle: body_html da tayyor HTML elementlar (selektorlar bilan), css_starter da minimal placeholder' : 'HTML battle: body_html bo\'sh (foydalanuvchi to\'ldiradi), css_starter da kerakli boshlang\'ich stil'}
 
 JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
 {
-  "title": "Masala nomi (3-5 so'z, o'zbekcha)",
-  "text": "Nima yaratish kerak va qanday ko'rinishi (3-6 qator)",
-  "template": "<!DOCTYPE html>...to'liq HTML hujjat..."
+  "title": "Masala nomi (3-5 so'z)",
+  "text": "Nima qilish kerak va qanday ko'rinish (3-5 qator)",
+  "body_html": "${language === 'css' ? '<div class=\\"box\\">...</div> kabi tayyor HTML' : '<!-- foydalanuvchi shu yerga yozadi -->'}",
+  "css_starter": "${language === 'css' ? '/* foydalanuvchi shu yerga CSS yozadi */' : 'minimal CSS (body, font)'}"
 }`
-    : `Sen kod battle uchun masala yaratuvchi AI san. ${langName} dasturlash tilida YANGI va QIZIQARLI masala yarat.
+  } else if (language === 'react') {
+    prompt = `Sen React battle uchun masala yaratuvchi AI san.
 
-DARAJA: o'rta (5 daqiqada yechiladigan, algoritm talab qiladi)
+DARAJA: ${diffText}
+TIL: React (JSX)
+
+QOIDALAR:
+1. Masala — App nomli kichik komponent yozish
+2. Natija qanday ko'rinishi aniq tasvirlangan
+3. O'zbek tilida (lotin yozuvi)
+4. component_starter — App funksiyasining bosh shabloni (komponent ichi to'ldirilmagan)
+5. JSX sintaksis, ReactDOM.createRoot bilan render qilish keyin avtomatik qo'shiladi
+
+JAVOB FAQAT JSON formatda:
+{
+  "title": "Masala nomi (3-5 so'z)",
+  "text": "Nima qilish kerak (3-5 qator)",
+  "component_starter": "function App() {\\n  // shu yerga\\n  return <div>...</div>;\\n}"
+}`
+  } else {
+    // Python, JS, TS — funksiya yozish masalasi
+    prompt = `Sen kod battle uchun masala yaratuvchi AI san. ${langName} dasturlash tilida YANGI masala yarat.
+
+DARAJA: ${diffText}
 DASTURLASH TILI: ${langName}
 
 QOIDALAR:
-1. Masala bitta funksiyani yozish bilan yechilsin (qisqa va aniq)
+1. Masala bitta funksiyani yozish bilan yechilsin
 2. 2-3 ta input/output misol bilan
 3. O'zbek tilida (lotin yozuvi)
-4. Funksiya nomini ingliz tilida yoz (kichik harf, snake_case yoki camelCase)
-5. Template'da funksiya tananasi BOSH (placeholder) bo'lsin
-6. Algoritmik masala bo'lsin (string, array, son, mantiq)
+4. Funksiya nomini ingliz tilida (kichik harf, snake_case yoki camelCase)
+5. Template'da funksiya tananasi placeholder bilan
+6. Algoritmik masala (string, array, son, mantiq)
+${language === 'typescript' ? '7. TypeScript tip annotation bilan (number, string, T[], union types)' : ''}
 
-JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
+JAVOB FAQAT JSON formatda:
 {
-  "title": "Masala nomi (3-5 so'z, o'zbekcha)",
-  "text": "Masala matni va misollar (3-6 qator)\\nMisol:\\nfuncName(arg) → result",
-  "template": "${langName === 'C++' || langName === 'Java' ? 'Asl kod (asosiy funksiya bilan)' : 'Funksiya shabloni'}"
+  "title": "Masala nomi (3-5 so'z)",
+  "text": "Masala matni va misollar (3-5 qator)\\nMisol:\\nfuncName(arg) → result",
+  "template": "Funksiya shabloni + console.log yoki print"
 }`
+  }
 
   try {
     const groqRes = await groqFetch({
@@ -131,9 +350,22 @@ JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
 
     const title = String(parsed.title || '').trim().slice(0, 100)
     const probText = String(parsed.text || '').trim().slice(0, 2000)
-    const template = String(parsed.template || '').trim().slice(0, 4000)
+    if (!title || !probText) return null
 
-    if (!title || !probText || !template) return null
+    let template = ''
+    if (language === 'html' || language === 'css') {
+      const body = String(parsed.body_html || '').slice(0, 2000)
+      const css = String(parsed.css_starter || '').slice(0, 2000)
+      if (!body && !css) return null
+      template = HTML_SCAFFOLD(body, css)
+    } else if (language === 'react') {
+      const starter = String(parsed.component_starter || '').slice(0, 3000)
+      if (!starter) return null
+      template = REACT_TEMPLATE(starter)
+    } else {
+      template = String(parsed.template || '').trim().slice(0, 4000)
+      if (!template) return null
+    }
 
     return {
       id: `ai-${language}-${Date.now()}`,
@@ -149,10 +381,10 @@ JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
 }
 
 // Yagona kirish — AI urinish, muvaffaqiyatsiz bo'lsa fallback
-const getProblemForBattle = async (language) => {
-  const aiProb = await generateAIProblem(language)
+const getProblemForBattle = async (language, difficulty = 'orta') => {
+  const aiProb = await generateAIProblem(language, difficulty)
   if (aiProb) return aiProb
-  return getRandomProblem(language)
+  return getRandomProblem(language, difficulty)
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -403,19 +635,20 @@ router.post('/create', auth, async (req, res) => {
     const max = Math.min(10, Math.max(2, parseInt(maxPlayers) || 2))
 
     await ensureRating(req.user.id)
-    const problem = await getProblemForBattle(language)
+    const difficulty = await getDifficultyFromRating(req.user.id)
+    const problem = await getProblemForBattle(language, difficulty)
     const battleId = generateId()
 
     await pool.query(`
-      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status)
-      VALUES ($1, $2, 'multiplayer', $3, $4, $5, $6, $7, $8, 'waiting')
-    `, [battleId, req.user.id, max, problem.id, problem.title, problem.text, language, problem.template])
+      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status, difficulty)
+      VALUES ($1, $2, 'multiplayer', $3, $4, $5, $6, $7, $8, 'waiting', $9)
+    `, [battleId, req.user.id, max, problem.id, problem.title, problem.text, language, problem.template, difficulty])
 
     await pool.query(`
       INSERT INTO battle_players (battle_id, user_id) VALUES ($1, $2)
     `, [battleId, req.user.id])
 
-    res.json({ id: battleId, language, maxPlayers: max, status: 'waiting' })
+    res.json({ id: battleId, language, maxPlayers: max, status: 'waiting', difficulty })
   } catch (err) {
     console.error('Create error:', err)
     res.status(500).json({ message: 'Xatolik' })
@@ -512,17 +745,18 @@ router.post('/solo', auth, async (req, res) => {
     if (!SUPPORTED_LANGS.includes(language)) return res.status(400).json({ message: 'Til qo\'llanmaydi' })
 
     await ensureRating(req.user.id)
-    const problem = await getProblemForBattle(language)
+    const difficulty = await getDifficultyFromRating(req.user.id)
+    const problem = await getProblemForBattle(language, difficulty)
     const battleId = 'S' + generateId()
 
     await pool.query(`
-      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status, started_at)
-      VALUES ($1, $2, 'solo', 1, $3, $4, $5, $6, $7, 'playing', NOW())
-    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template])
+      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status, started_at, difficulty)
+      VALUES ($1, $2, 'solo', 1, $3, $4, $5, $6, $7, 'playing', NOW(), $8)
+    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template, difficulty])
 
     await pool.query('INSERT INTO battle_players (battle_id, user_id) VALUES ($1, $2)', [battleId, req.user.id])
 
-    res.json({ id: battleId, status: 'playing' })
+    res.json({ id: battleId, status: 'playing', difficulty })
   } catch (err) {
     console.error('Solo error:', err)
     res.status(500).json({ message: 'Xatolik' })
@@ -533,6 +767,8 @@ router.post('/random', auth, async (req, res) => {
   const { language = 'python' } = req.body
   if (!SUPPORTED_LANGS.includes(language)) return res.status(400).json({ message: 'Til qo\'llanmaydi' })
 
+  const difficulty = await getDifficultyFromRating(req.user.id)
+
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
@@ -541,6 +777,7 @@ router.post('/random', auth, async (req, res) => {
       [req.user.id]
     )
 
+    // Match topishda darajani ham hisobga olamiz — bir xil daraja eng yaxshisi
     const waiting = await client.query(`
       SELECT b.* FROM battles b
       WHERE b.status = 'waiting'
@@ -549,10 +786,10 @@ router.post('/random', auth, async (req, res) => {
         AND b.host_id != $2
         AND b.created_at > NOW() - INTERVAL '5 minutes'
         AND (SELECT COUNT(*) FROM battle_players WHERE battle_id = b.id) < b.max_players
-      ORDER BY b.created_at ASC
+      ORDER BY (b.difficulty = $3) DESC, b.created_at ASC
       LIMIT 1
       FOR UPDATE OF b SKIP LOCKED
-    `, [language, req.user.id])
+    `, [language, req.user.id, difficulty])
 
     if (waiting.rows.length > 0) {
       const battle = waiting.rows[0]
@@ -567,17 +804,17 @@ router.post('/random', auth, async (req, res) => {
       return res.json({ id: battle.id, status: battle.status })
     }
 
-    const problem = await getProblemForBattle(language)
+    const problem = await getProblemForBattle(language, difficulty)
     const battleId = generateId()
     await client.query(`
-      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status)
-      VALUES ($1, $2, 'multiplayer', 2, $3, $4, $5, $6, $7, 'waiting')
-    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template])
+      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status, difficulty)
+      VALUES ($1, $2, 'multiplayer', 2, $3, $4, $5, $6, $7, 'waiting', $8)
+    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template, difficulty])
 
     await client.query('INSERT INTO battle_players (battle_id, user_id) VALUES ($1, $2)', [battleId, req.user.id])
     await client.query('COMMIT')
 
-    res.json({ id: battleId, status: 'waiting' })
+    res.json({ id: battleId, status: 'waiting', difficulty })
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {})
     console.error('Random error:', err)
@@ -624,6 +861,7 @@ router.get('/status/:id', auth, async (req, res) => {
       problem: battle.problem_text,
       template: battle.template,
       language: battle.language,
+      difficulty: battle.difficulty,
       status: battle.status,
       winner_id: battle.winner_id,
       players: players.rows,

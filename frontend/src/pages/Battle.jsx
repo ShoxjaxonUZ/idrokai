@@ -14,68 +14,198 @@ import { useNotification } from '../context/NotificationContext'
 import '../styles/battle.css'
 
 const LANGUAGES = [
-  { id: 'python', name: 'Python' },
-  { id: 'javascript', name: 'JavaScript' },
   { id: 'html', name: 'HTML' },
   { id: 'css', name: 'CSS' },
-  { id: 'cpp', name: 'C++' },
-  { id: 'java', name: 'Java' },
+  { id: 'javascript', name: 'JavaScript' },
+  { id: 'typescript', name: 'TypeScript' },
+  { id: 'react', name: 'React' },
+  { id: 'python', name: 'Python' },
 ]
 
-// Live preview qo'llab-quvvatlanadigan tillar
-// HTML/CSS — vizual render, JavaScript — console output
-const PREVIEW_LANGS = ['html', 'css', 'javascript']
+// Live preview qo'llab-quvvatlanadigan tillar (hammasi)
+const PREVIEW_LANGS = ['html', 'css', 'javascript', 'typescript', 'react', 'python']
 
-// JavaScript kodi uchun console capture wrapper
+// Iframe ichiga script tag ichida injektsiya qilish uchun </script> ni escape qilish
+const escapeForScript = (s) => String(s || '').replace(/<\/script>/gi, '<\\/script>')
+
+// Hamma console preview'lar uchun umumiy dark style
+const CONSOLE_STYLE = `
+body{font-family:'Fira Code',Consolas,monospace;background:#0F172A;color:#E2E8F0;padding:14px;margin:0;font-size:13px;line-height:1.6}
+.label{color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.label::before{content:'';width:6px;height:6px;background:#22c55e;border-radius:50%;display:inline-block}
+.log{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);white-space:pre-wrap;word-break:break-word}
+.log:last-child{border-bottom:none}
+.log-error{color:#f87171}
+.log-warn{color:#fbbf24}
+.log-info{color:#60a5fa}
+.empty{color:#64748b;font-style:italic}
+.loader{color:#fbbf24;font-style:italic;padding:4px 0}
+`
+
+// Console capture (JS, TS uchun shared kod)
+const CONSOLE_CAPTURE_JS = `
+var out=document.getElementById('__out');
+function fmt(x){
+  if(x===null)return 'null';
+  if(x===undefined)return 'undefined';
+  if(typeof x==='object'){try{return JSON.stringify(x,null,2)}catch(e){return String(x)}}
+  return String(x);
+}
+function append(args,cls){
+  var d=document.createElement('div');
+  d.className='log '+(cls||'');
+  d.textContent=Array.prototype.map.call(args,fmt).join(' ');
+  out.appendChild(d);
+}
+console.log=function(){append(arguments,'')};
+console.error=function(){append(arguments,'log-error')};
+console.warn=function(){append(arguments,'log-warn')};
+console.info=function(){append(arguments,'log-info')};
+window.addEventListener('error',function(e){append([(e.message||'Xato')+' ('+(e.lineno||'?')+':'+(e.colno||'?')+')'],'log-error');e.preventDefault()});
+`
+
+// JavaScript console preview
 const buildJSPreview = (jsCode) => {
-  const safe = String(jsCode || '').replace(/<\/script>/gi, '<\\/script>')
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  body{font-family:'Fira Code',Consolas,monospace;background:#0F172A;color:#E2E8F0;padding:14px;margin:0;font-size:13px;line-height:1.6}
-  .label{color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-  .label::before{content:'';width:6px;height:6px;background:#22c55e;border-radius:50%;display:inline-block}
-  .log{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);white-space:pre-wrap;word-break:break-word}
-  .log:last-child{border-bottom:none}
-  .log-error{color:#f87171}
-  .log-warn{color:#fbbf24}
-  .log-info{color:#60a5fa}
-  .empty{color:#64748b;font-style:italic}
+  const safe = escapeForScript(jsCode)
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CONSOLE_STYLE}</style></head>
+<body><div class="label">Console output</div><div id="__out"></div>
+<script>(function(){${CONSOLE_CAPTURE_JS}
+try{
+${safe}
+}catch(e){append(['Xato: '+(e.message||e)],'log-error')}
+if(!out.children.length){out.innerHTML='<div class="empty">// console.log() chaqiring — natija shu yerda ko\\'rinadi</div>'}
+})();</script></body></html>`
+}
+
+// TypeScript console preview — CDN TS compiler bilan transpile qilinadi
+const buildTSPreview = (tsCode) => {
+  const sourceJSON = JSON.stringify(escapeForScript(tsCode))
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CONSOLE_STYLE}
+.label::before{background:#3178c6}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/typescript@5.4/lib/typescript.js"></script>
+</head>
+<body><div class="label">Console output (TypeScript)</div>
+<div id="__out"><div class="loader">TypeScript yuklanmoqda...</div></div>
+<script>(function(){
+function start(){
+  var out=document.getElementById('__out');
+  out.innerHTML='';
+  ${CONSOLE_CAPTURE_JS}
+  try{
+    var source=${sourceJSON};
+    var compiled=ts.transpileModule(source,{
+      compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.None,removeComments:true}
+    }).outputText;
+    (0,eval)(compiled);
+  }catch(e){append(['TypeScript xato: '+(e.message||e)],'log-error')}
+  if(!out.children.length){out.innerHTML='<div class="empty">// console.log() chaqiring</div>'}
+}
+if(typeof ts!=='undefined')start();
+else{
+  var iv=setInterval(function(){if(typeof ts!=='undefined'){clearInterval(iv);start()}},100);
+  setTimeout(function(){if(typeof ts==='undefined'){document.getElementById('__out').innerHTML='<div class="log log-error">TypeScript CDN yuklanmadi</div>'}},10000);
+}
+})();</script></body></html>`
+}
+
+// React/JSX preview — Babel standalone + React 18 CDN
+const buildReactPreview = (jsxCode) => {
+  const safe = escapeForScript(jsxCode)
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{font-family:system-ui,-apple-system,sans-serif;padding:16px;margin:0;background:#fff;color:#0f172a}
+#__root{min-height:60px}
+.__err{padding:12px 14px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:6px;font-family:'Fira Code',monospace;font-size:12px;white-space:pre-wrap;margin-top:12px}
+.__loader{color:#64748b;font-style:italic;padding:8px}
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-<div class="label">Console output</div>
-<div id="__out"></div>
+<div id="__root"><div class="__loader">React yuklanmoqda...</div></div>
+<div id="__errBox"></div>
 <script>
-(function(){
+window.addEventListener('error',function(e){
+  var d=document.createElement('div');
+  d.className='__err';
+  d.textContent='Xato: '+(e.message||e.error||'')+(e.lineno?' (qator '+e.lineno+')':'');
+  document.getElementById('__errBox').appendChild(d);
+  e.preventDefault();
+});
+function start(){
+  document.getElementById('__root').innerHTML='';
+  var script=document.createElement('script');
+  script.type='text/babel';
+  script.setAttribute('data-presets','react');
+  script.textContent=${JSON.stringify(safe)};
+  document.body.appendChild(script);
+  if(window.Babel)window.Babel.transformScriptTags();
+}
+if(window.Babel&&window.React&&window.ReactDOM)start();
+else{
+  var iv=setInterval(function(){if(window.Babel&&window.React&&window.ReactDOM){clearInterval(iv);start()}},120);
+  setTimeout(function(){if(!(window.Babel&&window.React&&window.ReactDOM)){document.getElementById('__root').innerHTML='<div class="__err">React/Babel CDN yuklanmadi</div>'}},12000);
+}
+</script>
+</body></html>`
+}
+
+// Python preview — Pyodide CDN orqali stdout/stderr ushlash
+const buildPythonPreview = (pyCode) => {
+  const sourceJSON = JSON.stringify(String(pyCode || ''))
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CONSOLE_STYLE}
+.label::before{background:#3b82f6}
+</style>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.js"></script>
+</head>
+<body><div class="label">Python output</div>
+<div id="__out"><div class="loader">Pyodide yuklanmoqda (birinchi marta ~10 soniya)...</div></div>
+<script>
+(async function(){
   var out=document.getElementById('__out');
-  function fmt(x){
-    if(x===null)return 'null';
-    if(x===undefined)return 'undefined';
-    if(typeof x==='object'){try{return JSON.stringify(x,null,2)}catch(e){return String(x)}}
-    return String(x);
-  }
-  function append(args,cls){
+  function append(text,cls){
     var d=document.createElement('div');
     d.className='log '+(cls||'');
-    d.textContent=Array.prototype.map.call(args,fmt).join(' ');
+    d.textContent=text;
     out.appendChild(d);
   }
-  console.log=function(){append(arguments,'')};
-  console.error=function(){append(arguments,'log-error')};
-  console.warn=function(){append(arguments,'log-warn')};
-  console.info=function(){append(arguments,'log-info')};
-  window.addEventListener('error',function(e){append([(e.message||'Xato')+' ('+(e.lineno||'?')+':'+(e.colno||'?')+')'],'log-error');e.preventDefault()});
   try{
-${safe}
-  }catch(e){append(['Xato: '+(e.message||e)],'log-error')}
-  if(!out.children.length){out.innerHTML='<div class="empty">// console.log() chaqiring — natija shu yerda ko\\'rinadi</div>'}
+    var pyodide=await loadPyodide();
+    out.innerHTML='';
+    pyodide.setStdout({batched:function(s){append(s)}});
+    pyodide.setStderr({batched:function(s){append(s,'log-error')}});
+    try{
+      await pyodide.runPythonAsync(${sourceJSON});
+    }catch(e){
+      append(String(e&&e.message?e.message:e),'log-error');
+    }
+    if(!out.children.length){out.innerHTML='<div class="empty">// print() chaqiring</div>'}
+  }catch(e){
+    out.innerHTML='<div class="log log-error">Pyodide yuklanmadi: '+(e.message||e)+'</div>';
+  }
 })();
-</script>
-</body>
-</html>`
+</script></body></html>`
+}
+
+// Til bo'yicha to'g'ri preview HTML qaytaradi
+const buildPreviewFor = (language, code, fallbackTemplate) => {
+  const src = code || fallbackTemplate || ''
+  switch (language) {
+    case 'html':
+    case 'css':
+      return src
+    case 'javascript':
+      return buildJSPreview(src)
+    case 'typescript':
+      return buildTSPreview(src)
+    case 'react':
+      return buildReactPreview(src)
+    case 'python':
+      return buildPythonPreview(src)
+    default:
+      return ''
+  }
 }
 
 function Battle() {
@@ -608,12 +738,14 @@ function Battle() {
     const isSolo = currentBattle.mode === 'solo'
     const lang = currentBattle.language
     const hasPreview = PREVIEW_LANGS.includes(lang)
-    const isJSPreview = lang === 'javascript'
+    // HTML/CSS — vizual render (allow-same-origin), boshqalari skript ishlaydi
+    const isVisualOnly = lang === 'html' || lang === 'css'
+    const isConsole = ['javascript', 'typescript', 'python'].includes(lang)
     const previewSrc = hasPreview
-      ? (isJSPreview
-          ? buildJSPreview(previewCode || code || currentBattle.template || '')
-          : (previewCode || code || currentBattle.template || ''))
+      ? buildPreviewFor(lang, previewCode || code, currentBattle.template)
       : ''
+    const sandboxAttr = isVisualOnly ? 'allow-same-origin' : 'allow-scripts'
+    const previewLabel = isVisualOnly ? 'Live preview' : isConsole ? 'Console preview' : 'Preview'
     const totalPlayers = currentBattle.players?.length || 1
     const submittedCount = currentBattle.players?.filter(p => p.submitted).length || 0
 
@@ -627,6 +759,11 @@ function Battle() {
             <span className="battle-lang-badge">
               <Code2 size={12} /> {currentBattle.language}
             </span>
+            {currentBattle.difficulty && (
+              <span className={`battle-diff-badge diff-${currentBattle.difficulty}`}>
+                {currentBattle.difficulty}
+              </span>
+            )}
             {!isSolo && (
               <span className="battle-players-count">
                 <Users size={12} /> {submittedCount}/{totalPlayers}
@@ -652,12 +789,12 @@ function Battle() {
           <div className="battle-problem">
             {hasPreview ? (
               <>
-                <h3><Eye size={16} /> {isJSPreview ? 'Console preview' : 'Live preview'}</h3>
+                <h3><Eye size={16} /> {previewLabel}</h3>
                 <iframe
-                  className={`battle-preview-frame ${isJSPreview ? 'preview-console' : ''}`}
+                  className={`battle-preview-frame ${isConsole ? 'preview-console' : ''}`}
                   srcDoc={previewSrc}
                   title="Live preview"
-                  sandbox={isJSPreview ? 'allow-scripts' : 'allow-same-origin'}
+                  sandbox={sandboxAttr}
                 />
                 <details className="preview-problem-details" open>
                   <summary><Code size={14} /> Masala: {currentBattle.problem_title}</summary>
@@ -715,8 +852,8 @@ function Battle() {
             <div className="editor-header">
               <span>{({
                 python: 'main.py', javascript: 'main.js',
-                html: 'index.html', css: 'style.css',
-                cpp: 'main.cpp', java: 'Main.java'
+                typescript: 'main.ts', react: 'App.jsx',
+                html: 'index.html', css: 'style.css'
               })[currentBattle.language] || 'main.txt'}</span>
               <span>{code.length} belgi</span>
             </div>
