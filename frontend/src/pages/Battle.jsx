@@ -5,7 +5,7 @@ import {
   Clock, Send, Code, Shield, Crown, Medal, Award, Code2,
   User, UserPlus, Hash, Play, CheckCircle2, Loader2, Minus, AlertCircle,
   Share2, MessageCircle, Link as LinkIcon, Check, History, ChevronRight,
-  BarChart3, Flame
+  Flame, Eye
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -16,15 +16,14 @@ import '../styles/battle.css'
 const LANGUAGES = [
   { id: 'python', name: 'Python' },
   { id: 'javascript', name: 'JavaScript' },
+  { id: 'html', name: 'HTML' },
+  { id: 'css', name: 'CSS' },
   { id: 'cpp', name: 'C++' },
   { id: 'java', name: 'Java' },
 ]
 
-const DIFFICULTIES = [
-  { id: 'oson', name: 'Oson' },
-  { id: 'orta', name: "O'rta" },
-  { id: 'qiyin', name: 'Qiyin' },
-]
+// HTML/CSS uchun live preview ko'rsatiladi (chap tomonda iframe)
+const VISUAL_LANGS = ['html', 'css']
 
 function Battle() {
   const navigate = useNavigate()
@@ -38,7 +37,6 @@ function Battle() {
   const [view, setView] = useState('lobby')
   const [language, setLanguage] = useState('python')
   const [maxPlayers, setMaxPlayers] = useState(2)
-  const [difficulty, setDifficulty] = useState('orta')
   const [joinId, setJoinId] = useState('')
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [currentBattle, setCurrentBattle] = useState(null)
@@ -310,7 +308,7 @@ function Battle() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ language, maxPlayers, difficulty })
+        body: JSON.stringify({ language, maxPlayers })
       })
       const data = await res.json()
       if (res.ok) {
@@ -380,7 +378,7 @@ function Battle() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ language, difficulty })
+        body: JSON.stringify({ language })
       })
       const data = await res.json()
       if (res.ok) {
@@ -412,7 +410,7 @@ function Battle() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ language, difficulty })
+        body: JSON.stringify({ language })
       })
       const data = await res.json()
       if (res.ok) {
@@ -547,6 +545,7 @@ function Battle() {
   // ============ PLAYING SCREEN ============
   if (view === 'playing' && currentBattle) {
     const isSolo = currentBattle.mode === 'solo'
+    const isVisual = VISUAL_LANGS.includes(currentBattle.language)
     const totalPlayers = currentBattle.players?.length || 1
     const submittedCount = currentBattle.players?.filter(p => p.submitted).length || 0
 
@@ -583,11 +582,31 @@ function Battle() {
 
         <div className="battle-layout">
           <div className="battle-problem">
-            <h3><Code size={16} /> Masala</h3>
-            <div className="problem-content">
-              <h4>{currentBattle.problem_title}</h4>
-              <pre>{currentBattle.problem}</pre>
-            </div>
+            {isVisual ? (
+              <>
+                <h3><Eye size={16} /> Live preview</h3>
+                <iframe
+                  className="battle-preview-frame"
+                  srcDoc={code || currentBattle.template}
+                  title="Live preview"
+                  sandbox="allow-same-origin"
+                />
+                <details className="preview-problem-details" open>
+                  <summary><Code size={14} /> Masala: {currentBattle.problem_title}</summary>
+                  <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, marginTop: 8 }}>
+                    {currentBattle.problem}
+                  </pre>
+                </details>
+              </>
+            ) : (
+              <>
+                <h3><Code size={16} /> Masala</h3>
+                <div className="problem-content">
+                  <h4>{currentBattle.problem_title}</h4>
+                  <pre>{currentBattle.problem}</pre>
+                </div>
+              </>
+            )}
 
             {!isSolo && currentBattle.players && (
               <div className="battle-players-list">
@@ -626,11 +645,11 @@ function Battle() {
 
           <div className="battle-editor">
             <div className="editor-header">
-              <span>main.{
-                currentBattle.language === 'python' ? 'py' :
-                  currentBattle.language === 'javascript' ? 'js' :
-                    currentBattle.language === 'cpp' ? 'cpp' : 'java'
-              }</span>
+              <span>{({
+                python: 'main.py', javascript: 'main.js',
+                html: 'index.html', css: 'style.html',
+                cpp: 'main.cpp', java: 'Main.java'
+              })[currentBattle.language] || 'main.txt'}</span>
               <span>{code.length} belgi</span>
             </div>
             <textarea
@@ -929,23 +948,6 @@ function Battle() {
                 onClick={() => setLanguage(lang.id)}
               >
                 <Code2 size={16} /> {lang.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="lang-selector">
-          <div className="lang-selector-label">
-            <BarChart3 size={14} /> Qiyinlik darajasi
-          </div>
-          <div className="lang-buttons">
-            {DIFFICULTIES.map(d => (
-              <button
-                key={d.id}
-                className={`lang-btn ${difficulty === d.id ? 'lang-active' : ''}`}
-                onClick={() => setDifficulty(d.id)}
-              >
-                {d.name}
               </button>
             ))}
           </div>

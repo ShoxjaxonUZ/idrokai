@@ -30,6 +30,34 @@ const PROBLEMS = {
   ],
   java: [
     { id: 'java-1', title: 'Sonlar yig\'indisi', text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`, template: `public class Main {\n    public static int sum(int a, int b) {\n        // Kodingizni yozing\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(sum(3, 5));\n    }\n}` }
+  ],
+  html: [
+    {
+      id: 'html-1',
+      title: 'Tugma yaratish',
+      text: `"Bosing" matnli tugma yarating.\n\nTalab:\n- Yashil fon (#22c55e)\n- Oq matn\n- 10px ichki bo'shliq\n- Yumaloq burchaklar (8px)`,
+      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga */\n  </style>\n</head>\n<body>\n  <!-- HTML shu yerga -->\n</body>\n</html>`
+    },
+    {
+      id: 'html-2',
+      title: 'Karta yaratish',
+      text: `Profil kartasini yarating.\n\nTalab:\n- Ism (sarlavha)\n- Qisqa tavsif\n- Soya bilan\n- 300px keng`,
+      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga */\n  </style>\n</head>\n<body>\n  <!-- HTML shu yerga -->\n</body>\n</html>`
+    }
+  ],
+  css: [
+    {
+      id: 'css-1',
+      title: 'Markazga joylash',
+      text: `Quti elementini ekran markaziga joylang.\n\nQuti 200x200px, ko'k fonli (#5B5BD6).\nFlexbox yoki grid ishlatishingiz mumkin.`,
+      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga — .box markazga joylasin */\n\n  </style>\n</head>\n<body>\n  <div class="box">Quti</div>\n</body>\n</html>`
+    },
+    {
+      id: 'css-2',
+      title: 'Tugma stilini berish',
+      text: `Tugmaga chiroyli stil bering.\n\nTalab:\n- Gradient fon (indigo -> pushti)\n- Oq matn, qalin\n- Hover effekti (rangini o'zgartiradi)\n- Yumaloq burchaklar`,
+      template: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* CSS shu yerga */\n\n  </style>\n</head>\n<body>\n  <button>Bosing</button>\n</body>\n</html>`
+    }
   ]
 }
 
@@ -40,26 +68,37 @@ const getRandomProblem = (lang = 'python') => {
   return list[Math.floor(Math.random() * list.length)]
 }
 
-// Qiyinlik darajalari
-const DIFFICULTIES = ['oson', 'orta', 'qiyin']
-const DIFFICULTY_PROMPT = {
-  oson: "oson (3-4 daqiqada yechiladigan, oddiy mantiq — son, string asoslari)",
-  orta: "o'rta (5 daqiqada yechiladigan, algoritm talab qiladi — sikl, shart, massiv)",
-  qiyin: "qiyin (murakkab algoritm, bir necha bosqichli mantiq yoki optimallashtirish)"
-}
-const normDifficulty = (d) => (DIFFICULTIES.includes(d) ? d : 'orta')
-
 // AI orqali masala yaratish — agar AI muvaffaqiyatsiz bo'lsa, fallback berila beradi
-const generateAIProblem = async (language, difficulty = 'orta') => {
+const generateAIProblem = async (language) => {
   const langName = {
-    python: 'Python', javascript: 'JavaScript', cpp: 'C++', java: 'Java'
+    python: 'Python', javascript: 'JavaScript', cpp: 'C++', java: 'Java',
+    html: 'HTML', css: 'CSS'
   }[language] || 'Python'
 
-  const diffText = DIFFICULTY_PROMPT[difficulty] || DIFFICULTY_PROMPT.orta
+  const isVisual = ['html', 'css'].includes(language)
 
-  const prompt = `Sen kod battle uchun masala yaratuvchi AI san. ${langName} dasturlash tilida YANGI va QIZIQARLI masala yarat.
+  const prompt = isVisual
+    ? `Sen frontend battle uchun masala yaratuvchi AI san. ${langName} bilan kichik vizual element yaratish masalasini yarat.
 
-DARAJA: ${diffText}
+DARAJA: o'rta (5 daqiqada yechiladigan)
+TIL: ${langName}
+
+QOIDALAR:
+1. Masala kichik vizual element yaratish (tugma, karta, forma, layout, animatsiya)
+2. Natija qanday ko'rinishi aniq tasvirlangan (rang, o'lcham, joylashuv)
+3. O'zbek tilida (lotin yozuvi)
+4. Template — to'liq HTML hujjat (DOCTYPE bilan), foydalanuvchi to'ldiradigan joy kommentariya bilan belgilangan
+5. ${language === 'css' ? "<style> tegi ichida foydalanuvchi joyi bo'sh bo'lsin, kerakli HTML elementlar tayyor" : 'body ichida foydalanuvchi joyi bo\'sh, style tayyor yoki minimal'}
+
+JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
+{
+  "title": "Masala nomi (3-5 so'z, o'zbekcha)",
+  "text": "Nima yaratish kerak va qanday ko'rinishi (3-6 qator)",
+  "template": "<!DOCTYPE html>...to'liq HTML hujjat..."
+}`
+    : `Sen kod battle uchun masala yaratuvchi AI san. ${langName} dasturlash tilida YANGI va QIZIQARLI masala yarat.
+
+DARAJA: o'rta (5 daqiqada yechiladigan, algoritm talab qiladi)
 DASTURLASH TILI: ${langName}
 
 QOIDALAR:
@@ -110,8 +149,8 @@ JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
 }
 
 // Yagona kirish — AI urinish, muvaffaqiyatsiz bo'lsa fallback
-const getProblemForBattle = async (language, difficulty = 'orta') => {
-  const aiProb = await generateAIProblem(language, difficulty)
+const getProblemForBattle = async (language) => {
+  const aiProb = await generateAIProblem(language)
   if (aiProb) return aiProb
   return getRandomProblem(language)
 }
@@ -359,19 +398,18 @@ const finishBattle = async (battleId) => {
 
 router.post('/create', auth, async (req, res) => {
   try {
-    const { language = 'python', maxPlayers = 2, difficulty } = req.body
+    const { language = 'python', maxPlayers = 2 } = req.body
     if (!SUPPORTED_LANGS.includes(language)) return res.status(400).json({ message: 'Til qo\'llanmaydi' })
     const max = Math.min(10, Math.max(2, parseInt(maxPlayers) || 2))
-    const diff = normDifficulty(difficulty)
 
     await ensureRating(req.user.id)
-    const problem = await getProblemForBattle(language, diff)
+    const problem = await getProblemForBattle(language)
     const battleId = generateId()
 
     await pool.query(`
-      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, difficulty, status)
-      VALUES ($1, $2, 'multiplayer', $3, $4, $5, $6, $7, $8, $9, 'waiting')
-    `, [battleId, req.user.id, max, problem.id, problem.title, problem.text, language, problem.template, diff])
+      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status)
+      VALUES ($1, $2, 'multiplayer', $3, $4, $5, $6, $7, $8, 'waiting')
+    `, [battleId, req.user.id, max, problem.id, problem.title, problem.text, language, problem.template])
 
     await pool.query(`
       INSERT INTO battle_players (battle_id, user_id) VALUES ($1, $2)
@@ -470,18 +508,17 @@ router.post('/start/:id', auth, async (req, res) => {
 
 router.post('/solo', auth, async (req, res) => {
   try {
-    const { language = 'python', difficulty } = req.body
+    const { language = 'python' } = req.body
     if (!SUPPORTED_LANGS.includes(language)) return res.status(400).json({ message: 'Til qo\'llanmaydi' })
-    const diff = normDifficulty(difficulty)
 
     await ensureRating(req.user.id)
-    const problem = await getProblemForBattle(language, diff)
+    const problem = await getProblemForBattle(language)
     const battleId = 'S' + generateId()
 
     await pool.query(`
-      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, difficulty, status, started_at)
-      VALUES ($1, $2, 'solo', 1, $3, $4, $5, $6, $7, $8, 'playing', NOW())
-    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template, diff])
+      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status, started_at)
+      VALUES ($1, $2, 'solo', 1, $3, $4, $5, $6, $7, 'playing', NOW())
+    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template])
 
     await pool.query('INSERT INTO battle_players (battle_id, user_id) VALUES ($1, $2)', [battleId, req.user.id])
 
@@ -493,9 +530,8 @@ router.post('/solo', auth, async (req, res) => {
 })
 
 router.post('/random', auth, async (req, res) => {
-  const { language = 'python', difficulty } = req.body
+  const { language = 'python' } = req.body
   if (!SUPPORTED_LANGS.includes(language)) return res.status(400).json({ message: 'Til qo\'llanmaydi' })
-  const diff = normDifficulty(difficulty)
 
   const client = await pool.connect()
   try {
@@ -510,14 +546,13 @@ router.post('/random', auth, async (req, res) => {
       WHERE b.status = 'waiting'
         AND b.mode = 'multiplayer'
         AND b.language = $1
-        AND b.difficulty = $3
         AND b.host_id != $2
         AND b.created_at > NOW() - INTERVAL '5 minutes'
         AND (SELECT COUNT(*) FROM battle_players WHERE battle_id = b.id) < b.max_players
       ORDER BY b.created_at ASC
       LIMIT 1
       FOR UPDATE OF b SKIP LOCKED
-    `, [language, req.user.id, diff])
+    `, [language, req.user.id])
 
     if (waiting.rows.length > 0) {
       const battle = waiting.rows[0]
@@ -532,12 +567,12 @@ router.post('/random', auth, async (req, res) => {
       return res.json({ id: battle.id, status: battle.status })
     }
 
-    const problem = await getProblemForBattle(language, diff)
+    const problem = await getProblemForBattle(language)
     const battleId = generateId()
     await client.query(`
-      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, difficulty, status)
-      VALUES ($1, $2, 'multiplayer', 2, $3, $4, $5, $6, $7, $8, 'waiting')
-    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template, diff])
+      INSERT INTO battles (id, host_id, mode, max_players, problem_id, problem_title, problem_text, language, template, status)
+      VALUES ($1, $2, 'multiplayer', 2, $3, $4, $5, $6, $7, 'waiting')
+    `, [battleId, req.user.id, problem.id, problem.title, problem.text, language, problem.template])
 
     await client.query('INSERT INTO battle_players (battle_id, user_id) VALUES ($1, $2)', [battleId, req.user.id])
     await client.query('COMMIT')
@@ -589,7 +624,6 @@ router.get('/status/:id', auth, async (req, res) => {
       problem: battle.problem_text,
       template: battle.template,
       language: battle.language,
-      difficulty: battle.difficulty,
       status: battle.status,
       winner_id: battle.winner_id,
       players: players.rows,

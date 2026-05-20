@@ -1043,3 +1043,45 @@
   .battle-problem h3 { font-size: 13px; }
   .result-banner { padding: 28px 18px; }
 }
+
+/* HTML/CSS battle uchun live preview */
+.battle-preview-frame {
+  width: 100%;
+  flex: 1;
+  min-height: 280px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  margin-top: 10px;
+}
+
+.preview-problem-details {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.preview-problem-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  list-style: none;
+}
+
+.preview-problem-details summary::-webkit-details-marker { display: none; }
+
+.preview-problem-details[open] summary { margin-bottom: 8px; }
+
+.preview-problem-details pre {
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
