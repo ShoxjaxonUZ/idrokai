@@ -348,6 +348,66 @@ const PROBLEMS = {
       text: `Tub son tekshiruvi.\n\nis_prime(7) → true`,
       template: `fn is_prime(n: u32) -> bool {\n    // Kodingizni shu yerga yozing\n    false\n}\n\nfn main() {\n    println!("{}", is_prime(7));\n    println!("{}", is_prime(8));\n}`
     }
+  ],
+  php: [
+    // === OSON ===
+    {
+      id: 'php-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`,
+      template: `<?php\nfunction sum($a, $b) {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\necho sum(3, 5);\n`
+    },
+    {
+      id: 'php-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `"Salom, NAME!" qaytaring.\n\ngreet("Ali") → "Salom, Ali!"`,
+      template: `<?php\nfunction greet($name) {\n    // Kodingizni shu yerga yozing\n    return "";\n}\n\necho greet("Ali");\n`
+    },
+    // === ORTA ===
+    {
+      id: 'php-m1', difficulty: 'orta', title: "Eng katta son",
+      text: `Massivdan eng katta sonni toping.\n\nmaxNum([1,5,3,9]) → 9`,
+      template: `<?php\nfunction maxNum($arr) {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\necho maxNum([1, 5, 3, 9]);\n`
+    },
+    {
+      id: 'php-m2', difficulty: 'orta', title: "Palindrom",
+      text: `So'z palindrommi tekshiring.\n\nisPalindrome("madam") → true`,
+      template: `<?php\nfunction isPalindrome($s) {\n    // Kodingizni shu yerga yozing\n    return false;\n}\n\nvar_dump(isPalindrome("madam"));\n`
+    },
+    // === QIYIN ===
+    {
+      id: 'php-h1', difficulty: 'qiyin', title: "Anagram",
+      text: `Ikki so'z anagrammi tekshiring.\n\nisAnagram("listen","silent") → true`,
+      template: `<?php\nfunction isAnagram($a, $b) {\n    // Kodingizni shu yerga yozing\n    return false;\n}\n\nvar_dump(isAnagram("listen", "silent"));\n`
+    }
+  ],
+  ruby: [
+    // === OSON ===
+    {
+      id: 'rb-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`,
+      template: `def sum(a, b)\n  # Kodingizni shu yerga yozing\nend\n\nputs sum(3, 5)\n`
+    },
+    {
+      id: 'rb-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `"Salom, NAME!" qaytaring.\n\ngreet("Ali") → "Salom, Ali!"`,
+      template: `def greet(name)\n  # Kodingizni shu yerga yozing\nend\n\nputs greet("Ali")\n`
+    },
+    // === ORTA ===
+    {
+      id: 'rb-m1', difficulty: 'orta', title: "Eng katta son",
+      text: `Massivdan eng katta sonni toping.\n\nmax_num([1,5,3,9]) → 9`,
+      template: `def max_num(nums)\n  # Kodingizni shu yerga yozing\nend\n\nputs max_num([1, 5, 3, 9])\n`
+    },
+    {
+      id: 'rb-m2', difficulty: 'orta', title: "String teskari",
+      text: `String'ni teskari aylantiring.\n\nreverse_str("hello") → "olleh"`,
+      template: `def reverse_str(s)\n  # Kodingizni shu yerga yozing\nend\n\nputs reverse_str("hello")\n`
+    },
+    // === QIYIN ===
+    {
+      id: 'rb-h1', difficulty: 'qiyin', title: "Tublik",
+      text: `Tub son tekshiruvi.\n\nprime?(7) → true`,
+      template: `def prime?(n)\n  # Kodingizni shu yerga yozing\nend\n\nputs prime?(7)\nputs prime?(8)\n`
+    }
   ]
 }
 
@@ -379,7 +439,8 @@ const getRandomProblem = (lang = 'python', difficulty = 'orta') => {
 const LANG_NAMES = {
   python: 'Python', javascript: 'JavaScript', typescript: 'TypeScript',
   react: 'React (JSX)', html: 'HTML', css: 'CSS',
-  cpp: 'C++', java: 'Java', go: 'Go', rust: 'Rust'
+  cpp: 'C++', java: 'Java', go: 'Go', rust: 'Rust',
+  php: 'PHP', ruby: 'Ruby'
 }
 
 // Piston API — bepul kod ishga tushiruvchi (https://piston.readthedocs.io/)
@@ -389,7 +450,9 @@ const PISTON_LANGS = {
   cpp: { language: 'c++', version: '10.2.0' },
   java: { language: 'java', version: '15.0.2' },
   go: { language: 'go', version: '1.16.2' },
-  rust: { language: 'rust', version: '1.68.2' }
+  rust: { language: 'rust', version: '1.68.2' },
+  php: { language: 'php', version: '8.2.3' },
+  ruby: { language: 'ruby', version: '3.0.1' }
 }
 
 const DIFF_TEXT = {

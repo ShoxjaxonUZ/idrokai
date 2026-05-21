@@ -24,13 +24,15 @@ const LANGUAGES = [
   { id: 'java', name: 'Java' },
   { id: 'go', name: 'Go' },
   { id: 'rust', name: 'Rust' },
+  { id: 'php', name: 'PHP' },
+  { id: 'ruby', name: 'Ruby' },
 ]
 
 // Live preview qo'llab-quvvatlanadigan tillar (hammasi)
-const PREVIEW_LANGS = ['html', 'css', 'javascript', 'typescript', 'react', 'python', 'cpp', 'java', 'go', 'rust']
+const PREVIEW_LANGS = ['html', 'css', 'javascript', 'typescript', 'react', 'python', 'cpp', 'java', 'go', 'rust', 'php', 'ruby']
 
 // Brauzerda emas, backend (Piston API) orqali ishga tushiriladigan tillar
-const BACKEND_EXEC_LANGS = ['cpp', 'java', 'go', 'rust']
+const BACKEND_EXEC_LANGS = ['cpp', 'java', 'go', 'rust', 'php', 'ruby']
 
 // Iframe ichiga script tag ichida injektsiya qilish uchun </script> ni escape qilish
 const escapeForScript = (s) => String(s || '').replace(/<\/script>/gi, '<\\/script>')
@@ -198,7 +200,7 @@ const buildPythonPreview = (pyCode) => {
 // Piston backend natijasini console-style HTML'da ko'rsatish
 const buildExecPreview = (language, execState) => {
   // execState: { loading?, error?, stdout?, stderr?, compileStderr?, exitCode? }
-  const langDot = { cpp: '#00599c', java: '#f89820', go: '#00add8', rust: '#dea584' }[language] || '#22c55e'
+  const langDot = { cpp: '#00599c', java: '#f89820', go: '#00add8', rust: '#dea584', php: '#777bb4', ruby: '#cc342d' }[language] || '#22c55e'
   let body
   if (!execState) {
     body = `<div class="empty">// Kod kiriting — natija avtomatik chiqadi</div>`
@@ -243,6 +245,8 @@ const buildPreviewFor = (language, code, fallbackTemplate, execState) => {
     case 'java':
     case 'go':
     case 'rust':
+    case 'php':
+    case 'ruby':
       return buildExecPreview(language, execState)
     default:
       return ''
@@ -940,7 +944,8 @@ function Battle() {
                 typescript: 'main.ts', react: 'App.jsx',
                 html: 'index.html', css: 'style.css',
                 cpp: 'main.cpp', java: 'Main.java',
-                go: 'main.go', rust: 'main.rs'
+                go: 'main.go', rust: 'main.rs',
+                php: 'index.php', ruby: 'main.rb'
               })[currentBattle.language] || 'main.txt'}</span>
               <span>{code.length} belgi</span>
             </div>
