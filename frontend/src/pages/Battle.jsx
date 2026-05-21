@@ -20,10 +20,17 @@ const LANGUAGES = [
   { id: 'typescript', name: 'TypeScript' },
   { id: 'react', name: 'React' },
   { id: 'python', name: 'Python' },
+  { id: 'cpp', name: 'C++' },
+  { id: 'java', name: 'Java' },
+  { id: 'go', name: 'Go' },
+  { id: 'rust', name: 'Rust' },
 ]
 
 // Live preview qo'llab-quvvatlanadigan tillar (hammasi)
-const PREVIEW_LANGS = ['html', 'css', 'javascript', 'typescript', 'react', 'python']
+const PREVIEW_LANGS = ['html', 'css', 'javascript', 'typescript', 'react', 'python', 'cpp', 'java', 'go', 'rust']
+
+// Brauzerda emas, backend (Piston API) orqali ishga tushiriladigan tillar
+const BACKEND_EXEC_LANGS = ['cpp', 'java', 'go', 'rust']
 
 // Iframe ichiga script tag ichida injektsiya qilish uchun </script> ni escape qilish
 const escapeForScript = (s) => String(s || '').replace(/<\/script>/gi, '<\\/script>')
@@ -188,8 +195,37 @@ const buildPythonPreview = (pyCode) => {
 </script></body></html>`
 }
 
+// Piston backend natijasini console-style HTML'da ko'rsatish
+const buildExecPreview = (language, execState) => {
+  // execState: { loading?, error?, stdout?, stderr?, compileStderr?, exitCode? }
+  const langDot = { cpp: '#00599c', java: '#f89820', go: '#00add8', rust: '#dea584' }[language] || '#22c55e'
+  let body
+  if (!execState) {
+    body = `<div class="empty">// Kod kiriting — natija avtomatik chiqadi</div>`
+  } else if (execState.loading) {
+    body = `<div class="loader">Bajarilmoqda... (3-8 soniya)</div>`
+  } else if (execState.error) {
+    body = `<div class="log log-error">${String(execState.error).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</div>`
+  } else {
+    const esc = (s) => String(s || '').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))
+    const parts = []
+    if (execState.compileStderr) parts.push(`<div class="log log-error">Kompilyatsiya xatosi:\n${esc(execState.compileStderr)}</div>`)
+    if (execState.stdout) parts.push(`<div class="log">${esc(execState.stdout)}</div>`)
+    if (execState.stderr) parts.push(`<div class="log log-error">${esc(execState.stderr)}</div>`)
+    if (!parts.length) parts.push(`<div class="empty">// Chiqish bo'sh (print/cout qiling)</div>`)
+    if (typeof execState.exitCode === 'number' && execState.exitCode !== 0) {
+      parts.push(`<div class="log log-warn">Exit code: ${execState.exitCode}</div>`)
+    }
+    body = parts.join('')
+  }
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${CONSOLE_STYLE}
+.label::before{background:${langDot}}
+</style></head>
+<body><div class="label">Output</div>${body}</body></html>`
+}
+
 // Til bo'yicha to'g'ri preview HTML qaytaradi
-const buildPreviewFor = (language, code, fallbackTemplate) => {
+const buildPreviewFor = (language, code, fallbackTemplate, execState) => {
   const src = code || fallbackTemplate || ''
   switch (language) {
     case 'html':
@@ -203,6 +239,11 @@ const buildPreviewFor = (language, code, fallbackTemplate) => {
       return buildReactPreview(src)
     case 'python':
       return buildPythonPreview(src)
+    case 'cpp':
+    case 'java':
+    case 'go':
+    case 'rust':
+      return buildExecPreview(language, execState)
     default:
       return ''
   }
@@ -226,6 +267,8 @@ function Battle() {
   const [code, setCode] = useState('')
   // Preview iframe har bir bosishda qayta render bo'lmasligi uchun debounced kod
   const [previewCode, setPreviewCode] = useState('')
+  // Backend exec (C++/Java/Go/Rust) preview natijasi
+  const [execOutput, setExecOutput] = useState(null)
   const [timeLeft, setTimeLeft] = useState(300)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -342,10 +385,48 @@ function Battle() {
   }, [code, currentBattle, view])
 
   // Preview kodini debounce qilish — har bir bosishda iframe qayta yuklanmasligi uchun
+  // Backend exec tillarida network latency bor, debounce uzunroq
   useEffect(() => {
-    const t = setTimeout(() => setPreviewCode(code), 600)
+    const isBackend = BACKEND_EXEC_LANGS.includes(currentBattle?.language)
+    const delay = isBackend ? 1200 : 600
+    const t = setTimeout(() => setPreviewCode(code), delay)
     return () => clearTimeout(t)
-  }, [code])
+  }, [code, currentBattle?.language])
+
+  // Backend exec (C++/Java/Go/Rust) — previewCode o'zgarganda Piston ga so'rov yuborish
+  useEffect(() => {
+    if (view !== 'playing' || !currentBattle) return
+    const lang = currentBattle.language
+    if (!BACKEND_EXEC_LANGS.includes(lang)) return
+    if (!previewCode || previewCode.length < 20) {
+      setExecOutput(null)
+      return
+    }
+
+    const controller = new AbortController()
+    setExecOutput({ loading: true })
+    fetch(`${API_URL}/api/battle/exec`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ language: lang, code: previewCode }),
+      signal: controller.signal
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (controller.signal.aborted) return
+        if (data.error) setExecOutput({ error: data.error })
+        else setExecOutput(data)
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') return
+        setExecOutput({ error: 'Bog\'lanib bo\'lmadi' })
+      })
+
+    return () => controller.abort()
+  }, [previewCode, currentBattle?.language, view, token])
 
   const loadLeaderboard = async () => {
     try {
@@ -730,6 +811,8 @@ function Battle() {
     setCurrentBattle(null)
     setSubmitted(false)
     setCode('')
+    setPreviewCode('')
+    setExecOutput(null)
     setError('')
   }
 
@@ -740,11 +823,13 @@ function Battle() {
     const hasPreview = PREVIEW_LANGS.includes(lang)
     // HTML/CSS — vizual render (allow-same-origin), boshqalari skript ishlaydi
     const isVisualOnly = lang === 'html' || lang === 'css'
-    const isConsole = ['javascript', 'typescript', 'python'].includes(lang)
+    const isBackendExec = BACKEND_EXEC_LANGS.includes(lang)
+    const isConsole = ['javascript', 'typescript', 'python'].includes(lang) || isBackendExec
     const previewSrc = hasPreview
-      ? buildPreviewFor(lang, previewCode || code, currentBattle.template)
+      ? buildPreviewFor(lang, previewCode || code, currentBattle.template, execOutput)
       : ''
-    const sandboxAttr = isVisualOnly ? 'allow-same-origin' : 'allow-scripts'
+    // Backend exec natijasi static HTML — skript ishlamaydi, allow-same-origin OK
+    const sandboxAttr = (isVisualOnly || isBackendExec) ? 'allow-same-origin' : 'allow-scripts'
     const previewLabel = isVisualOnly ? 'Live preview' : isConsole ? 'Console preview' : 'Preview'
     const totalPlayers = currentBattle.players?.length || 1
     const submittedCount = currentBattle.players?.filter(p => p.submitted).length || 0
@@ -853,7 +938,9 @@ function Battle() {
               <span>{({
                 python: 'main.py', javascript: 'main.js',
                 typescript: 'main.ts', react: 'App.jsx',
-                html: 'index.html', css: 'style.css'
+                html: 'index.html', css: 'style.css',
+                cpp: 'main.cpp', java: 'Main.java',
+                go: 'main.go', rust: 'main.rs'
               })[currentBattle.language] || 'main.txt'}</span>
               <span>{code.length} belgi</span>
             </div>

@@ -228,6 +228,126 @@ const PROBLEMS = {
       text: `Kartaga smooth hover effekti:\n- Hover'da 8px yuqori ko'tariladi\n- Soya kattalashadi\n- Transition 0.3s ease\n- Border-radius 12px`,
       template: HTML_SCAFFOLD('<div class="card">\n  <h3>Sarlavha</h3>\n  <p>Karta matni</p>\n</div>', `body { display: flex; justify-content: center; padding-top: 80px; background: #f8fafc; }\n\n.card {\n  width: 280px;\n  padding: 20px;\n  background: #fff;\n  /* shu yerga animatsiya */\n}`)
     }
+  ],
+  cpp: [
+    // === OSON ===
+    {
+      id: 'cpp-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki son yig'indisini chiqaring.\n\nMisol:\n3 + 5 → 8`,
+      template: `#include <iostream>\nusing namespace std;\n\nint sum(int a, int b) {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\nint main() {\n    cout << sum(3, 5) << endl;\n    return 0;\n}`
+    },
+    {
+      id: 'cpp-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `Foydalanuvchining ismini chiqaring (constant).\n\nNatija: "Salom, Ali!"`,
+      template: `#include <iostream>\n#include <string>\nusing namespace std;\n\nstring greet(string name) {\n    // Kodingizni shu yerga yozing\n    return "";\n}\n\nint main() {\n    cout << greet("Ali") << endl;\n    return 0;\n}`
+    },
+    // === ORTA ===
+    {
+      id: 'cpp-m1', difficulty: 'orta', title: "Faktorial",
+      text: `N sonning faktorialini hisoblang.\n\nfactorial(5) → 120`,
+      template: `#include <iostream>\nusing namespace std;\n\nint factorial(int n) {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\nint main() {\n    cout << factorial(5) << endl;\n    return 0;\n}`
+    },
+    {
+      id: 'cpp-m2', difficulty: 'orta', title: "Eng katta son",
+      text: `Massivdan eng katta sonni toping.\n\nmax_num({1,5,3,9,2}) → 9`,
+      template: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nint max_num(vector<int> v) {\n    // Kodingizni shu yerga yozing\n    return 0;\n}\n\nint main() {\n    cout << max_num({1,5,3,9,2}) << endl;\n    return 0;\n}`
+    },
+    // === QIYIN ===
+    {
+      id: 'cpp-h1', difficulty: 'qiyin', title: "Tublik tekshiruvi",
+      text: `Sonning tub son ekanligini tekshiring.\n\nis_prime(7) → 1 (true)\nis_prime(8) → 0 (false)`,
+      template: `#include <iostream>\nusing namespace std;\n\nbool is_prime(int n) {\n    // Kodingizni shu yerga yozing\n    return false;\n}\n\nint main() {\n    cout << is_prime(7) << endl;\n    cout << is_prime(8) << endl;\n    return 0;\n}`
+    }
+  ],
+  java: [
+    // === OSON ===
+    {
+      id: 'java-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`,
+      template: `public class Main {\n    public static int sum(int a, int b) {\n        // Kodingizni shu yerga yozing\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(sum(3, 5));\n    }\n}`
+    },
+    {
+      id: 'java-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `"Salom, NAME!" qaytaring.\n\ngreet("Ali") → "Salom, Ali!"`,
+      template: `public class Main {\n    public static String greet(String name) {\n        // Kodingizni shu yerga yozing\n        return "";\n    }\n\n    public static void main(String[] args) {\n        System.out.println(greet("Ali"));\n    }\n}`
+    },
+    // === ORTA ===
+    {
+      id: 'java-m1', difficulty: 'orta', title: "Faktorial",
+      text: `N sonning faktorialini hisoblang.\n\nfactorial(5) → 120`,
+      template: `public class Main {\n    public static long factorial(int n) {\n        // Kodingizni shu yerga yozing\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(factorial(5));\n    }\n}`
+    },
+    {
+      id: 'java-m2', difficulty: 'orta', title: "Palindrom",
+      text: `So'z palindrommi tekshiring.\n\nisPalindrome("madam") → true`,
+      template: `public class Main {\n    public static boolean isPalindrome(String s) {\n        // Kodingizni shu yerga yozing\n        return false;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(isPalindrome("madam"));\n    }\n}`
+    },
+    // === QIYIN ===
+    {
+      id: 'java-h1', difficulty: 'qiyin', title: "Fibonachchi",
+      text: `Fibonachchi N-elementi.\n\nfib(8) → 21`,
+      template: `public class Main {\n    public static int fib(int n) {\n        // Kodingizni shu yerga yozing\n        return 0;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(fib(8));\n    }\n}`
+    }
+  ],
+  go: [
+    // === OSON ===
+    {
+      id: 'go-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki sonni qo'shing.\n\nSum(3, 5) → 8`,
+      template: `package main\n\nimport "fmt"\n\nfunc Sum(a, b int) int {\n    // Kodingizni shu yerga yozing\n    return 0\n}\n\nfunc main() {\n    fmt.Println(Sum(3, 5))\n}`
+    },
+    {
+      id: 'go-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `"Salom, NAME!" qaytaring.\n\nGreet("Ali") → "Salom, Ali!"`,
+      template: `package main\n\nimport "fmt"\n\nfunc Greet(name string) string {\n    // Kodingizni shu yerga yozing\n    return ""\n}\n\nfunc main() {\n    fmt.Println(Greet("Ali"))\n}`
+    },
+    // === ORTA ===
+    {
+      id: 'go-m1', difficulty: 'orta', title: "Eng katta son",
+      text: `Slice'dan eng katta sonni toping.\n\nMax([]int{1,5,3,9}) → 9`,
+      template: `package main\n\nimport "fmt"\n\nfunc Max(nums []int) int {\n    // Kodingizni shu yerga yozing\n    return 0\n}\n\nfunc main() {\n    fmt.Println(Max([]int{1, 5, 3, 9}))\n}`
+    },
+    {
+      id: 'go-m2', difficulty: 'orta', title: "String teskari",
+      text: `Stringni teskari aylantiring.\n\nReverse("hello") → "olleh"`,
+      template: `package main\n\nimport "fmt"\n\nfunc Reverse(s string) string {\n    // Kodingizni shu yerga yozing\n    return ""\n}\n\nfunc main() {\n    fmt.Println(Reverse("hello"))\n}`
+    },
+    // === QIYIN ===
+    {
+      id: 'go-h1', difficulty: 'qiyin', title: "Tublik",
+      text: `Sonning tub son ekanligini tekshiring.\n\nIsPrime(7) → true`,
+      template: `package main\n\nimport "fmt"\n\nfunc IsPrime(n int) bool {\n    // Kodingizni shu yerga yozing\n    return false\n}\n\nfunc main() {\n    fmt.Println(IsPrime(7))\n    fmt.Println(IsPrime(8))\n}`
+    }
+  ],
+  rust: [
+    // === OSON ===
+    {
+      id: 'rs-e1', difficulty: 'oson', title: "Sonlar yig'indisi",
+      text: `Ikki sonni qo'shing.\n\nsum(3, 5) → 8`,
+      template: `fn sum(a: i32, b: i32) -> i32 {\n    // Kodingizni shu yerga yozing\n    0\n}\n\nfn main() {\n    println!("{}", sum(3, 5));\n}`
+    },
+    {
+      id: 'rs-e2', difficulty: 'oson', title: "Salomlashish",
+      text: `"Salom, NAME!" qaytaring.\n\ngreet("Ali") → "Salom, Ali!"`,
+      template: `fn greet(name: &str) -> String {\n    // Kodingizni shu yerga yozing\n    String::new()\n}\n\nfn main() {\n    println!("{}", greet("Ali"));\n}`
+    },
+    // === ORTA ===
+    {
+      id: 'rs-m1', difficulty: 'orta', title: "Eng katta son",
+      text: `Vec<i32>'dan eng katta sonni toping.\n\nmax_num(&vec![1,5,3,9]) → 9`,
+      template: `fn max_num(nums: &Vec<i32>) -> i32 {\n    // Kodingizni shu yerga yozing\n    0\n}\n\nfn main() {\n    let v = vec![1, 5, 3, 9];\n    println!("{}", max_num(&v));\n}`
+    },
+    {
+      id: 'rs-m2', difficulty: 'orta', title: "Faktorial",
+      text: `N sonning faktorialini hisoblang.\n\nfactorial(5) → 120`,
+      template: `fn factorial(n: u64) -> u64 {\n    // Kodingizni shu yerga yozing\n    0\n}\n\nfn main() {\n    println!("{}", factorial(5));\n}`
+    },
+    // === QIYIN ===
+    {
+      id: 'rs-h1', difficulty: 'qiyin', title: "Tublik",
+      text: `Tub son tekshiruvi.\n\nis_prime(7) → true`,
+      template: `fn is_prime(n: u32) -> bool {\n    // Kodingizni shu yerga yozing\n    false\n}\n\nfn main() {\n    println!("{}", is_prime(7));\n    println!("{}", is_prime(8));\n}`
+    }
   ]
 }
 
@@ -258,7 +378,18 @@ const getRandomProblem = (lang = 'python', difficulty = 'orta') => {
 
 const LANG_NAMES = {
   python: 'Python', javascript: 'JavaScript', typescript: 'TypeScript',
-  react: 'React (JSX)', html: 'HTML', css: 'CSS'
+  react: 'React (JSX)', html: 'HTML', css: 'CSS',
+  cpp: 'C++', java: 'Java', go: 'Go', rust: 'Rust'
+}
+
+// Piston API — bepul kod ishga tushiruvchi (https://piston.readthedocs.io/)
+// Faqat brauzerda preview qila olmaydigan tillar uchun
+const PISTON_URL = 'https://emkc.org/api/v2/piston/execute'
+const PISTON_LANGS = {
+  cpp: { language: 'c++', version: '10.2.0' },
+  java: { language: 'java', version: '15.0.2' },
+  go: { language: 'go', version: '1.16.2' },
+  rust: { language: 'rust', version: '1.68.2' }
 }
 
 const DIFF_TEXT = {
@@ -1053,6 +1184,53 @@ router.get('/history', auth, async (req, res) => {
   } catch (err) {
     console.error('[battle] history error:', err.message)
     res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
+// POST /api/battle/exec — Piston API orqali kodni ishga tushiradi (preview uchun)
+// Faqat C++/Java/Go/Rust kabi brauzerda ishlamaydigan tillar
+// Natija scoring uchun emas, faqat preview UX uchun
+router.post('/exec', auth, async (req, res) => {
+  const { language, code } = req.body
+  if (!language || !PISTON_LANGS[language]) {
+    return res.status(400).json({ error: 'Til qo\'llanmaydi' })
+  }
+  if (typeof code !== 'string' || code.length === 0 || code.length > MAX_CODE_LEN) {
+    return res.status(400).json({ error: 'Kod noto\'g\'ri' })
+  }
+
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    const resp = await fetch(PISTON_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...PISTON_LANGS[language],
+        files: [{ content: code }],
+        compile_timeout: 8000,
+        run_timeout: 5000,
+        compile_memory_limit: -1,
+        run_memory_limit: -1
+      }),
+      signal: controller.signal
+    })
+    clearTimeout(timer)
+
+    if (!resp.ok) {
+      return res.status(502).json({ error: 'Executor xatosi', status: resp.status })
+    }
+    const data = await resp.json()
+    res.json({
+      stdout: (data.run?.stdout || '').slice(0, 8000),
+      stderr: (data.run?.stderr || '').slice(0, 4000),
+      compileStderr: (data.compile?.stderr || '').slice(0, 4000),
+      exitCode: typeof data.run?.code === 'number' ? data.run.code : null
+    })
+  } catch (e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'Executor javob bermadi' })
+    console.warn('[battle] exec error:', e.message?.slice(0, 100))
+    res.status(500).json({ error: 'Executor xatosi' })
   }
 })
 
