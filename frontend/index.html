@@ -8,17 +8,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Content Security Policy — XSS himoyasi
-         (frame-ancestors meta'da ishlamaydi — helmet HTTP header orqali yuboradi) -->
+         (frame-ancestors meta'da ishlamaydi — helmet HTTP header orqali yuboradi)
+         CDN'lar (unpkg, jsdelivr) Battle preview iframe ichida TypeScript/React/Pyodide
+         yuklash uchun kerak. Sandbox iframe parent CSP'ni meros qilib oladi. -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://www.google-analytics.com;
-      script-src-elem 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
-      worker-src 'self' blob:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.googletagmanager.com https://www.google-analytics.com https://unpkg.com https://cdn.jsdelivr.net;
+      script-src-elem 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://unpkg.com https://cdn.jsdelivr.net;
+      worker-src 'self' blob: https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com data:;
       img-src 'self' data: blob: http://localhost:5000 https:;
       media-src 'self' blob: http://localhost:5000 https://*.onrender.com https:;
-      connect-src 'self' http://localhost:5000 ws://localhost:5173 wss://localhost:5173 https://*.onrender.com https://api.groq.com https://www.google-analytics.com https://*.google-analytics.com https://stats.g.doubleclick.net;
+      connect-src 'self' http://localhost:5000 ws://localhost:5173 wss://localhost:5173 https://*.onrender.com https://api.groq.com https://www.google-analytics.com https://*.google-analytics.com https://stats.g.doubleclick.net https://cdn.jsdelivr.net https://unpkg.com https://pypi.org https://files.pythonhosted.org;
       script-src-attr 'none';
       frame-src 'self' https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com;
       base-uri 'self';
