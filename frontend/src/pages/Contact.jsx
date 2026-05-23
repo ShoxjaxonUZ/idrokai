@@ -89,7 +89,7 @@ function Contact() {
                 </div>
                 <div>
                   <div className="contact-info-label">Email</div>
-                  <a href="mailto:info@eduzy.uz" className="contact-info-value">info@eduzy.uz</a>
+                  <a href="mailto:shoxjaxon007a@gmail.com" className="contact-info-value">shoxjaxon007a@gmail.com</a>
                 </div>
               </div>
 
@@ -99,7 +99,7 @@ function Contact() {
                 </div>
                 <div>
                   <div className="contact-info-label">Telefon</div>
-                  <a href="tel:+998901234567" className="contact-info-value">+998 90 123 45 67</a>
+                  <a href="tel:+998332357070" className="contact-info-value">+998 33 235 70 70</a>
                 </div>
               </div>
 
