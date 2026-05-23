@@ -71,7 +71,7 @@ function Footer() {
               </li>
               <li>
                 <Phone size={14} />
-                <a href="tel:+998901234567">+998 90 123 45 67</a>
+                <a href="tel:+998332357070">+998 33 235 70 70</a>
               </li>
               <li>
                 <MapPin size={14} />

@@ -10,7 +10,7 @@ import Footer from '../components/Footer'
 import Loading from '../components/Loading'
 import '../styles/courses.css'
 
-const categories = ["Barchasi", "Dasturlash", "Fan", "Til", "Dizayn", "Biznes", "Boshqa"]
+const categories = ["Barchasi", "Dasturlash", "Fan", "Til", "Dizayn"]
 const levels = ["Barchasi", "Boshlang'ich", "O'rta", "Yuqori"]
 
 function Courses() {
