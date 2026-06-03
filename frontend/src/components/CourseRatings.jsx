@@ -3,6 +3,20 @@ import { Star, Trash2, Edit3, Send, Loader2, MessageSquare } from 'lucide-react'
 import { API_URL, getToken } from '../lib/api'
 import './CourseRatings.css'
 
+// Modul darajasida — har renderda qayta yaratilmasligi uchun
+const Stars = ({ value, size = 16, color = '#F59E0B' }) => (
+  <div style={{ display: 'inline-flex', gap: 2 }}>
+    {[1, 2, 3, 4, 5].map(n => (
+      <Star
+        key={n}
+        size={size}
+        fill={n <= value ? color : 'transparent'}
+        color={n <= value ? color : 'var(--text-muted)'}
+      />
+    ))}
+  </div>
+)
+
 export default function CourseRatings({ courseId, enrolled }) {
   const token = getToken()
   const [summary, setSummary] = useState({ total: 0, avg_rating: 0, distribution: {}, reviews: [] })
@@ -91,18 +105,6 @@ export default function CourseRatings({ courseId, enrolled }) {
     } catch { return ts }
   }
 
-  const Stars = ({ value, size = 16, color = '#F59E0B' }) => (
-    <div style={{ display: 'inline-flex', gap: 2 }}>
-      {[1, 2, 3, 4, 5].map(n => (
-        <Star
-          key={n}
-          size={size}
-          fill={n <= value ? color : 'transparent'}
-          color={n <= value ? color : 'var(--text-muted)'}
-        />
-      ))}
-    </div>
-  )
 
   if (loading) return (
     <div className="rt-loading"><Loader2 size={20} className="spin" /> Yuklanmoqda...</div>

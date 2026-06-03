@@ -112,7 +112,7 @@ function AIQuiz() {
       } else {
         setError(data.message || 'Test yaratishda xatolik')
       }
-    } catch (err) {
+    } catch {
       setError('Server bilan bog\'lanib bo\'lmadi')
     }
     setLoading(false)

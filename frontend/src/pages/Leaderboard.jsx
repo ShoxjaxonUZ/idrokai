@@ -43,12 +43,6 @@ function Leaderboard() {
     return { title: 'Beginner', color: '#94a3b8', Icon: Shield }
   }
 
-  const getMedal = (rank) => {
-    if (rank === 1) return { Icon: Crown, color: '#f59e0b', bg: 'linear-gradient(135deg, #f59e0b, #fbbf24)' }
-    if (rank === 2) return { Icon: Medal, color: '#94a3b8', bg: 'linear-gradient(135deg, #94a3b8, #cbd5e1)' }
-    if (rank === 3) return { Icon: Award, color: '#f97316', bg: 'linear-gradient(135deg, #f97316, #fb923c)' }
-    return null
-  }
 
   const getAvatarColor = (name) => {
     const colors = ['#8b5cf6', '#0ea5e9', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#f97316', '#10b981']

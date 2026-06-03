@@ -23,7 +23,29 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]' }],
+      // localStorage/sessionStorage himoyalari ataylab bo'sh catch ishlatadi
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      // set-state-in-effect — performance maslahati, xato emas (warn yetarli)
+      'react-hooks/set-state-in-effect': 'warn',
+      // ── React Compiler qoidalari ──
+      // Bu loyiha React Compiler ishlatmaydi. Quyidagi qoidalar compiler uchun
+      // mo'ljallangan va oddiy (qo'lda yozilgan) React'da soxta signal beradi:
+      //  - immutability: useEffect ichida keyinroq e'lon qilingan funksiyani chaqirish
+      //    (hoisting tufayli runtime'da to'g'ri ishlaydi)
+      //  - purity: render'da Date.now() (relativ vaqt) — keng tarqalgan, xavfsiz
+      // Klassik 'rules-of-hooks' va 'exhaustive-deps' yoqilgan holicha qoladi.
+      'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
+      // Context fayllari provider + hook eksport qiladi — HMR'ga ta'sir qiladi, bug emas
+      'react-refresh/only-export-components': 'warn',
+    },
+  },
+  {
+    // Node muhitida ishlaydigan config va skript fayllar
+    files: ['vite.config.js', 'postcss.config.js', 'tailwind.config.js', 'scripts/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 ])

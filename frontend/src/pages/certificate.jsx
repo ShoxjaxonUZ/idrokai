@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Award, Download, ArrowLeft, CheckCircle2, Trophy,
@@ -30,7 +30,7 @@ function Certificate({ demo = false }) {
   const [passed, setPassed] = useState(demo)
   const [reason, setReason] = useState('')
   const [certInfo, setCertInfo] = useState(null)
-  const [certCode, setCertCode] = useState(demo ? 'IDR-DEMO01' : '')
+  const [certCode, setCertCode] = useState(demo ? 'EDZ-DEMO01' : '')
   const [issuedAt, setIssuedAt] = useState(demo ? new Date().toISOString() : null)
   const [qrDataUrl, setQrDataUrl] = useState('')
 

@@ -36,7 +36,6 @@ function Admin() {
   // Security
   const [securityStats, setSecurityStats] = useState(null)
   const [securityLogs, setSecurityLogs] = useState([])
-  const [securityFilter, setSecurityFilter] = useState({ category: '', severity: '' })
 
   // Settings — email test
   const [emailTestTo, setEmailTestTo] = useState('')

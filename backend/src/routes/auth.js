@@ -10,12 +10,8 @@ const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
 const telegram = require('../lib/telegram')
 
-// 6 raqamli tasdiqlash kodini generatsiya qilish
-const generate6DigitCode = () => String(Math.floor(100000 + Math.random() * 900000))
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const TOKEN_TTL = '7d'
-const VERIFY_TOKEN_TTL_HOURS = 24
 const RESEND_COOLDOWN_SECONDS = 60
 
 const NAME_BLOCK_RE = /[<>"'`{};|&$\\]|javascript:|onerror|onclick|onload|<script|\/etc\/|\.\.\//i
@@ -203,61 +199,6 @@ router.get('/verify-email', async (req, res) => {
 
   } catch (err) {
     console.error('Verify email error:', err.message)
-    res.status(500).json({ message: 'Xatolik yuz berdi' })
-  }
-})
-
-// Kod orqali tasdiqlash (Telegram)
-router.post('/verify-code', async (req, res) => {
-  try {
-    const rawEmail = req.body?.email
-    const code = String(req.body?.code || '').trim()
-
-    const emailRes = validateEmail(rawEmail)
-    if (emailRes.error) return res.status(400).json({ message: emailRes.error })
-    const trimmedEmail = emailRes.ok
-
-    if (!/^\d{6}$/.test(code)) {
-      return res.status(400).json({ message: 'Kod 6 raqamdan iborat bo\'lishi kerak' })
-    }
-
-    const result = await pool.query(
-      `SELECT id, name, email, email_verified, verification_token, verification_expires
-       FROM users WHERE email = $1`,
-      [trimmedEmail]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(400).json({ message: 'Email yoki kod noto\'g\'ri' })
-    }
-
-    const user = result.rows[0]
-
-    if (user.email_verified) {
-      return res.json({ message: 'Allaqachon tasdiqlangan', alreadyVerified: true })
-    }
-
-    if (!user.verification_token || user.verification_token !== code) {
-      return res.status(400).json({ message: 'Kod noto\'g\'ri' })
-    }
-
-    if (user.verification_expires && new Date(user.verification_expires) < new Date()) {
-      return res.status(400).json({ message: 'Kod muddati o\'tgan. Yangi kod so\'rang.', expired: true })
-    }
-
-    await pool.query(
-      `UPDATE users SET email_verified = TRUE, verification_token = NULL, verification_expires = NULL
-       WHERE id = $1`,
-      [user.id]
-    )
-
-    res.json({
-      message: 'Muvaffaqiyatli tasdiqlandi! Endi tizimga kirishingiz mumkin.',
-      verified: true,
-      email: user.email
-    })
-  } catch (err) {
-    console.error('Verify code error:', err.message)
     res.status(500).json({ message: 'Xatolik yuz berdi' })
   }
 })
@@ -518,6 +459,10 @@ router.put('/update-password', authMiddleware, async (req, res) => {
       'UPDATE users SET password = $1, token_version = COALESCE(token_version, 0) + 1 WHERE id = $2',
       [hashed, id]
     )
+    // token_version oshgani bilan eski tokenlar rad etiladi, lekin user_sessions
+    // qatorlari qolib ketadi va keyingi loginda DEVICE_LIMIT'ni to'ldirib qo'yadi.
+    // Shu sabab barcha sessiyalarni tozalaymiz — foydalanuvchi qaytadan kiradi.
+    await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [id])
 
     res.json({ message: 'Parol yangilandi. Boshqa qurilmalardagi sessiyalar to\'xtatildi' })
   } catch (err) {

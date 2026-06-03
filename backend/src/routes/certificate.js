@@ -17,14 +17,14 @@ const countLessons = (lessons) => {
   return 0
 }
 
-// Unique cert_code generatsiya: IDR-XXXXXX (6 belgi, harf+raqam)
+// Unique cert_code generatsiya: EDZ-XXXXXX (6 belgi, harf+raqam)
 const genCertCode = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // chalkash belgilar yo'q (0/O, 1/I)
   let code = ''
   for (let i = 0; i < 6; i++) {
     code += chars[Math.floor(Math.random() * chars.length)]
   }
-  return `IDR-${code}`
+  return `EDZ-${code}`
 }
 
 // POST /api/certificate/issue/:courseId — sertifikat berish (eligible bo'lsa)

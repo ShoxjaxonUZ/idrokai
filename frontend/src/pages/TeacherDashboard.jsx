@@ -31,7 +31,6 @@ function TeacherDashboard() {
   const user = JSON.parse(localStorage.getItem('user'))
   const token = localStorage.getItem('token')
 
-  const [role, setRole] = useState('student')
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('courses')
   const [myCourses, setMyCourses] = useState([])
@@ -50,7 +49,6 @@ function TeacherDashboard() {
     })
       .then(r => r.json())
       .then(data => {
-        setRole(data.role)
         if (data.role !== 'teacher') {
           navigate('/teacher/apply')
         }
@@ -107,7 +105,7 @@ function TeacherDashboard() {
         alert('Video yuklashda xatolik: ' + data.message)
         updateLesson(index, 'isUploading', false)
       }
-    } catch (err) {
+    } catch {
       alert('Xatolik yuz berdi')
       updateLesson(index, 'isUploading', false)
     }

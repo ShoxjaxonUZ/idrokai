@@ -17,7 +17,6 @@ const LESSONS_PER_TEST = 5
 function CourseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user'))
   const token = localStorage.getItem('token')
 
   const [course, setCourse] = useState(null)

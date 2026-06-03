@@ -280,34 +280,6 @@ function Lesson() {
         }
     }
 
-    const handleComplete = async () => {
-        if (!token) return navigate('/login')
-        const isCompleted = completedLessons.includes(index)
-        try {
-            const res = await fetch(`${API_URL}/api/courses/progress`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    course_id: isNaN(parseInt(courseId)) ? courseId : parseInt(courseId),
-                    lesson_index: index,
-                    completed: !isCompleted,
-                    total_lessons: course.lessons.length
-                })
-            })
-            if (res.ok) {
-                setCompletedLessons(isCompleted
-                    ? completedLessons.filter(i => i !== index)
-                    : [...completedLessons, index]
-                )
-            }
-        } catch (err) {
-            console.error(err)
-        }
-    }
-
     const goNext = async () => {
         if (!videoEnded && !completedLessons.includes(index)) {
             return
@@ -425,7 +397,7 @@ function Lesson() {
                                 frameBorder="0"
                                 allow="autoplay; fullscreen; picture-in-picture"
                                 allowFullScreen
-                                onLoad={(e) => {
+                                onLoad={() => {
                                     setVideoEnded(true)
                                     // Speed restore
                                     setTimeout(() => applyPlaybackSpeed(playbackSpeed), 500)

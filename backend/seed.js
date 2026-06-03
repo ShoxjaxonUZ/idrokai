@@ -23,7 +23,7 @@ async function seed() {
     process.exit()
   }
 
-  const hashed = await bcrypt.hash(password, 10)
+  const hashed = await bcrypt.hash(password, 12)
   await pool.query(
     'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4)',
     [name, email, hashed, 'admin']

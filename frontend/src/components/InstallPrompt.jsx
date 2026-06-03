@@ -5,6 +5,16 @@ import './InstallPrompt.css'
 const DISMISSED_KEY = 'pwa_install_dismissed'
 const DISMISS_DAYS = 14
 
+// Brend ikonasi + qurilma turi belgisi (modul darajasida — har renderda qayta yaratilmaydi)
+const PromptIcon = ({ device, DeviceIcon }) => (
+  <div className="install-prompt-icon">
+    <img src="/icon.svg" alt="Eduzy" width="32" height="32" />
+    <span className="install-prompt-device" title={device}>
+      <DeviceIcon size={12} />
+    </span>
+  </div>
+)
+
 // Qurilma turini aniqlash — desktop / laptop / planshet / mobil
 function detectDevice() {
   const ua = navigator.userAgent
@@ -105,16 +115,6 @@ export default function InstallPrompt() {
   const copy = DEVICE_COPY[device] || DEVICE_COPY.desktop
   const DeviceIcon = copy.Icon
 
-  // Brend ikonasi + qurilma turi belgisi
-  const PromptIcon = () => (
-    <div className="install-prompt-icon">
-      <img src="/icon.svg" alt="Eduzy" width="32" height="32" />
-      <span className="install-prompt-device" title={device}>
-        <DeviceIcon size={12} />
-      </span>
-    </div>
-  )
-
   if (isIOS && iosHint) {
     const iosTitle = device === 'tablet'
       ? "Eduzy'ni planshetga qo'shing"
@@ -124,7 +124,7 @@ export default function InstallPrompt() {
         <button className="install-prompt-close" onClick={dismiss} aria-label="Yopish">
           <X size={16} />
         </button>
-        <PromptIcon />
+        <PromptIcon device={device} DeviceIcon={DeviceIcon} />
         <div className="install-prompt-text">
           <strong>{iosTitle}</strong>
           <span>Safari'da pastdagi <b>Share</b> tugmasini bosing, so'ng <b>"Bosh ekranga qo'shish"</b></span>
@@ -139,7 +139,7 @@ export default function InstallPrompt() {
         <button className="install-prompt-close" onClick={dismiss} aria-label="Yopish">
           <X size={16} />
         </button>
-        <PromptIcon />
+        <PromptIcon device={device} DeviceIcon={DeviceIcon} />
         <div className="install-prompt-text">
           <strong>{copy.title}</strong>
           <span>{copy.desc}</span>

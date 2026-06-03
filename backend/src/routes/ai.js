@@ -40,12 +40,21 @@ router.post('/generate-quiz', auth, async (req, res) => {
     const safeTopic = topic.trim().slice(0, MAX_TOPIC_LEN)
 
     const today = new Date().toISOString().split('T')[0]
-    await pool.query(
-      `INSERT INTO ai_teacher_usage (user_id, usage_date, count)
-       VALUES ($1, $2, 1)
-       ON CONFLICT (user_id, usage_date) DO UPDATE SET count = ai_teacher_usage.count + 1`,
+
+    // Kunlik limit tekshiruvi (AI xarajatini cheklash uchun — /teacher bilan bir xil hisoblagich)
+    const usageRes = await pool.query(
+      'SELECT count FROM ai_teacher_usage WHERE user_id = $1 AND usage_date = $2',
       [req.user.id, today]
     )
+    const currentCount = usageRes.rows[0]?.count || 0
+    if (currentCount >= DAILY_LIMIT) {
+      return res.status(429).json({
+        message: `Kunlik limit tugadi (${DAILY_LIMIT}/${DAILY_LIMIT}). Ertaga qayta urinib ko'ring!`,
+        limitReached: true,
+        used: currentCount,
+        limit: DAILY_LIMIT
+      })
+    }
 
     const prompt = `Sen ta'lim platformasi uchun test savollari yaratuvchi assistentsan. To'g'ri javoblar TASODIFIY taqsimlangan bo'lsin — A, B, C, D barchasi har xil savollarda to'g'ri bo'lib chiqsin (faqat bir variantga to'plama).
 
@@ -93,6 +102,15 @@ Quyidagi JSON formatda ${safeCount} ta test savoli yarat. Faqat sof JSON qaytarg
     if (!parsed) {
       return res.status(500).json({ message: "AI noto'g'ri JSON qaytardi" })
     }
+
+    // Muvaffaqiyatli javobdan keyingina hisoblagichni oshiramiz
+    await pool.query(
+      `INSERT INTO ai_teacher_usage (user_id, usage_date, count)
+       VALUES ($1, $2, 1)
+       ON CONFLICT (user_id, usage_date) DO UPDATE SET count = ai_teacher_usage.count + 1`,
+      [req.user.id, today]
+    )
+
     res.json(parsed)
 
   } catch (err) {
@@ -106,14 +124,6 @@ router.post('/teacher', auth, async (req, res) => {
 
   try {
     const { message, history, image } = req.body
-
-    console.log('[AI Teacher]', {
-      userId,
-      msgLen: typeof message === 'string' ? message.length : 0,
-      hasImage: !!image,
-      imageLen: image ? image.length : 0,
-      imagePrefix: image ? image.slice(0, 30) : null
-    })
 
     if (typeof message !== 'string' || (!message.trim() && !image)) {
       return res.status(400).json({ message: 'Savol yoki rasm kiriting' })
@@ -156,7 +166,7 @@ Savol: "${message.slice(0, 500)}"
 
 Faqat soha nomini yozing, tushuntirmay.`
 
-    let subject = image ? 'umumiy' : 'umumiy'
+    let subject = 'umumiy'
     if (!image) try {
       const detectRes = await groqFetch({
         model: TEXT_MODEL,
@@ -248,7 +258,6 @@ UMUMIY QOIDALAR:
     }
 
     const modelToUse = image ? VISION_MODEL : TEXT_MODEL
-    console.log('[AI Teacher] using model:', modelToUse)
 
     let groqRes
     try {

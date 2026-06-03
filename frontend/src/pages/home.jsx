@@ -2,9 +2,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
-  Smartphone, ArrowRight, Play, GraduationCap, BarChart3,
+  Smartphone, ArrowRight, Play, BarChart3,
   Star, Users, Clock, Target, UserPlus, PlayCircle,
-  Trophy, CheckCircle2, ChevronDown, Shield, Zap,
+  Trophy, CheckCircle2, ChevronDown,
   Quote, Globe, Code2, Lightbulb, TrendingUp, Heart,
   MessageCircle, Calendar, Flame, X, Check, Newspaper
 } from 'lucide-react'
@@ -144,17 +144,6 @@ function Home() {
   if (isAuth) {
     return <Navigate to="/dashboard" replace />
   }
-
-  const features = [
-    { Icon: GraduationCap, title: "O'zbek tilida", desc: "Barcha kurslar sof o'zbek tilida tayyorlangan", color: "#8b5cf6" },
-    { Icon: Bot, title: "AI Test tizimi", desc: "Sun'iy intellekt yordamida shaxsiy testlar", color: "#0ea5e9" },
-    { Icon: Swords, title: "Code Battle", desc: "Real vaqtda dasturchilar bilan musobaqa", color: "#22c55e" },
-    { Icon: Award, title: "Sertifikat", desc: "Kursni tugatib rasmiy sertifikat oling", color: "#f59e0b" },
-    { Icon: Zap, title: "Modular tizim", desc: "Har 5 darsdan keyin bilimni tekshirish", color: "#ec4899" },
-    { Icon: Smartphone, title: "Barcha qurilma", desc: "Telefon, planshet va kompyuterda", color: "#06b6d4" },
-    { Icon: Shield, title: "Xavfsiz", desc: "Ma'lumotlar shifrlangan va himoyalangan", color: "#10b981" },
-    { Icon: Globe, title: "Istalgan vaqtda", desc: "24/7 onlayn, istalgan joydan", color: "#f97316" },
-  ]
 
   const steps = [
     {
