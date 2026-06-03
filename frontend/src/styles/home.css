@@ -31,6 +31,19 @@
 
 .eduzy-landing .ln-gold { color: var(--ln-gold-d); }
 
+/* Temadan mustaqil — global var(--text)/var(--text-soft) dark temada oqaradi,
+   shuning uchun landing ranglarini majburan belgilaymiz (oq sahifa, qora matn) */
+.eduzy-landing h1,
+.eduzy-landing h2,
+.eduzy-landing h3,
+.eduzy-landing h4,
+.eduzy-landing h5,
+.eduzy-landing h6 { color: var(--ln-ink); }
+.eduzy-landing p { color: var(--ln-muted); }
+/* Qorong'i kontekstdagi sarlavhalar oq bo'ladi */
+.eduzy-landing .ln-hero-title { color: #fff; }
+.eduzy-landing .ln-bento-big h3 { color: #fff; }
+
 /* ---- Scroll reveal ---- */
 .eduzy-landing .ln-reveal {
   opacity: 0;
