@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
-  Smartphone, ArrowRight, PlayCircle,
+  Smartphone, ArrowRight,
   Star, Users, Play, UserPlus, Target,
   Trophy, ChevronDown, Globe, Flame, Check,
   Phone, Quote
@@ -220,30 +220,37 @@ function Home() {
     <div className="eduzy-landing">
       <Navbar />
 
-      {/* ============ HERO ============ */}
+      {/* ============ HERO — to'liq ekran, matn pastki-chapda ============ */}
       <section className="ln-hero">
         <div className="ln-hero-grid"></div>
-        <div className="ln-container ln-hero-inner">
-          <div className="ln-hero-left">
-            <div className="ln-badge">
-              <Sparkles size={14} /> O'zbekistonning zamonaviy ta'lim platformasi
+        <div className="ln-hero-glow"></div>
+
+        {/* Fon bezagi — typewriter kod kartochkasi (yumshoq, orqada) */}
+        <div className="ln-hero-deco" aria-hidden="true">
+          <div className="ln-code-card">
+            <div className="ln-code-head">
+              <div className="ln-code-dots"><span></span><span></span><span></span></div>
+              <div className="ln-code-tab">{CODE_SNIPPETS[snippetIdx].lang}</div>
             </div>
+            <div className="ln-code-body">
+              <pre>{typedText}<span className="ln-cursor">▋</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div className="ln-container ln-hero-inner">
+          <div className="ln-hero-content">
+            <span className="ln-hero-eyebrow">EDUZY</span>
             <h1 className="ln-hero-title">
-              Kelajak kasblarini <span className="ln-gold">o'zbek tilida</span> o'rganing
+              Kelajak kasblarini<br /><span className="ln-gold">o'zbek tilida</span> o'rganing
             </h1>
             <p className="ln-hero-sub">
-              Dasturlash, matematika va zamonaviy kasblar bo'yicha bepul kurslar —
+              O'zbekistondagi zamonaviy bepul ta'lim platformasi — dasturlash,
               AI yordamchi, Code Battle va rasmiy sertifikatlar bilan.
             </p>
-
-            <div className="ln-hero-actions">
-              <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
-                <Rocket size={18} /> Bepul boshlash
-              </button>
-              <button className="ln-btn ln-btn-ghost" onClick={() => navigate('/courses')}>
-                <PlayCircle size={18} /> Kurslarni ko'rish
-              </button>
-            </div>
+            <button className="ln-btn ln-btn-gold ln-btn-lg" onClick={() => navigate('/register')}>
+              <Rocket size={18} /> Bepul boshlash
+            </button>
 
             <div className="ln-hero-trust">
               <div className="ln-trust-avatars">
@@ -261,26 +268,6 @@ function Home() {
                 </div>
                 <span><strong>{stats.users}</strong> o'quvchi bizni tanlagan</span>
               </div>
-            </div>
-          </div>
-
-          <div className="ln-hero-right">
-            <div className="ln-code-card">
-              <div className="ln-code-head">
-                <div className="ln-code-dots"><span></span><span></span><span></span></div>
-                <div className="ln-code-tab">{CODE_SNIPPETS[snippetIdx].lang}</div>
-              </div>
-              <div className="ln-code-body">
-                <pre>{typedText}<span className="ln-cursor">▋</span></pre>
-              </div>
-            </div>
-            <div className="ln-float ln-float-1">
-              <div className="ln-float-ic"><BookOpen size={18} /></div>
-              <div><b>{stats.courses} kurs</b><span>Barcha sohalar</span></div>
-            </div>
-            <div className="ln-float ln-float-2">
-              <div className="ln-float-ic"><Award size={18} /></div>
-              <div><b>Sertifikat</b><span>Rasmiy hujjat</span></div>
             </div>
           </div>
         </div>

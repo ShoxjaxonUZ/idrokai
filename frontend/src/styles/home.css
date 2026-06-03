@@ -135,51 +135,70 @@
   line-height: 1.6;
 }
 
-/* ============ HERO ============ */
+/* ============ HERO — to'liq ekran, matn pastki-chapda ============ */
 .eduzy-landing .ln-hero {
   position: relative;
-  background: radial-gradient(120% 120% at 80% 0%, #20202a 0%, var(--ln-dark) 55%);
+  min-height: 92vh;
+  display: flex;
+  align-items: flex-end;
+  background:
+    radial-gradient(80% 80% at 78% 18%, #232330 0%, transparent 60%),
+    linear-gradient(180deg, #1a1a20 0%, var(--ln-dark) 100%);
   color: #fff;
-  padding: clamp(70px, 9vw, 120px) 0 clamp(80px, 9vw, 120px);
+  padding: 0 0 clamp(56px, 8vh, 96px);
   overflow: hidden;
 }
 .eduzy-landing .ln-hero-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-  background-size: 46px 46px;
-  mask-image: radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
-  -webkit-mask-image: radial-gradient(circle at 70% 30%, #000 0%, transparent 70%);
+    linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 75% 35%, #000 0%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 75% 35%, #000 0%, transparent 72%);
   pointer-events: none;
+}
+.eduzy-landing .ln-hero-glow {
+  position: absolute;
+  top: -10%; right: 2%;
+  width: 620px; height: 620px;
+  background: radial-gradient(circle, rgba(255,207,0,.16) 0%, transparent 65%);
+  pointer-events: none;
+}
+/* Fon bezagi — kod kartochkasi o'ng tepada, yumshoq */
+.eduzy-landing .ln-hero-deco {
+  position: absolute;
+  top: 16%; right: 6%;
+  width: 420px;
+  max-width: 42vw;
+  opacity: .9;
+  transform: rotate(-2deg);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(200deg, #000 55%, transparent 100%);
+  mask-image: linear-gradient(200deg, #000 55%, transparent 100%);
 }
 .eduzy-landing .ln-hero-inner {
   position: relative;
-  display: grid;
-  grid-template-columns: 1.05fr .95fr;
-  gap: 56px;
-  align-items: center;
+  z-index: 2;
+  width: 100%;
 }
-.eduzy-landing .ln-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
+.eduzy-landing .ln-hero-content { max-width: 640px; }
+.eduzy-landing .ln-hero-eyebrow {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 5px;
   color: var(--ln-gold);
-  background: rgba(255, 207, 0, .1);
-  border: 1px solid rgba(255, 207, 0, .25);
-  padding: 7px 14px;
-  border-radius: 999px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 .eduzy-landing .ln-hero-title {
-  font-size: clamp(34px, 5.2vw, 58px);
+  font-size: clamp(38px, 6vw, 72px);
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.05;
   letter-spacing: -0.03em;
   margin-bottom: 20px;
+  text-transform: uppercase;
 }
 .eduzy-landing .ln-hero-title .ln-gold {
   color: var(--ln-gold);
@@ -189,13 +208,12 @@
   line-height: 1.6;
   color: rgba(255, 255, 255, .72);
   max-width: 520px;
-  margin-bottom: 32px;
+  margin-bottom: 30px;
 }
-.eduzy-landing .ln-hero-actions {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 38px;
+.eduzy-landing .ln-btn-lg {
+  padding: 16px 32px;
+  font-size: 16px;
+  margin-bottom: 36px;
 }
 .eduzy-landing .ln-hero-trust {
   display: flex;
