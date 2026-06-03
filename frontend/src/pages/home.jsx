@@ -2,17 +2,16 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
-  Smartphone, ArrowRight,
-  Star, Users, Play, UserPlus, Target,
-  Trophy, ChevronDown, Globe, Flame, Check,
-  Phone, Quote
+  Smartphone, ArrowRight, Star, Users, Play, UserPlus,
+  Target, Trophy, ChevronDown, Globe, Flame, Check,
+  Quote, Send, MessageCircle, GraduationCap
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/home.css'
 
-// Count-up — raqam 0 dan haqiqiy qiymatga sanaydi (ko'ringanda).
+// Count-up — raqam 0 dan haqiqiy qiymatga sanaydi (ko'ringanda)
 function CountUp({ value, suffix }) {
   const [display, setDisplay] = useState(0)
   const ref = useRef(null)
@@ -21,21 +20,16 @@ function CountUp({ value, suffix }) {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (doneRef.current) {
-      setDisplay(Number(value) || 0)
-      return
-    }
+    if (doneRef.current) { setDisplay(Number(value) || 0); return }
     const obs = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && !doneRef.current) {
         doneRef.current = true
         obs.disconnect()
         const target = Number(value) || 0
-        const duration = 1400
         const start = performance.now()
         const tick = (now) => {
-          const p = Math.min(1, (now - start) / duration)
-          const eased = 1 - Math.pow(1 - p, 3)
-          setDisplay(Math.round(target * eased))
+          const p = Math.min(1, (now - start) / 1400)
+          setDisplay(Math.round(target * (1 - Math.pow(1 - p, 3))))
           if (p < 1) requestAnimationFrame(tick)
         }
         requestAnimationFrame(tick)
@@ -48,7 +42,6 @@ function CountUp({ value, suffix }) {
   return <span ref={ref}>{display}<span className="ln-stat-suffix">{suffix}</span></span>
 }
 
-// Hero typewriter — navbatma-navbat kod misollari yoziladi
 const CODE_SNIPPETS = [
   { lang: 'main.py', code: "# Birinchi dasturim\ndef salomlash(ism):\n    return f\"Salom, {ism}!\"\n\nprint(salomlash(\"Aziz\"))\n# Natija: Salom, Aziz!" },
   { lang: 'app.js', code: "// Sonlar yig'indisi\nconst sum = (a, b) => a + b;\n\nconsole.log(sum(7, 14));\n// Natija: 21" },
@@ -64,11 +57,15 @@ function Home() {
   const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, certificates: 0 })
   const [openFaq, setOpenFaq] = useState(0)
 
-  // Typewriter holati
   const [snippetIdx, setSnippetIdx] = useState(0)
   const [typedText, setTypedText] = useState('')
 
-  // Scroll-reveal — section'lar ko'ringanda fade-in
+  // Kontakt forma
+  const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [formErr, setFormErr] = useState('')
+
   useEffect(() => {
     if (isAuth) return
     const observer = new IntersectionObserver((entries) => {
@@ -79,7 +76,6 @@ function Home() {
         }
       })
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' })
-
     const els = document.querySelectorAll('.ln-reveal')
     els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
@@ -87,15 +83,12 @@ function Home() {
 
   useEffect(() => {
     if (isAuth) return
-    const snippet = CODE_SNIPPETS[snippetIdx]
-    const full = snippet.code
+    const full = CODE_SNIPPETS[snippetIdx].code
     let pos = 0
     let timer
-
     const type = () => {
       if (pos <= full.length) {
-        setTypedText(full.slice(0, pos))
-        pos++
+        setTypedText(full.slice(0, pos)); pos++
         timer = setTimeout(type, 38)
       } else {
         timer = setTimeout(() => {
@@ -111,89 +104,67 @@ function Home() {
   useEffect(() => {
     if (isAuth) return
     document.title = "Eduzy — O'zbek tilida bepul ta'lim"
-
     fetch(`${API_URL}/api/teacher/all-courses`)
       .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setCourses(data.slice(0, 6))
-        }
-      })
+      .then(data => { if (Array.isArray(data) && data.length > 0) setCourses(data.slice(0, 6)) })
       .catch(() => { })
-
     fetch(`${API_URL}/api/stats`)
       .then(r => r.json())
-      .then(d => {
-        setStats({
-          users: d.users || 0,
-          courses: d.courses || 0,
-          lessons: d.lessons || 0,
-          certificates: d.certificates || 0
-        })
-      })
+      .then(d => setStats({
+        users: d.users || 0, courses: d.courses || 0,
+        lessons: d.lessons || 0, certificates: d.certificates || 0
+      }))
       .catch(() => { })
   }, [isAuth])
 
-  if (isAuth) {
-    return <Navigate to="/dashboard" replace />
+  if (isAuth) return <Navigate to="/dashboard" replace />
+
+  const submitContact = async (e) => {
+    e.preventDefault()
+    setFormErr('')
+    if (form.name.trim().length < 2) return setFormErr('Ismingizni kiriting')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setFormErr('Email noto\'g\'ri')
+    if (form.message.trim().length < 10) return setFormErr('Xabar kamida 10 belgi bo\'lsin')
+    setSending(true)
+    try {
+      const res = await fetch(`${API_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.message || 'Xatolik')
+      setSent(true)
+      setForm({ name: '', email: '', message: '' })
+    } catch (err) {
+      setFormErr(err.message || 'Yuborib bo\'lmadi')
+    } finally {
+      setSending(false)
+    }
   }
 
-  // BIZ HAQIMIZDA — statistika bandi
   const aboutStats = [
-    { value: stats.users, suffix: '', label: "O'quvchilar" },
-    { value: stats.courses, suffix: '', label: 'Kurslar' },
-    { value: stats.lessons, suffix: '', label: 'Darslar' },
-    { value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
-    { value: 24, suffix: '/7', label: 'AI yordam' },
+    { Icon: Users, value: stats.users, suffix: '', label: "O'quvchilar" },
+    { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurslar' },
+    { Icon: Play, value: stats.lessons, suffix: '', label: 'Darslar' },
+    { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
+    { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam' },
   ]
 
-  // BIZNING AFZALLIKLAR
-  const benefits = [
-    {
-      Icon: Bot,
-      title: 'AI Teacher — 4 sohada',
-      desc: "Dasturlash, matematika, fizika va ingliz tili bo'yicha 24/7 shaxsiy yordamchi. Rasm yuborib ham savol bering.",
-      tag: 'Faqat Eduzy',
-    },
-    {
-      Icon: Swords,
-      title: 'Code Battle multiplayer',
-      desc: "Real vaqtda 1 dan 10 kishigacha kod yozish musobaqasi. Solo praktika rejimi ham mavjud.",
-      tag: "O'zbekistonda yagona",
-    },
-    {
-      Icon: BookOpen,
-      title: 'Oxshash kurslar tizimi',
-      desc: "Har bir kurs modullarga bo'lingan. Har 5 darsdan keyin bilim AI test orqali tekshiriladi.",
-      tag: 'Modular',
-    },
-    {
-      Icon: Award,
-      title: 'Avtomatik sertifikat',
-      desc: "Kurs va testlarni yakunlang — rasmiy sertifikat QR kod bilan PDF formatda tayyor bo'ladi.",
-      tag: 'Bepul',
-    },
-    {
-      Icon: Flame,
-      title: 'Kunlik masala + streak',
-      desc: "Har kuni yangi challenge, ketma-ket kunlar uchun bonus ball va reytingda ko'tarilish.",
-      tag: 'Gamification',
-    },
-    {
-      Icon: Globe,
-      title: "Sof o'zbek tilida",
-      desc: "Barcha materiallar, AI javoblar va testlar o'zbek tilida — tarjima qilingan emas, o'zimizniki.",
-      tag: "O'zbekcha",
-    },
+  const smallBenefits = [
+    { Icon: Swords, title: 'Code Battle', desc: "Real vaqtda 1–10 kishilik kod musobaqasi va solo praktika." },
+    { Icon: Award, title: 'Avtomatik sertifikat', desc: 'Kursni yakunlang — QR kodli rasmiy PDF sertifikat tayyor.' },
+    { Icon: Flame, title: 'Kunlik masala + streak', desc: "Har kuni yangi challenge, bonus ball va reytingda ko'tarilish." },
+    { Icon: Globe, title: "Sof o'zbek tilida", desc: 'Materiallar, AI javoblar va testlar — tarjima emas, o\'zimizniki.' },
+    { Icon: Smartphone, title: 'Mobil-first', desc: 'Telefon, planshet va kompyuterda bir xil qulay ishlaydi.' },
   ]
 
-  // Online ta'lim — bullet list
   const onlineFeatures = [
-    'Telefon yoki kompyuter bilan istalgan joydan o\'rganing',
-    'AI ustoz Professor bilan 24/7 shaxsiy mashg\'ulotlar',
-    'Modulli darslar va avtomatik bilim nazorati',
-    'Code Battle orqali amaliyot va musobaqa',
-    'Bepul — hech qanday yashirin to\'lov yo\'q',
+    "Istalgan joydan — faqat telefon yoki kompyuter kerak",
+    "AI ustoz bilan 24/7 shaxsiy mashg'ulotlar",
+    "Modulli darslar va avtomatik bilim nazorati",
+    "Code Battle orqali amaliyot va musobaqa",
+    "Butunlay bepul — yashirin to'lovsiz",
   ]
 
   const steps = [
@@ -203,29 +174,27 @@ function Home() {
   ]
 
   const testimonials = [
-    { name: 'Alijon Karimov', role: 'Junior Frontend Developer', text: "Eduzy da Python va JavaScript kurslarini o'rganib bugun ish topdim. Darslar tushunarli va praktik!", avatar: 'A' },
-    { name: 'Malika Rahimova', role: 'Student', text: "Code Battle eng zo'r qism! Boshqa dasturchilar bilan real vaqtda kod yozish juda qiziqarli.", avatar: 'M' },
-    { name: 'Bekzod Aliyev', role: "O'qituvchi", text: "AI test juda samarali. O'quvchilarim bilimini avtomatik tekshirish — ajoyib imkoniyat.", avatar: 'B' },
+    { name: 'Alijon Karimov', role: 'Junior Frontend Developer', text: "Eduzy da Python va JavaScript o'rganib bugun ish topdim. Darslar tushunarli va praktik!", avatar: 'A' },
+    { name: 'Malika Rahimova', role: 'Student', text: "Code Battle eng zo'r qism! Boshqalar bilan real vaqtda kod yozish juda qiziqarli.", avatar: 'M' },
+    { name: 'Bekzod Aliyev', role: "O'qituvchi", text: "AI test juda samarali. O'quvchilarim bilimini avtomatik tekshirish — ajoyib.", avatar: 'B' },
   ]
 
   const faqs = [
-    { q: 'Eduzy haqiqatan ham bepulmi?', a: "Ha, barcha kurslar to'liq bepul. Hech qanday yashirin to'lov yo'q. Istalgan vaqtda istalgan kursni o'rganishingiz mumkin." },
-    { q: 'Sertifikat qanday olaman?', a: "Kursni tugatib barcha AI testlardan o'tsangiz, sertifikat avtomatik tayyor bo'ladi va uni PDF formatda yuklab olasiz." },
-    { q: 'Code Battle nima?', a: "Dasturchilar uchun real vaqtdagi musobaqa tizimi. Boshqa o'quvchilar bilan masala yechib ball to'plang va reytingda ko'tariling." },
-    { q: 'AI Test qanday ishlaydi?', a: "Sun'iy intellekt har bir kurs uchun shaxsiy testlar yaratadi va har 5 darsdan keyin bilimingizni tekshiradi." },
-    { q: 'Mobil qurilmada ishlaydimi?', a: "Albatta! Eduzy butunlay moslashuvchan — telefon, planshet va kompyuterda bir xil qulay ishlaydi." },
+    { q: 'Eduzy haqiqatan ham bepulmi?', a: "Ha, barcha kurslar to'liq bepul. Hech qanday yashirin to'lov yo'q." },
+    { q: 'Sertifikat qanday olaman?', a: "Kursni tugatib AI testlardan o'tsangiz, sertifikat avtomatik PDF formatda tayyor bo'ladi." },
+    { q: 'Code Battle nima?', a: "Dasturchilar uchun real vaqtdagi musobaqa — masala yechib ball to'plang va reytingda ko'tariling." },
+    { q: 'AI Test qanday ishlaydi?', a: "Sun'iy intellekt har bir kurs uchun shaxsiy testlar yaratadi va har 5 darsdan keyin bilimni tekshiradi." },
+    { q: 'Mobil qurilmada ishlaydimi?', a: "Albatta! Eduzy telefon, planshet va kompyuterda bir xil qulay ishlaydi." },
   ]
 
   return (
     <div className="eduzy-landing">
       <Navbar />
 
-      {/* ============ HERO — to'liq ekran, matn pastki-chapda ============ */}
+      {/* ============ HERO ============ */}
       <section className="ln-hero">
         <div className="ln-hero-grid"></div>
         <div className="ln-hero-glow"></div>
-
-        {/* Fon bezagi — typewriter kod kartochkasi (yumshoq, orqada) */}
         <div className="ln-hero-deco" aria-hidden="true">
           <div className="ln-code-card">
             <div className="ln-code-head">
@@ -245,26 +214,21 @@ function Home() {
               Kelajak kasblarini<br /><span className="ln-gold">o'zbek tilida</span> o'rganing
             </h1>
             <p className="ln-hero-sub">
-              O'zbekistondagi zamonaviy bepul ta'lim platformasi — dasturlash,
+              O'zbekistonning zamonaviy bepul ta'lim platformasi — dasturlash,
               AI yordamchi, Code Battle va rasmiy sertifikatlar bilan.
             </p>
             <button className="ln-btn ln-btn-gold ln-btn-lg" onClick={() => navigate('/register')}>
               <Rocket size={18} /> Bepul boshlash
             </button>
-
             <div className="ln-hero-trust">
               <div className="ln-trust-avatars">
                 {['#FFCF00', '#FF7A59', '#5B5BD6', '#22c55e'].map((c, i) => (
-                  <span key={i} className="ln-trust-avatar" style={{ background: c }}>
-                    {['A', 'M', 'B', 'D'][i]}
-                  </span>
+                  <span key={i} className="ln-trust-avatar" style={{ background: c }}>{['A', 'M', 'B', 'D'][i]}</span>
                 ))}
               </div>
               <div className="ln-trust-text">
                 <div className="ln-trust-stars">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} fill="#FFCF00" color="#FFCF00" />
-                  ))}
+                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#FFCF00" color="#FFCF00" />)}
                 </div>
                 <span><strong>{stats.users}</strong> o'quvchi bizni tanlagan</span>
               </div>
@@ -273,12 +237,19 @@ function Home() {
         </div>
       </section>
 
-      {/* ============ STATS BAND (BIZ HAQIMIZDA) ============ */}
-      <section className="ln-stats-band">
+      {/* ============ BIZ HAQIMIZDA (stats) ============ */}
+      <section className="ln-section ln-about">
+        <span className="ln-blob ln-blob-a" aria-hidden="true"></span>
         <div className="ln-container">
+          <div className="ln-head ln-reveal">
+            <span className="ln-eyebrow">Biz haqimizda</span>
+            <h2>O'zbekistondagi <span className="ln-gold">zamonaviy</span> ta'lim platformasi</h2>
+            <p>Minglab o'quvchilar tanlagan — bepul, sifatli va o'zbek tilida.</p>
+          </div>
           <div className="ln-stats-row ln-reveal">
             {aboutStats.map((s, i) => (
               <div key={i} className="ln-stat">
+                <div className="ln-stat-ic"><s.Icon size={22} /></div>
                 <div className="ln-stat-num"><CountUp value={s.value} suffix={s.suffix} /></div>
                 <div className="ln-stat-label">{s.label}</div>
               </div>
@@ -287,19 +258,38 @@ function Home() {
         </div>
       </section>
 
-      {/* ============ BIZNING AFZALLIKLAR ============ */}
-      <section className="ln-section">
+      {/* ============ BIZNING AFZALLIKLAR (bento) ============ */}
+      <section className="ln-section ln-soft ln-benefits-sec">
+        <span className="ln-blob ln-blob-b" aria-hidden="true"></span>
         <div className="ln-container">
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">Bizning afzalliklar</span>
-            <h2>Nima uchun <span className="ln-gold">aynan Eduzy</span>?</h2>
+            <h2>Nima uchun aynan <span className="ln-gold">Eduzy</span>?</h2>
             <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud imkoniyatlar</p>
           </div>
-          <div className="ln-benefits ln-reveal">
-            {benefits.map((b, i) => (
-              <article key={i} className="ln-benefit" style={{ transitionDelay: `${i * 60}ms` }}>
-                <div className="ln-benefit-ic"><b.Icon size={24} /></div>
-                <span className="ln-benefit-tag">{b.tag}</span>
+
+          <div className="ln-bento ln-reveal">
+            {/* Katta featured karta — AI Teacher */}
+            <article className="ln-bento-big">
+              <div className="ln-bento-big-top">
+                <span className="ln-benefit-tag ln-tag-gold">Faqat Eduzy</span>
+                <div className="ln-bento-ic"><Bot size={26} /></div>
+                <h3>AI Teacher — 4 sohada 24/7</h3>
+                <p>Dasturlash, matematika, fizika va ingliz tili bo'yicha shaxsiy AI yordamchi. Rasm yuborib ham savol bering.</p>
+                <button className="ln-btn ln-btn-gold ln-btn-sm" onClick={() => navigate('/register')}>
+                  Sinab ko'rish <ArrowRight size={15} />
+                </button>
+              </div>
+              <div className="ln-chat" aria-hidden="true">
+                <div className="ln-chat-msg ln-chat-q">Python'da list nima?</div>
+                <div className="ln-chat-msg ln-chat-a">List — bu tartiblangan, o'zgaruvchan to'plam. Misol: <code>sonlar = [1, 2, 3]</code> …</div>
+                <div className="ln-chat-msg ln-chat-q">Rahmat! 🙌</div>
+              </div>
+            </article>
+
+            {smallBenefits.map((b, i) => (
+              <article key={i} className="ln-bento-cell">
+                <div className="ln-benefit-ic"><b.Icon size={22} /></div>
                 <h3>{b.title}</h3>
                 <p>{b.desc}</p>
               </article>
@@ -308,17 +298,16 @@ function Home() {
         </div>
       </section>
 
-      {/* ============ ONLINE TA'LIM (highlight) ============ */}
+      {/* ============ ONLINE TA'LIM ============ */}
       <section className="ln-section ln-online">
+        <span className="ln-blob ln-blob-c" aria-hidden="true"></span>
         <div className="ln-container ln-online-grid">
           <div className="ln-online-text ln-reveal">
-            <span className="ln-eyebrow ln-eyebrow-dark">Yangi darajadagi ta'lim</span>
+            <span className="ln-eyebrow ln-eyebrow-dark">Eduzy Online</span>
             <h2>Endi o'rganishga <span className="ln-gold">masofa to'siq emas</span></h2>
             <p>Bitta smartfon yoki kompyuter — va siz O'zbekistonning eng kuchli ta'lim platformasidasiz.</p>
             <ul className="ln-checklist">
-              {onlineFeatures.map((f, i) => (
-                <li key={i}><Check size={16} /> {f}</li>
-              ))}
+              {onlineFeatures.map((f, i) => <li key={i}><Check size={16} /> {f}</li>)}
             </ul>
             <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
               Online o'qishni boshlash <ArrowRight size={16} />
@@ -367,28 +356,22 @@ function Home() {
               {courses.map(kurs => (
                 <div key={kurs.id} className="ln-course" onClick={() => navigate(`/courses/${kurs.id}`)}>
                   <div className="ln-course-thumb">
-                    {kurs.image ? (
-                      <img src={assetUrl(kurs.image)} alt={kurs.title} />
-                    ) : (
-                      <div className="ln-course-empty"><BookOpen size={42} /></div>
-                    )}
+                    {kurs.image ? <img src={assetUrl(kurs.image)} alt={kurs.title} />
+                      : <div className="ln-course-empty"><BookOpen size={42} /></div>}
                     <span className="ln-course-free"><Sparkles size={10} /> Bepul</span>
                   </div>
                   <div className="ln-course-body">
                     <div className="ln-course-tags">
-                      <span>{kurs.category}</span>
-                      <span>{kurs.daraja}</span>
+                      <span>{kurs.category}</span><span>{kurs.daraja}</span>
                     </div>
                     <h3>{kurs.title}</h3>
                     <p>{(kurs.desc || kurs.description || '').substring(0, 78)}…</p>
                     <div className="ln-course-meta">
                       <span><BookOpen size={12} /> {kurs.lessons?.length || 0} dars</span>
                       <span><Users size={12} /> {kurs.students_count || 0}</span>
-                      {kurs.ratings_count > 0 ? (
-                        <span className="ln-course-rate"><Star size={12} fill="currentColor" /> {kurs.avg_rating.toFixed(1)}</span>
-                      ) : (
-                        <span className="ln-course-rate" style={{ opacity: 0.6 }}><Star size={12} /> Yangi</span>
-                      )}
+                      {kurs.ratings_count > 0
+                        ? <span className="ln-course-rate"><Star size={12} fill="currentColor" /> {kurs.avg_rating.toFixed(1)}</span>
+                        : <span className="ln-course-rate" style={{ opacity: .6 }}><Star size={12} /> Yangi</span>}
                     </div>
                   </div>
                 </div>
@@ -453,25 +436,70 @@ function Home() {
         </div>
       </section>
 
-      {/* ============ CTA / KONTAKT ============ */}
+      {/* ============ KONTAKT ============ */}
+      <section className="ln-section ln-contact">
+        <div className="ln-container">
+          <div className="ln-contact-box ln-reveal">
+            <div className="ln-contact-left">
+              <span className="ln-eyebrow">Bog'lanish</span>
+              <h2>Savollaringiz qoldimi?<br />Biz bilan <span className="ln-gold">bog'laning!</span></h2>
+              <p>Ism, email va xabaringizni qoldiring — tez orada javob beramiz.</p>
+              <div className="ln-qa" aria-hidden="true">
+                <span className="ln-qa-q">Q</span>
+                <span className="ln-qa-a">A</span>
+              </div>
+            </div>
+
+            {sent ? (
+              <div className="ln-contact-success">
+                <div className="ln-success-ic"><Check size={32} /></div>
+                <h3>Xabaringiz yuborildi!</h3>
+                <p>Rahmat — tez orada siz bilan bog'lanamiz.</p>
+                <button className="ln-btn ln-btn-dark ln-btn-sm" onClick={() => setSent(false)}>Yana yuborish</button>
+              </div>
+            ) : (
+              <form className="ln-contact-form" onSubmit={submitContact}>
+                <input
+                  type="text" placeholder="Ismingiz" value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                />
+                <input
+                  type="email" placeholder="Email manzilingiz" value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                />
+                <textarea
+                  rows={3} placeholder="Xabaringiz…" value={form.message}
+                  onChange={e => setForm({ ...form, message: e.target.value })}
+                />
+                {formErr && <div className="ln-form-err">{formErr}</div>}
+                <button type="submit" className="ln-btn ln-btn-grad" disabled={sending}>
+                  {sending ? 'Yuborilmoqda…' : <><Send size={17} /> Ariza qoldirish</>}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FINAL CTA ============ */}
       <section className="ln-cta">
         <div className="ln-container">
           <div className="ln-cta-box ln-reveal">
-            <span className="ln-eyebrow ln-eyebrow-dark">Bugundan boshlang</span>
+            <div className="ln-cta-ic"><GraduationCap size={30} /></div>
             <h2>Bepul ta'lim <span className="ln-gold">hozir boshlanadi</span></h2>
-            <p>Ro'yxatdan o'ting va {stats.courses}+ kursga ega bo'ling. Hech qanday to'lov yo'q — faqat bilim.</p>
+            <p>Ro'yxatdan o'ting va {stats.courses}+ kursga ega bo'ling. To'lov yo'q — faqat bilim.</p>
             <div className="ln-cta-actions">
               <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
                 <UserPlus size={18} /> Ro'yxatdan o'tish
               </button>
-              <a className="ln-btn ln-btn-ghost-dark" href="tel:+998000000000">
-                <Phone size={18} /> Biz bilan bog'lanish
-              </a>
+              <button className="ln-btn ln-btn-ghost-dark" onClick={() => navigate('/courses')}>
+                <BookOpen size={18} /> Kurslarni ko'rish
+              </button>
             </div>
             <div className="ln-cta-feats">
               <span><Check size={14} /> Bepul</span>
               <span><Check size={14} /> Sertifikat</span>
-              <span><Check size={14} /> AI yordam</span>
+              <span><MessageCircle size={14} /> AI yordam</span>
               <span><Target size={14} /> 24/7</span>
             </div>
           </div>
