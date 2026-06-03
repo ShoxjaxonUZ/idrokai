@@ -135,10 +135,69 @@
   line-height: 1.6;
 }
 
+/* ============ NAVBAR — landing'da qora (hero ustida overlay) ============ */
+.eduzy-landing .navbar {
+  background: rgba(20, 20, 24, .72);
+  border-color: rgba(255, 255, 255, .12);
+}
+.eduzy-landing .navbar:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+}
+.eduzy-landing .logo-text { color: #fff; }
+.eduzy-landing .logo-icon {
+  background: var(--ln-gold);
+  color: #1a1a1a;
+  box-shadow: 0 4px 14px rgba(255, 207, 0, .4);
+}
+.eduzy-landing .nav-center span { color: rgba(255, 255, 255, .72); }
+.eduzy-landing .nav-center span:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+}
+.eduzy-landing .theme-toggle {
+  color: rgba(255, 255, 255, .82);
+  border-color: rgba(255, 255, 255, .18);
+}
+.eduzy-landing .theme-toggle:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .3);
+}
+.eduzy-landing .hamburger {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .2);
+}
+.eduzy-landing .hamburger:hover {
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .35);
+}
+.eduzy-landing .navbar .btn-outline {
+  color: #fff;
+  background: transparent;
+  border-color: rgba(255, 255, 255, .28);
+}
+.eduzy-landing .navbar .btn-outline:hover {
+  color: var(--ln-gold);
+  border-color: var(--ln-gold);
+  background: transparent;
+}
+.eduzy-landing .navbar .btn-primary {
+  background: var(--ln-gold);
+  color: #1a1a1a;
+  border: none;
+  box-shadow: 0 4px 14px rgba(255, 207, 0, .35);
+}
+.eduzy-landing .navbar .btn-primary:hover {
+  background: #ffd827;
+  box-shadow: 0 6px 18px rgba(255, 207, 0, .5);
+}
+
 /* ============ HERO — to'liq ekran, matn pastki-chapda ============ */
 .eduzy-landing .ln-hero {
   position: relative;
-  min-height: 92vh;
+  /* Hero navbar ostiga tortiladi — navbar shaffof tarzda hero ustida turadi */
+  margin-top: calc(var(--navbar-h) * -1);
+  min-height: 100vh;
   display: flex;
   align-items: flex-end;
   background:
