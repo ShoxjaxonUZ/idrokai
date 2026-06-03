@@ -320,12 +320,14 @@
   margin-top: calc(var(--navbar-h) * -1);
   min-height: 100vh;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   background:
     radial-gradient(80% 80% at 78% 18%, #232330 0%, transparent 60%),
     linear-gradient(180deg, #1a1a20 0%, var(--ln-dark) 100%);
   color: #fff;
-  padding: 0 0 clamp(56px, 8vh, 96px);
+  /* Yuqori padding navbar uchun joy qoldiradi — past ekranda ham matn
+     navbar ortiga kirib ketmaydi (kontent ko'p bo'lsa hero o'sib boradi) */
+  padding: calc(var(--navbar-h) + 36px) 0 64px;
   overflow: hidden;
 }
 .eduzy-landing .ln-hero-grid {
