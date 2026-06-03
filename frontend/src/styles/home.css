@@ -192,6 +192,41 @@
   box-shadow: 0 6px 18px rgba(255, 207, 0, .5);
 }
 
+/* Mobil menyu — landing'da qora */
+.eduzy-landing .mobile-menu { background: rgba(0, 0, 0, .6); }
+.eduzy-landing .mobile-menu-inner {
+  background: var(--ln-dark-2);
+  border-color: rgba(255, 255, 255, .1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+}
+.eduzy-landing .mobile-user { border-bottom-color: rgba(255, 255, 255, .1); }
+.eduzy-landing .mobile-avatar {
+  background: var(--ln-gold);
+  color: #1a1a1a;
+  box-shadow: 0 4px 14px rgba(255, 207, 0, .4);
+}
+.eduzy-landing .mobile-name { color: #fff; }
+.eduzy-landing .mobile-email { color: rgba(255, 255, 255, .55); }
+.eduzy-landing .mobile-links button { color: rgba(255, 255, 255, .85); }
+.eduzy-landing .mobile-links button:hover,
+.eduzy-landing .mobile-links button:active { background: rgba(255, 255, 255, .08); }
+.eduzy-landing .mobile-actions { border-top-color: rgba(255, 255, 255, .1); }
+.eduzy-landing .mobile-actions .btn-outline {
+  color: #fff;
+  background: transparent;
+  border-color: rgba(255, 255, 255, .28);
+}
+.eduzy-landing .mobile-actions .btn-outline:hover {
+  color: var(--ln-gold);
+  border-color: var(--ln-gold);
+}
+.eduzy-landing .mobile-actions .btn-primary {
+  background: var(--ln-gold);
+  color: #1a1a1a;
+  border: none;
+}
+.eduzy-landing .mobile-actions .btn-primary:hover { background: #ffd827; }
+
 /* ============ HERO — to'liq ekran, matn pastki-chapda ============ */
 .eduzy-landing .ln-hero {
   position: relative;
