@@ -533,3 +533,15 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================
+   Tema almashish — View Transitions (doira bo'lib ochilish)
+   Default cross-fade o'chiriladi; yangi tema clip-path bilan ochiladi.
+   ============================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 9999; }
