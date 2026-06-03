@@ -2,11 +2,10 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
-  Smartphone, ArrowRight, Play, BarChart3,
-  Star, Users, Clock, Target, UserPlus, PlayCircle,
-  Trophy, CheckCircle2, ChevronDown,
-  Quote, Globe, Code2, Lightbulb, TrendingUp, Heart,
-  MessageCircle, Calendar, Flame, X, Check, Newspaper
+  Smartphone, ArrowRight, PlayCircle,
+  Star, Users, Play, UserPlus, Target,
+  Trophy, ChevronDown, Globe, Flame, Check,
+  Phone, Quote
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -14,7 +13,6 @@ import Footer from '../components/Footer'
 import '../styles/home.css'
 
 // Count-up — raqam 0 dan haqiqiy qiymatga sanaydi (ko'ringanda).
-// Home'dan TASHQARIDA — aks holda typewriter re-render'da remount bo'ladi.
 function CountUp({ value, suffix }) {
   const [display, setDisplay] = useState(0)
   const ref = useRef(null)
@@ -23,7 +21,6 @@ function CountUp({ value, suffix }) {
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    // Animatsiya tugagandan keyin value o'zgarsa (fetch) — darrov sync
     if (doneRef.current) {
       setDisplay(Number(value) || 0)
       return
@@ -48,7 +45,7 @@ function CountUp({ value, suffix }) {
     return () => obs.disconnect()
   }, [value])
 
-  return <span ref={ref}>{display}<span className="big-stat-suffix">{suffix}</span></span>
+  return <span ref={ref}>{display}<span className="ln-stat-suffix">{suffix}</span></span>
 }
 
 // Hero typewriter — navbatma-navbat kod misollari yoziladi
@@ -83,7 +80,7 @@ function Home() {
       })
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' })
 
-    const els = document.querySelectorAll('.reveal')
+    const els = document.querySelectorAll('.ln-reveal')
     els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
   }, [isAuth, courses])
@@ -95,14 +92,12 @@ function Home() {
     let pos = 0
     let timer
 
-    // Yozish fazasi
     const type = () => {
       if (pos <= full.length) {
         setTypedText(full.slice(0, pos))
         pos++
         timer = setTimeout(type, 38)
       } else {
-        // To'liq yozilgach 2.6s kutib keyingisiga o'tish
         timer = setTimeout(() => {
           setTypedText('')
           setSnippetIdx(i => (i + 1) % CODE_SNIPPETS.length)
@@ -117,7 +112,6 @@ function Home() {
     if (isAuth) return
     document.title = "Eduzy — O'zbek tilida bepul ta'lim"
 
-    // Mashhur kurslar ro'yxati
     fetch(`${API_URL}/api/teacher/all-courses`)
       .then(r => r.json())
       .then(data => {
@@ -127,7 +121,6 @@ function Home() {
       })
       .catch(() => { })
 
-    // Real statistika — bazadan
     fetch(`${API_URL}/api/stats`)
       .then(r => r.json())
       .then(d => {
@@ -145,207 +138,125 @@ function Home() {
     return <Navigate to="/dashboard" replace />
   }
 
-  const steps = [
-    {
-      num: "01",
-      Icon: UserPlus,
-      title: "Ro'yxatdan o'ting",
-      desc: "Bepul akkaunt yarating — bir necha soniyada."
-    },
-    {
-      num: "02",
-      Icon: BookOpen,
-      title: "Kursni tanlang",
-      desc: "O'zingizga mos sohani tanlang va darslarni ko'rishni boshlang."
-    },
-    {
-      num: "03",
-      Icon: Trophy,
-      title: "Sertifikat oling",
-      desc: "Testlardan o'ting va rasmiy sertifikatingizni yuklab oling."
-    }
+  // BIZ HAQIMIZDA — statistika bandi
+  const aboutStats = [
+    { value: stats.users, suffix: '', label: "O'quvchilar" },
+    { value: stats.courses, suffix: '', label: 'Kurslar' },
+    { value: stats.lessons, suffix: '', label: 'Darslar' },
+    { value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
+    { value: 24, suffix: '/7', label: 'AI yordam' },
   ]
 
-  const testimonials = [
-    {
-      name: "Alijon Karimov",
-      role: "Junior Frontend Developer",
-      text: "Eduzy da Python va JavaScript kurslarini o'rganib, bugun ish topdim. Darslar juda tushunarli va praktik. Ajoyib platforma!",
-      avatar: "A",
-      color: "#8b5cf6"
-    },
-    {
-      name: "Malika Rahimova",
-      role: "Student",
-      text: "Code Battle tizimi eng zo'r qism! Boshqa dasturchilar bilan real vaqtda kod yozish juda qiziqarli va foydali.",
-      avatar: "M",
-      color: "#ec4899"
-    },
-    {
-      name: "Bekzod Aliyev",
-      role: "O'qituvchi",
-      text: "AI test juda samarali ishlaydi. O'quvchilarim bilimini har 5 darsdan keyin avtomatik tekshirish — ajoyib imkoniyat.",
-      avatar: "B",
-      color: "#0ea5e9"
-    }
-  ]
-
-  // Asosiy statistikalar — real bazadan (6 ta karta)
-  const bigStats = [
-    { Icon: Users, value: stats.users, suffix: '', label: "O'quvchi", color: '#5B5BD6' },
-    { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurs', color: '#0F9D77' },
-    { Icon: Play, value: stats.lessons, suffix: '', label: 'Dars', color: '#DC8B1A' },
-    { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikat', color: '#EC4899' },
-    { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam', color: '#0788C7' },
-    { Icon: Heart, value: 100, suffix: '%', label: 'Bepul', color: '#A78BFA' },
-  ]
-
-  // Bizning ustunliklarimiz — taqqoslash
-  const advantages = [
+  // BIZNING AFZALLIKLAR
+  const benefits = [
     {
       Icon: Bot,
-      title: 'AI Teacher 4 sohada',
-      desc: "Dasturlash, matematika, fizika va ingliz tili bo'yicha 24/7 individual yordam",
-      highlight: 'Faqat Eduzy'
+      title: 'AI Teacher — 4 sohada',
+      desc: "Dasturlash, matematika, fizika va ingliz tili bo'yicha 24/7 shaxsiy yordamchi. Rasm yuborib ham savol bering.",
+      tag: 'Faqat Eduzy',
     },
     {
       Icon: Swords,
       title: 'Code Battle multiplayer',
-      desc: "Real vaqtda 1 dan 10 kishigacha kod yozish musobaqasi. Solo praktika ham bor",
-      highlight: 'Yagona O\'zbekistonda'
+      desc: "Real vaqtda 1 dan 10 kishigacha kod yozish musobaqasi. Solo praktika rejimi ham mavjud.",
+      tag: "O'zbekistonda yagona",
     },
     {
-      Icon: Flame,
-      title: 'Kunlik masala + streak',
-      desc: "Har kuni yangi challenge, daraja oshirish va reytingda ko'tarilish",
-      highlight: 'Gamification'
+      Icon: BookOpen,
+      title: 'Oxshash kurslar tizimi',
+      desc: "Har bir kurs modullarga bo'lingan. Har 5 darsdan keyin bilim AI test orqali tekshiriladi.",
+      tag: 'Modular',
     },
     {
       Icon: Award,
       title: 'Avtomatik sertifikat',
-      desc: "Kurs tugagandan keyin rasmiy sertifikat PDF formatda yuklab oling",
-      highlight: 'Bepul'
+      desc: "Kurs va testlarni yakunlang — rasmiy sertifikat QR kod bilan PDF formatda tayyor bo'ladi.",
+      tag: 'Bepul',
+    },
+    {
+      Icon: Flame,
+      title: 'Kunlik masala + streak',
+      desc: "Har kuni yangi challenge, ketma-ket kunlar uchun bonus ball va reytingda ko'tarilish.",
+      tag: 'Gamification',
     },
     {
       Icon: Globe,
       title: "Sof o'zbek tilida",
-      desc: "Barcha materiallar, AI javoblar va testlar o'zbek tilida — tarjima emas",
-      highlight: 'O\'zimizniki'
-    },
-    {
-      Icon: Smartphone,
-      title: 'Mobil-first dizayn',
-      desc: "Telefon, planshet va kompyuterda bir xil qulay — istalgan joydan o'rganing",
-      highlight: 'Responsive'
+      desc: "Barcha materiallar, AI javoblar va testlar o'zbek tilida — tarjima qilingan emas, o'zimizniki.",
+      tag: "O'zbekcha",
     },
   ]
 
-  // Yangiliklar — so'nggi platform yangilanishlari
-  const news = [
-    {
-      tag: 'YANGI',
-      tagColor: '#0F9D77',
-      Icon: Bot,
-      title: 'AI Teacher endi rasmlarni ham tahlil qiladi',
-      desc: 'Daftaringizdagi misol yoki kod ekranini rasm qilib yuboring — AI darrov javob beradi.',
-      date: 'Bu hafta'
-    },
-    {
-      tag: 'YANGILANDI',
-      tagColor: '#5B5BD6',
-      Icon: Swords,
-      title: 'Code Battle 1-10 o\'yinchi rejimida',
-      desc: 'Endi do\'stlaringiz bilan birgalikda real vaqtda kod yozish musobaqasini o\'ynashingiz mumkin.',
-      date: 'O\'tgan hafta'
-    },
-    {
-      tag: 'YAXSHILANDI',
-      tagColor: '#DC8B1A',
-      Icon: Trophy,
-      title: 'Sertifikatlar yangi dizaynda',
-      desc: 'Premium ko\'rinish, QR kod va onlayn tasdiqlash bilan rasmiy sertifikatlar.',
-      date: '2 hafta oldin'
-    },
-    {
-      tag: 'YANGI',
-      tagColor: '#EC4899',
-      Icon: Flame,
-      title: 'Kunlik masala — streak va daraja',
-      desc: 'Har kun bitta masala yeching, ketma-ket kunlar uchun bonus ball va rang to\'plang.',
-      date: '3 hafta oldin'
-    },
+  // Online ta'lim — bullet list
+  const onlineFeatures = [
+    'Telefon yoki kompyuter bilan istalgan joydan o\'rganing',
+    'AI ustoz Professor bilan 24/7 shaxsiy mashg\'ulotlar',
+    'Modulli darslar va avtomatik bilim nazorati',
+    'Code Battle orqali amaliyot va musobaqa',
+    'Bepul — hech qanday yashirin to\'lov yo\'q',
+  ]
+
+  const steps = [
+    { num: '01', Icon: UserPlus, title: "Ro'yxatdan o'ting", desc: 'Bepul akkaunt yarating — bir necha soniyada.' },
+    { num: '02', Icon: BookOpen, title: 'Kursni tanlang', desc: "O'zingizga mos sohani tanlab darslarni boshlang." },
+    { num: '03', Icon: Trophy, title: 'Sertifikat oling', desc: "Testlardan o'ting va rasmiy sertifikatni yuklab oling." },
+  ]
+
+  const testimonials = [
+    { name: 'Alijon Karimov', role: 'Junior Frontend Developer', text: "Eduzy da Python va JavaScript kurslarini o'rganib bugun ish topdim. Darslar tushunarli va praktik!", avatar: 'A' },
+    { name: 'Malika Rahimova', role: 'Student', text: "Code Battle eng zo'r qism! Boshqa dasturchilar bilan real vaqtda kod yozish juda qiziqarli.", avatar: 'M' },
+    { name: 'Bekzod Aliyev', role: "O'qituvchi", text: "AI test juda samarali. O'quvchilarim bilimini avtomatik tekshirish — ajoyib imkoniyat.", avatar: 'B' },
   ]
 
   const faqs = [
-    {
-      q: "Eduzy haqiqatan ham bepulmi?",
-      a: "Ha, barcha kurslar to'liq bepul. Hech qanday yashirin to'lov yo'q. Siz istalgan vaqtda istalgan kursni o'rganishingiz mumkin."
-    },
-    {
-      q: "Sertifikat qanday olaman?",
-      a: "Kursni tugatib, barcha AI testlardan muvaffaqiyatli o'tsangiz, sertifikat avtomatik tayyor bo'ladi. Uni PDF formatida yuklab olishingiz mumkin."
-    },
-    {
-      q: "Code Battle nima?",
-      a: "Bu dasturchilar uchun real vaqtda musobaqa tizimi. Boshqa o'quvchilar bilan 5 daqiqada masala yechib, ball to'plang va reytingda ko'tariling."
-    },
-    {
-      q: "AI Test qanday ishlaydi?",
-      a: "Sun'iy intellekt har bir kurs uchun shaxsiy testlar yaratadi. Har 5 darsdan keyin bilimingizni tekshiradi va kamchiliklaringizni aniqlaydi."
-    },
-    {
-      q: "Mobil qurilmada ishlaydimi?",
-      a: "Albatta! Eduzy butunlay moslashuvchan — telefon, planshet va kompyuterda bir xil qulaylikda ishlaydi."
-    }
+    { q: 'Eduzy haqiqatan ham bepulmi?', a: "Ha, barcha kurslar to'liq bepul. Hech qanday yashirin to'lov yo'q. Istalgan vaqtda istalgan kursni o'rganishingiz mumkin." },
+    { q: 'Sertifikat qanday olaman?', a: "Kursni tugatib barcha AI testlardan o'tsangiz, sertifikat avtomatik tayyor bo'ladi va uni PDF formatda yuklab olasiz." },
+    { q: 'Code Battle nima?', a: "Dasturchilar uchun real vaqtdagi musobaqa tizimi. Boshqa o'quvchilar bilan masala yechib ball to'plang va reytingda ko'tariling." },
+    { q: 'AI Test qanday ishlaydi?', a: "Sun'iy intellekt har bir kurs uchun shaxsiy testlar yaratadi va har 5 darsdan keyin bilimingizni tekshiradi." },
+    { q: 'Mobil qurilmada ishlaydimi?', a: "Albatta! Eduzy butunlay moslashuvchan — telefon, planshet va kompyuterda bir xil qulay ishlaydi." },
   ]
 
   return (
-    <div>
+    <div className="eduzy-landing">
       <Navbar />
 
-      {/* HERO */}
-      <section className="hero-new">
-        <div className="hero-bg-glow"></div>
-        <div className="hero-container">
-          <div className="hero-content">
-            <div className="hero-badge">
+      {/* ============ HERO ============ */}
+      <section className="ln-hero">
+        <div className="ln-hero-grid"></div>
+        <div className="ln-container ln-hero-inner">
+          <div className="ln-hero-left">
+            <div className="ln-badge">
               <Sparkles size={14} /> O'zbekistonning zamonaviy ta'lim platformasi
             </div>
-            <h1 className="hero-title">
-              Kelajak kasblarini
-              <br />
-              <span className="gradient-text">o'zbek tilida</span> o'rganing
+            <h1 className="ln-hero-title">
+              Kelajak kasblarini <span className="ln-gold">o'zbek tilida</span> o'rganing
             </h1>
-            <p className="hero-subtitle">
-              Dasturlash, matematika va zamonaviy kasblar bo'yicha bepul kurslar.
-              AI yordami, Code Battle va rasmiy sertifikatlar bilan.
+            <p className="ln-hero-sub">
+              Dasturlash, matematika va zamonaviy kasblar bo'yicha bepul kurslar —
+              AI yordamchi, Code Battle va rasmiy sertifikatlar bilan.
             </p>
 
-            <div className="hero-actions">
-              <button className="btn-primary btn-hero" onClick={() => navigate(user ? '/courses' : '/register')}>
-                {user ? (
-                  <><BookOpen size={18} /> Kurslarga o'tish</>
-                ) : (
-                  <><Rocket size={18} /> Bepul boshlash</>
-                )}
+            <div className="ln-hero-actions">
+              <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
+                <Rocket size={18} /> Bepul boshlash
               </button>
-              <button className="btn-outline btn-hero" onClick={() => navigate('/courses')}>
+              <button className="ln-btn ln-btn-ghost" onClick={() => navigate('/courses')}>
                 <PlayCircle size={18} /> Kurslarni ko'rish
               </button>
             </div>
 
-            <div className="hero-trust">
-              <div className="trust-avatars">
-                {['#8b5cf6', '#ec4899', '#0ea5e9', '#22c55e'].map((c, i) => (
-                  <div key={i} className="trust-avatar" style={{ background: c }}>
+            <div className="ln-hero-trust">
+              <div className="ln-trust-avatars">
+                {['#FFCF00', '#FF7A59', '#5B5BD6', '#22c55e'].map((c, i) => (
+                  <span key={i} className="ln-trust-avatar" style={{ background: c }}>
                     {['A', 'M', 'B', 'D'][i]}
-                  </div>
+                  </span>
                 ))}
               </div>
-              <div className="trust-text">
-                <div className="trust-stars">
+              <div className="ln-trust-text">
+                <div className="ln-trust-stars">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} fill="#f59e0b" color="#f59e0b" />
+                    <Star key={i} size={14} fill="#FFCF00" color="#FFCF00" />
                   ))}
                 </div>
                 <span><strong>{stats.users}</strong> o'quvchi bizni tanlagan</span>
@@ -353,345 +264,232 @@ function Home() {
             </div>
           </div>
 
-          {/* Hero illustration */}
-          <div className="hero-illustration">
-            <div className="illustration-wrap">
-              {/* Asosiy kartochka — typewriter kod */}
-              <div className="illu-main-card">
-                <div className="illu-header">
-                  <div className="illu-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                  <div className="illu-tab">{CODE_SNIPPETS[snippetIdx].lang}</div>
-                </div>
-                <div className="illu-code illu-code-typed">
-                  <pre>{typedText}<span className="illu-cursor">▋</span></pre>
-                </div>
+          <div className="ln-hero-right">
+            <div className="ln-code-card">
+              <div className="ln-code-head">
+                <div className="ln-code-dots"><span></span><span></span><span></span></div>
+                <div className="ln-code-tab">{CODE_SNIPPETS[snippetIdx].lang}</div>
               </div>
-
-              {/* Floating kartochkalar */}
-              <div className="illu-float-1">
-                <div className="float-icon" style={{ background: '#8b5cf6' }}>
-                  <BookOpen size={20} />
-                </div>
-                <div>
-                  <div className="float-title">{stats.courses} kurs</div>
-                  <div className="float-sub">Barcha sohalar</div>
-                </div>
+              <div className="ln-code-body">
+                <pre>{typedText}<span className="ln-cursor">▋</span></pre>
               </div>
-
-              <div className="illu-float-2">
-                <div className="float-icon" style={{ background: '#22c55e' }}>
-                  <Trophy size={20} />
-                </div>
-                <div>
-                  <div className="float-title">{stats.users} o'quvchi</div>
-                  <div className="float-sub">Faol talabalar</div>
-                </div>
-              </div>
-
-              <div className="illu-float-3">
-                <div className="float-icon" style={{ background: '#f59e0b' }}>
-                  <Award size={20} />
-                </div>
-                <div>
-                  <div className="float-title">Sertifikat</div>
-                  <div className="float-sub">Rasmiy hujjat</div>
-                </div>
-              </div>
-
-              {/* Dekorativ shakllar */}
-              <div className="illu-shape illu-shape-1"></div>
-              <div className="illu-shape illu-shape-2"></div>
-              <div className="illu-shape illu-shape-3"></div>
+            </div>
+            <div className="ln-float ln-float-1">
+              <div className="ln-float-ic"><BookOpen size={18} /></div>
+              <div><b>{stats.courses} kurs</b><span>Barcha sohalar</span></div>
+            </div>
+            <div className="ln-float ln-float-2">
+              <div className="ln-float-ic"><Award size={18} /></div>
+              <div><b>Sertifikat</b><span>Rasmiy hujjat</span></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* BIG STATS — kuchli raqamlar */}
-      <section className="big-stats-section">
-        <div className="home-container">
-          <div className="big-stats-header reveal">
-            <div className="section-badge">
-              <TrendingUp size={14} /> Bizning ko'rsatkichlar
-            </div>
-            <h2>O'zbekistondagi <span className="gradient-text">eng kuchli</span> ta'lim platformasi</h2>
-            <p>Minglab o'quvchilar tanlagan, sevgan va ishongan platformamiz</p>
-          </div>
-
-          <div className="big-stats-grid">
-            {bigStats.map((s, i) => (
-              <div key={i} className="big-stat-card reveal" style={{ transitionDelay: `${i * 70}ms` }}>
-                <div className="big-stat-icon" style={{ background: s.color + '15', color: s.color }}>
-                  <s.Icon size={28} />
-                </div>
-                <div className="big-stat-value">
-                  <CountUp value={s.value} suffix={s.suffix} />
-                </div>
-                <div className="big-stat-label">{s.label}</div>
+      {/* ============ STATS BAND (BIZ HAQIMIZDA) ============ */}
+      <section className="ln-stats-band">
+        <div className="ln-container">
+          <div className="ln-stats-row ln-reveal">
+            {aboutStats.map((s, i) => (
+              <div key={i} className="ln-stat">
+                <div className="ln-stat-num"><CountUp value={s.value} suffix={s.suffix} /></div>
+                <div className="ln-stat-label">{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* MASHHUR KURSLAR */}
-      {courses.length > 0 && (
-        <section className="home-section">
-          <div className="home-container">
-            <div className="section-header reveal">
-              <div className="section-badge">
-                <BookOpen size={14} /> Kurslar
-              </div>
-              <h2>Mashhur kurslar</h2>
-              <p>Eng ko'p o'qilgan va sevilgan kurslar bilan tanishing</p>
-            </div>
-
-            <div className="home-course-grid reveal">
-              {courses.map(kurs => (
-                <div key={kurs.id} className="home-course-card" onClick={() => navigate(`/courses/${kurs.id}`)}>
-                  <div className="home-course-thumb">
-                    {kurs.image ? (
-                      <img src={assetUrl(kurs.image)} alt={kurs.title} />
-                    ) : (
-                      <div className="home-course-empty">
-                        <BookOpen size={48} />
-                      </div>
-                    )}
-                    <div className="home-course-badge">
-                      <Sparkles size={10} /> Bepul
-                    </div>
-                  </div>
-                  <div className="home-course-body">
-                    <div className="home-course-tags">
-                      <span className="home-tag">{kurs.category}</span>
-                      <span className="home-tag">
-                        <BarChart3 size={10} /> {kurs.daraja}
-                      </span>
-                    </div>
-                    <h3>{kurs.title}</h3>
-                    <p>{(kurs.desc || kurs.description || '').substring(0, 80)}...</p>
-                    <div className="home-course-meta">
-                      <span><BookOpen size={12} /> {kurs.lessons?.length || 0} dars</span>
-                      <span><Users size={12} /> {kurs.students_count || 0}</span>
-                      {kurs.ratings_count > 0 ? (
-                        <span className="home-course-rating">
-                          <Star size={12} fill="currentColor" /> {kurs.avg_rating.toFixed(1)}
-                        </span>
-                      ) : (
-                        <span className="home-course-rating" style={{ opacity: 0.6 }}>
-                          <Star size={12} /> Yangi
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="section-cta">
-              <button className="btn-outline" onClick={() => navigate('/courses')}>
-                Barcha kurslarni ko'rish <ArrowRight size={16} />
-              </button>
-            </div>
+      {/* ============ BIZNING AFZALLIKLAR ============ */}
+      <section className="ln-section">
+        <div className="ln-container">
+          <div className="ln-head ln-reveal">
+            <span className="ln-eyebrow">Bizning afzalliklar</span>
+            <h2>Nima uchun <span className="ln-gold">aynan Eduzy</span>?</h2>
+            <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud imkoniyatlar</p>
           </div>
-        </section>
-      )}
-
-      {/* BIZNING USTUNLIKLAR */}
-      <section className="home-section advantages-section">
-        <div className="home-container">
-          <div className="section-header reveal">
-            <div className="section-badge">
-              <Sparkles size={14} /> Bizning ustunliklar
-            </div>
-            <h2>Nima uchun <span className="gradient-text">aynan Eduzy</span>?</h2>
-            <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud bo'lgan imkoniyatlar</p>
-          </div>
-
-          <div className="advantages-grid reveal">
-            {advantages.map((a, i) => (
-              <div key={i} className="advantage-card">
-                <div className="advantage-header">
-                  <div className="advantage-icon">
-                    <a.Icon size={22} />
-                  </div>
-                  <span className="advantage-highlight">{a.highlight}</span>
-                </div>
-                <h3>{a.title}</h3>
-                <p>{a.desc}</p>
-                <div className="advantage-check">
-                  <Check size={14} /> Eduzy'da mavjud
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* QANDAY ISHLAYDI */}
-      <section className="home-section steps-section">
-        <div className="home-container">
-          <div className="section-header reveal">
-            <div className="section-badge">
-              <Target size={14} /> 3 bosqich
-            </div>
-            <h2>Qanday ishlaydi?</h2>
-            <p>Uch oddiy qadamda o'rganishni boshlang</p>
-          </div>
-
-          <div className="steps-grid reveal">
-            {steps.map((s, i) => (
-              <div key={i} className="step-card">
-                <div className="step-num">{s.num}</div>
-                <div className="step-icon">
-                  <s.Icon size={32} />
-                </div>
-                <h4>{s.title}</h4>
-                <p>{s.desc}</p>
-                {i < steps.length - 1 && <div className="step-arrow"><ArrowRight size={20} /></div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* YANGILIKLAR */}
-      <section className="home-section news-section">
-        <div className="home-container">
-          <div className="section-header reveal">
-            <div className="section-badge">
-              <Newspaper size={14} /> Yangiliklar
-            </div>
-            <h2>So'nggi <span className="gradient-text">yangilanishlar</span></h2>
-            <p>Platformani doim yaxshilash uchun harakat qilamiz — har hafta yangi xususiyatlar</p>
-          </div>
-
-          <div className="news-grid reveal">
-            {news.map((n, i) => (
-              <article key={i} className="news-card">
-                <div className="news-tag" style={{ background: n.tagColor + '15', color: n.tagColor, borderColor: n.tagColor + '30' }}>
-                  {n.tag}
-                </div>
-                <div className="news-icon">
-                  <n.Icon size={24} />
-                </div>
-                <h3>{n.title}</h3>
-                <p>{n.desc}</p>
-                <div className="news-date">
-                  <Calendar size={12} /> {n.date}
-                </div>
+          <div className="ln-benefits ln-reveal">
+            {benefits.map((b, i) => (
+              <article key={i} className="ln-benefit" style={{ transitionDelay: `${i * 60}ms` }}>
+                <div className="ln-benefit-ic"><b.Icon size={24} /></div>
+                <span className="ln-benefit-tag">{b.tag}</span>
+                <h3>{b.title}</h3>
+                <p>{b.desc}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="home-section testimonials-section">
-        <div className="home-container">
-          <div className="section-header reveal">
-            <div className="section-badge">
-              <Quote size={14} /> Fikrlar
-            </div>
-            <h2>O'quvchilar nima deyishadi?</h2>
-            <p>Minglab baxtli o'quvchilarning ta'surotlari</p>
+      {/* ============ ONLINE TA'LIM (highlight) ============ */}
+      <section className="ln-section ln-online">
+        <div className="ln-container ln-online-grid">
+          <div className="ln-online-text ln-reveal">
+            <span className="ln-eyebrow ln-eyebrow-dark">Yangi darajadagi ta'lim</span>
+            <h2>Endi o'rganishga <span className="ln-gold">masofa to'siq emas</span></h2>
+            <p>Bitta smartfon yoki kompyuter — va siz O'zbekistonning eng kuchli ta'lim platformasidasiz.</p>
+            <ul className="ln-checklist">
+              {onlineFeatures.map((f, i) => (
+                <li key={i}><Check size={16} /> {f}</li>
+              ))}
+            </ul>
+            <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
+              Online o'qishni boshlash <ArrowRight size={16} />
+            </button>
           </div>
+          <div className="ln-online-visual ln-reveal">
+            <div className="ln-visual-card ln-vc-1"><Bot size={22} /> <span>AI Teacher</span></div>
+            <div className="ln-visual-card ln-vc-2"><Swords size={22} /> <span>Code Battle</span></div>
+            <div className="ln-visual-card ln-vc-3"><Smartphone size={22} /> <span>Mobil-first</span></div>
+            <div className="ln-visual-card ln-vc-4"><Award size={22} /> <span>Sertifikat</span></div>
+          </div>
+        </div>
+      </section>
 
-          <div className="testimonials-grid reveal">
-            {testimonials.map((t, i) => (
-              <div key={i} className="testimonial-card">
-                <div className="testimonial-quote"><Quote size={32} /></div>
-                <p className="testimonial-text">"{t.text}"</p>
-                <div className="testimonial-stars">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={14} fill="#f59e0b" color="#f59e0b" />
-                  ))}
-                </div>
-                <div className="testimonial-author">
-                  <div className="testimonial-avatar" style={{ background: t.color }}>
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <div className="testimonial-name">{t.name}</div>
-                    <div className="testimonial-role">{t.role}</div>
-                  </div>
-                </div>
+      {/* ============ QANDAY ISHLAYDI ============ */}
+      <section className="ln-section">
+        <div className="ln-container">
+          <div className="ln-head ln-reveal">
+            <span className="ln-eyebrow">3 bosqich</span>
+            <h2>Qanday ishlaydi?</h2>
+            <p>Uch oddiy qadamda o'rganishni boshlang</p>
+          </div>
+          <div className="ln-steps ln-reveal">
+            {steps.map((s, i) => (
+              <div key={i} className="ln-step">
+                <div className="ln-step-num">{s.num}</div>
+                <div className="ln-step-ic"><s.Icon size={28} /></div>
+                <h4>{s.title}</h4>
+                <p>{s.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="home-section faq-section">
-        <div className="home-container">
-          <div className="section-header reveal">
-            <div className="section-badge">
-              <Lightbulb size={14} /> FAQ
+      {/* ============ MASHHUR KURSLAR ============ */}
+      {courses.length > 0 && (
+        <section className="ln-section ln-soft">
+          <div className="ln-container">
+            <div className="ln-head ln-reveal">
+              <span className="ln-eyebrow">Kurslar</span>
+              <h2>Mashhur kurslar</h2>
+              <p>Eng ko'p o'qilgan va sevilgan kurslar bilan tanishing</p>
             </div>
-            <h2>Tez-tez so'raladigan savollar</h2>
-            <p>Sizni qiziqtirgan savollarga javoblar</p>
-          </div>
-
-          <div className="faq-list reveal">
-            {faqs.map((f, i) => (
-              <div key={i} className={`faq-item ${openFaq === i ? 'faq-open' : ''}`}>
-                <button
-                  className="faq-question"
-                  onClick={() => setOpenFaq(openFaq === i ? -1 : i)}
-                >
-                  <span>{f.q}</span>
-                  <ChevronDown size={20} className="faq-chevron" />
-                </button>
-                {openFaq === i && (
-                  <div className="faq-answer">
-                    <p>{f.a}</p>
+            <div className="ln-courses ln-reveal">
+              {courses.map(kurs => (
+                <div key={kurs.id} className="ln-course" onClick={() => navigate(`/courses/${kurs.id}`)}>
+                  <div className="ln-course-thumb">
+                    {kurs.image ? (
+                      <img src={assetUrl(kurs.image)} alt={kurs.title} />
+                    ) : (
+                      <div className="ln-course-empty"><BookOpen size={42} /></div>
+                    )}
+                    <span className="ln-course-free"><Sparkles size={10} /> Bepul</span>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      {!user && (
-        <section className="cta-section">
-          <div className="home-container">
-            <div className="cta-box-new reveal">
-              <div className="cta-content">
-                <div className="cta-badge">
-                  <Rocket size={14} /> Bugundan boshlang
+                  <div className="ln-course-body">
+                    <div className="ln-course-tags">
+                      <span>{kurs.category}</span>
+                      <span>{kurs.daraja}</span>
+                    </div>
+                    <h3>{kurs.title}</h3>
+                    <p>{(kurs.desc || kurs.description || '').substring(0, 78)}…</p>
+                    <div className="ln-course-meta">
+                      <span><BookOpen size={12} /> {kurs.lessons?.length || 0} dars</span>
+                      <span><Users size={12} /> {kurs.students_count || 0}</span>
+                      {kurs.ratings_count > 0 ? (
+                        <span className="ln-course-rate"><Star size={12} fill="currentColor" /> {kurs.avg_rating.toFixed(1)}</span>
+                      ) : (
+                        <span className="ln-course-rate" style={{ opacity: 0.6 }}><Star size={12} /> Yangi</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <h2>
-                  Bepul ta'lim <span className="gradient-text">hozir boshlanadi</span>
-                </h2>
-                <p>
-                  Ro'yxatdan o'ting va {stats.courses} kurslarga ega bo'ling.
-                  Hech qanday to'lov yo'q. Faqat bilim.
-                </p>
-                <div className="cta-actions">
-                  <button className="btn-primary btn-hero" onClick={() => navigate('/register')}>
-                    <UserPlus size={18} /> Ro'yxatdan o'tish
-                  </button>
-                  <button className="btn-outline btn-hero" onClick={() => navigate('/login')}>
-                    Kirish
-                  </button>
-                </div>
-                <div className="cta-features">
-                  <span><CheckCircle2 size={14} color="#22c55e" /> Bepul</span>
-                  <span><CheckCircle2 size={14} color="#22c55e" /> Sertifikat</span>
-                  <span><CheckCircle2 size={14} color="#22c55e" /> AI yordam</span>
-                </div>
-              </div>
+              ))}
+            </div>
+            <div className="ln-center">
+              <button className="ln-btn ln-btn-dark" onClick={() => navigate('/courses')}>
+                Barcha kurslar <ArrowRight size={16} />
+              </button>
             </div>
           </div>
         </section>
       )}
+
+      {/* ============ NATIJALAR / FIKRLAR ============ */}
+      <section className="ln-section">
+        <div className="ln-container">
+          <div className="ln-head ln-reveal">
+            <span className="ln-eyebrow">Natijalar</span>
+            <h2>O'quvchilar nima deyishadi?</h2>
+            <p>Minglab o'quvchilarning haqiqiy taassurotlari</p>
+          </div>
+          <div className="ln-tests ln-reveal">
+            {testimonials.map((t, i) => (
+              <div key={i} className="ln-test">
+                <Quote className="ln-test-q" size={28} />
+                <p className="ln-test-text">{t.text}</p>
+                <div className="ln-test-stars">
+                  {[...Array(5)].map((_, j) => <Star key={j} size={13} fill="#FFCF00" color="#FFCF00" />)}
+                </div>
+                <div className="ln-test-author">
+                  <span className="ln-test-avatar">{t.avatar}</span>
+                  <div>
+                    <div className="ln-test-name">{t.name}</div>
+                    <div className="ln-test-role">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FAQ ============ */}
+      <section className="ln-section ln-soft">
+        <div className="ln-container ln-faq-wrap">
+          <div className="ln-head ln-reveal">
+            <span className="ln-eyebrow">FAQ</span>
+            <h2>Sizni qiziqtirgan savollarga javob</h2>
+          </div>
+          <div className="ln-faq ln-reveal">
+            {faqs.map((f, i) => (
+              <div key={i} className={`ln-faq-item ${openFaq === i ? 'ln-open' : ''}`}>
+                <button className="ln-faq-q" onClick={() => setOpenFaq(openFaq === i ? -1 : i)}>
+                  <span>{f.q}</span>
+                  <ChevronDown size={20} className="ln-faq-chev" />
+                </button>
+                {openFaq === i && <div className="ln-faq-a"><p>{f.a}</p></div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ CTA / KONTAKT ============ */}
+      <section className="ln-cta">
+        <div className="ln-container">
+          <div className="ln-cta-box ln-reveal">
+            <span className="ln-eyebrow ln-eyebrow-dark">Bugundan boshlang</span>
+            <h2>Bepul ta'lim <span className="ln-gold">hozir boshlanadi</span></h2>
+            <p>Ro'yxatdan o'ting va {stats.courses}+ kursga ega bo'ling. Hech qanday to'lov yo'q — faqat bilim.</p>
+            <div className="ln-cta-actions">
+              <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
+                <UserPlus size={18} /> Ro'yxatdan o'tish
+              </button>
+              <a className="ln-btn ln-btn-ghost-dark" href="tel:+998000000000">
+                <Phone size={18} /> Biz bilan bog'lanish
+              </a>
+            </div>
+            <div className="ln-cta-feats">
+              <span><Check size={14} /> Bepul</span>
+              <span><Check size={14} /> Sertifikat</span>
+              <span><Check size={14} /> AI yordam</span>
+              <span><Target size={14} /> 24/7</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </div>
