@@ -172,6 +172,7 @@
 .eduzy-landing .navbar {
   background: rgba(20, 20, 24, .72);
   border-color: rgba(255, 255, 255, .12);
+  transition: background-color .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
 .eduzy-landing .navbar:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
@@ -224,6 +225,45 @@
   background: #ffd827;
   box-shadow: 0 6px 18px rgba(255, 207, 0, .5);
 }
+
+/* Scroll holati — navbar oqaradi (hero'dan o'tgach) */
+.eduzy-landing .navbar.is-scrolled {
+  background: rgba(255, 255, 255, .85);
+  border-color: var(--ln-line);
+  box-shadow: 0 8px 30px rgba(20, 20, 22, .08);
+}
+.eduzy-landing .navbar.is-scrolled .logo-text { color: var(--ln-ink); }
+.eduzy-landing .navbar.is-scrolled .nav-center span { color: var(--ln-muted); }
+.eduzy-landing .navbar.is-scrolled .nav-center span:hover {
+  color: var(--ln-ink);
+  background: rgba(20, 20, 22, .06);
+}
+.eduzy-landing .navbar.is-scrolled .theme-toggle {
+  color: var(--ln-muted);
+  border-color: var(--ln-line);
+}
+.eduzy-landing .navbar.is-scrolled .theme-toggle:hover {
+  color: var(--ln-ink);
+  background: rgba(20, 20, 22, .05);
+  border-color: var(--ln-line);
+}
+.eduzy-landing .navbar.is-scrolled .hamburger {
+  color: var(--ln-ink);
+  border-color: var(--ln-line);
+}
+.eduzy-landing .navbar.is-scrolled .hamburger:hover {
+  background: rgba(20, 20, 22, .05);
+  border-color: var(--ln-line);
+}
+.eduzy-landing .navbar.is-scrolled .btn-outline {
+  color: var(--ln-ink);
+  border-color: rgba(20, 20, 22, .22);
+}
+.eduzy-landing .navbar.is-scrolled .btn-outline:hover {
+  color: var(--ln-gold-d);
+  border-color: var(--ln-gold);
+}
+/* Ro'yxatdan o'tish tugmasi oltin holicha qoladi (oq fonda ham yaxshi) */
 
 /* Mobil menyu — landing'da qora */
 .eduzy-landing .mobile-menu { background: rgba(0, 0, 0, .6); }

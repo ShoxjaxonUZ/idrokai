@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import {
@@ -20,9 +20,20 @@ function Navbar() {
   const { theme, toggleTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const closeTimeoutRef = useRef(null)
   const user = getUser()
   const isAdmin = user?.role === 'admin'
+
+  // Scroll holati — landing'da navbar hero ortidan o'tgach oqaradi
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > window.innerHeight - 100)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const goTo = (path) => {
     navigate(path)
@@ -57,7 +68,7 @@ function Navbar() {
       <header className="navbar-wrap">
         {/* frosted glass strip — fixed navbar orqasida blur effekti uchun */}
         <div className="navbar-backdrop" aria-hidden="true" />
-        <nav className="navbar">
+        <nav className={`navbar ${scrolled ? 'is-scrolled' : ''}`}>
 
           {/* Logo */}
           <div className="nav-logo" onClick={() => navigate('/')}>
