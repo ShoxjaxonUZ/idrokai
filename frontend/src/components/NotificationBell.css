@@ -33,7 +33,7 @@
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  background: linear-gradient(135deg, var(--primary), #FF9E2C);
+  background: linear-gradient(135deg, var(--primary), #F472B6);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
@@ -200,7 +200,7 @@
 }
 
 .notif-unread .notif-icon-wrap {
-  background: linear-gradient(135deg, var(--primary) 0%, #FFCF00 50%, #FF9E2C 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
   color: #fff;
   border-color: transparent;
 }

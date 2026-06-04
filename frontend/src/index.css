@@ -48,14 +48,14 @@ body {
   --text: #2E2A24;
   --text-soft: #5C574F;
   --text-muted: #9B958B;
-  --text-on-primary: #231C0A;
+  --text-on-primary: #FFFFFF;
 
-  /* Brand — oltin/amber (light temada o'qiladigan chuqurroq tus) */
-  --primary: #C8890A;
-  --primary-light: #E0A012;
-  --primary-dark: #9E6B00;
-  --primary-bg: rgba(200, 137, 10, 0.10);
-  --primary-bg-hover: rgba(200, 137, 10, 0.16);
+  /* Brand — biroz yumshatilgan indigo */
+  --primary: #5B5BD6;
+  --primary-light: #7A7AE0;
+  --primary-dark: #4747B8;
+  --primary-bg: rgba(91, 91, 214, 0.08);
+  --primary-bg-hover: rgba(91, 91, 214, 0.12);
 
   /* Secondary — yumshoq emerald */
   --secondary: #0F9D77;
@@ -67,7 +67,7 @@ body {
   --border: #DDD8CD;
   --border-soft: #ECE8DE;
   --border-hover: #C9C3B5;
-  --border-focus: #C8890A;
+  --border-focus: #5B5BD6;
 
   /* Shadows — yengil, qisqa radius */
   --shadow-xs: 0 1px 2px rgba(46, 42, 36, 0.04);
@@ -75,7 +75,7 @@ body {
   --shadow: 0 3px 10px rgba(46, 42, 36, 0.05), 0 1px 3px rgba(46, 42, 36, 0.03);
   --shadow-md: 0 6px 20px rgba(46, 42, 36, 0.07), 0 3px 6px rgba(46, 42, 36, 0.03);
   --shadow-lg: 0 12px 40px rgba(46, 42, 36, 0.08), 0 6px 12px rgba(46, 42, 36, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(200, 137, 10, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(91, 91, 214, 0.16);
 
   /* States — yumshoq, ko'zga qulay */
   --success: #0F9D77;
@@ -124,13 +124,13 @@ body {
   --text: #E8E5DE;
   --text-soft: #B5B0A4;
   --text-muted: #7A7468;
-  --text-on-primary: #231C0A;
+  --text-on-primary: #FFFFFF;
 
-  --primary: #F2BC1B;
-  --primary-light: #FFD24D;
-  --primary-dark: #D9A300;
-  --primary-bg: rgba(242, 188, 27, 0.14);
-  --primary-bg-hover: rgba(242, 188, 27, 0.22);
+  --primary: #8E8EFA;
+  --primary-light: #ADADFC;
+  --primary-dark: #6E6EE0;
+  --primary-bg: rgba(142, 142, 250, 0.13);
+  --primary-bg-hover: rgba(142, 142, 250, 0.20);
 
   --secondary: #3EB99A;
   --secondary-light: #5FCCB0;
@@ -140,14 +140,14 @@ body {
   --border: #322E27;
   --border-soft: #2A2620;
   --border-hover: #4A443B;
-  --border-focus: #F2BC1B;
+  --border-focus: #8E8EFA;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow: 0 3px 10px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45), 0 6px 12px rgba(0, 0, 0, 0.25);
-  --shadow-focus: 0 0 0 3px rgba(242, 188, 27, 0.30);
+  --shadow-focus: 0 0 0 3px rgba(142, 142, 250, 0.28);
 
   --success: #3EB99A;
   --success-bg: rgba(62, 185, 154, 0.13);
@@ -177,12 +177,12 @@ body {
   --text: #E8E5DE;
   --text-soft: #B5B0A4;
   --text-muted: #7A7468;
-  --text-on-primary: #231C0A;
-  --primary: #F2BC1B;
-  --primary-light: #FFD24D;
-  --primary-dark: #D9A300;
-  --primary-bg: rgba(242, 188, 27, 0.14);
-  --primary-bg-hover: rgba(242, 188, 27, 0.22);
+  --text-on-primary: #FFFFFF;
+  --primary: #8E8EFA;
+  --primary-light: #ADADFC;
+  --primary-dark: #6E6EE0;
+  --primary-bg: rgba(142, 142, 250, 0.13);
+  --primary-bg-hover: rgba(142, 142, 250, 0.20);
   --secondary: #3EB99A;
   --secondary-light: #5FCCB0;
   --secondary-dark: #2DA084;
@@ -190,13 +190,13 @@ body {
   --border: #322E27;
   --border-soft: #2A2620;
   --border-hover: #4A443B;
-  --border-focus: #F2BC1B;
+  --border-focus: #8E8EFA;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow: 0 3px 10px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35), 0 3px 6px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45), 0 6px 12px rgba(0, 0, 0, 0.25);
-  --shadow-focus: 0 0 0 3px rgba(242, 188, 27, 0.30);
+  --shadow-focus: 0 0 0 3px rgba(142, 142, 250, 0.28);
   --success: #3EB99A;
   --success-bg: rgba(62, 185, 154, 0.13);
   --danger: #E37373;
@@ -470,7 +470,7 @@ a:hover { color: var(--primary-dark); }
    (navbar/footer logo bilan moslangan)
    ============================================ */
 .gradient-text {
-  background: linear-gradient(135deg, var(--primary) 0%, #FFCF00 50%, #FF9E2C 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

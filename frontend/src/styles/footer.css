@@ -31,7 +31,7 @@
 .footer-logo-icon {
   width: 42px;
   height: 42px;
-  background: linear-gradient(135deg, var(--primary) 0%, #FFCF00 50%, #FF9E2C 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -43,7 +43,7 @@
 .footer-logo {
   font-size: 22px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), #FF9E2C);
+  background: linear-gradient(135deg, var(--primary), #F472B6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
