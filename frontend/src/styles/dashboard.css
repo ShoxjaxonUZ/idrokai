@@ -757,6 +757,16 @@
     padding: calc(var(--navbar-h) + 16px) 14px 32px;
     gap: 14px;
   }
+  /* Tablar mobil'da sig'masa — gorizontal scroll (chetdan chiqib ketmaydi) */
+  .dash-tabs {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .dash-tabs::-webkit-scrollbar { display: none; }
+  .dash-tab { flex-shrink: 0; }
   .dash-profile {
     flex-direction: column;
     text-align: center;
