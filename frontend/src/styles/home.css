@@ -1038,6 +1038,9 @@
   .eduzy-landing .ln-bento { grid-template-columns: repeat(2, 1fr); }
   .eduzy-landing .ln-bento-big { grid-column: span 2; grid-row: auto; }
   .eduzy-landing .ln-contact-box { grid-template-columns: 1fr; gap: 32px; }
+  /* Hero kod kartochkasi (bezak) matn ustiga tushmasligi uchun yashiriladi */
+  .eduzy-landing .ln-hero-deco { display: none; }
+  .eduzy-landing .ln-hero { min-height: auto; }
 }
 @media (max-width: 620px) {
   .eduzy-landing .ln-section, .eduzy-landing .ln-contact, .eduzy-landing .ln-cta { padding: 56px 0; }
@@ -1050,4 +1053,10 @@
   .eduzy-landing .ln-vc-2, .eduzy-landing .ln-vc-3 { transform: none; }
   .eduzy-landing .ln-hero-actions .ln-btn,
   .eduzy-landing .ln-cta-actions .ln-btn { flex: 1; justify-content: center; }
+  /* Hero — mobil: kichikroq sarlavha, qulay padding, to'liq kenglikdagi tugma */
+  .eduzy-landing .ln-hero { padding: calc(var(--navbar-h) + 24px) 0 48px; }
+  .eduzy-landing .ln-hero-title { font-size: clamp(30px, 9vw, 42px); }
+  .eduzy-landing .ln-hero-sub { font-size: 16px; }
+  .eduzy-landing .ln-btn-lg { width: 100%; justify-content: center; }
+  .eduzy-landing .ln-hero-glow { width: 320px; height: 320px; }
 }

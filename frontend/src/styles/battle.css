@@ -1119,3 +1119,48 @@
   line-height: 1.5;
   margin: 0;
 }
+
+/* ============ Mobil blok ekrani ============ */
+.battle-mobile-block {
+  min-height: calc(100vh - var(--navbar-h));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.battle-mobile-card {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 28px;
+  box-shadow: var(--shadow-md);
+}
+.battle-mobile-icon {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+.battle-mobile-card h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.battle-mobile-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin-bottom: 24px;
+}
+.battle-mobile-card .btn-primary {
+  width: 100%;
+  justify-content: center;
+}

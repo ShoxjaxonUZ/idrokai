@@ -287,6 +287,17 @@ function Battle() {
   const pollRef = useRef(null)
   const isLockedRef = useRef(false)
 
+  // Code Battle kod yozishni talab qiladi — telefon ekranida noqulay,
+  // shuning uchun kichik ekranlarda o'ynashga ruxsat berilmaydi.
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 900
+  )
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 900)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   // Reyting o'rni belgisi — 1/2/3 uchun ikona, qolganlar uchun raqam
   const rankIcon = (i) =>
     i === 0 ? <Crown size={20} color="#f59e0b" /> :
@@ -818,6 +829,31 @@ function Battle() {
     setPreviewCode('')
     setExecOutput(null)
     setError('')
+  }
+
+  // ============ MOBIL BLOK ============
+  // Code Battle kod yozish + jonli preview talab qiladi — telefonda noqulay.
+  // Kichik ekranlarda o'ynashga ruxsat berilmaydi.
+  if (isMobile) {
+    return (
+      <div>
+        <Navbar />
+        <div className="battle-mobile-block">
+          <div className="battle-mobile-card">
+            <div className="battle-mobile-icon"><Swords size={40} /></div>
+            <h2>Code Battle kompyuterda ishlaydi</h2>
+            <p>
+              Code Battle real vaqtda kod yozish va musobaqani talab qiladi —
+              bu telefon ekranida noqulay. Iltimos, <strong>kompyuter yoki
+              noutbukdan</strong> foydalaning.
+            </p>
+            <button className="btn-primary" onClick={() => navigate('/dashboard')}>
+              Bosh sahifaga qaytish
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // ============ PLAYING SCREEN ============
