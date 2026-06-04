@@ -310,6 +310,24 @@ a:hover { color: var(--primary-dark); }
   color: var(--text);
 }
 
+/* Hero CTA — kattaroq tugma + gradient (About, Help, ModuleTest,
+   NotFound, Onboarding sahifalarida ishlatiladi) */
+.btn-hero {
+  padding: 14px 26px !important;
+  font-size: 15px !important;
+  border-radius: var(--radius) !important;
+}
+.btn-primary.btn-hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%) !important;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 35%, transparent) !important;
+  border: none;
+}
+.btn-outline.btn-hero {
+  background: color-mix(in srgb, var(--bg-soft) 60%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 .btn-link {
   background: none;
   border: none;
