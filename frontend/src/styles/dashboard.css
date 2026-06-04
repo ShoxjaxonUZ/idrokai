@@ -38,7 +38,7 @@
 .dash-avatar {
   width: 68px;
   height: 68px;
-  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #FFCF00 50%, #FF9E2C 100%);
   color: #fff;
   font-size: 28px;
   font-weight: 700;
@@ -250,7 +250,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--primary), #A78BFA, #F472B6);
+  background: linear-gradient(90deg, var(--primary), #FFCF00, #FF9E2C);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -334,7 +334,7 @@
   height: 18px;
   padding: 0 5px;
   margin-left: 4px;
-  background: linear-gradient(135deg, var(--primary), #F472B6);
+  background: linear-gradient(135deg, var(--primary), #FF9E2C);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
@@ -426,7 +426,7 @@
 }
 
 .msg-new-badge {
-  background: linear-gradient(135deg, var(--primary), #F472B6);
+  background: linear-gradient(135deg, var(--primary), #FF9E2C);
   color: #fff;
   font-size: 10px;
   font-weight: 800;

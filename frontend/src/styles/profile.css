@@ -42,7 +42,7 @@
 .profile-avatar-big {
   width: 80px;
   height: 80px;
-  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #FFCF00 50%, #FF9E2C 100%);
   color: #fff;
   font-size: 32px;
   font-weight: 700;

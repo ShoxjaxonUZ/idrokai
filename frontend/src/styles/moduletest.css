@@ -49,7 +49,7 @@
 
 .mtest-badge {
   display: inline-block;
-  background: linear-gradient(135deg, var(--primary) 0%, #A78BFA 50%, #F472B6 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #FFCF00 50%, #FF9E2C 100%);
   color: #fff;
   padding: 5px 16px;
   border-radius: var(--radius-full);
