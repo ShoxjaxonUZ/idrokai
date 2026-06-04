@@ -112,18 +112,21 @@ if (typeof window !== 'undefined' && !window.__authInterceptor) {
   const origFetch = window.fetch.bind(window)
   window.fetch = async (...args) => {
     const res = await origFetch(...args)
-    if (res.status === 401) {
+    // Token mavjud bo'lsa va istalgan 401 qaytsa — sessiya yaroqsiz
+    // (muddati o'tgan, imzo noto'g'ri, sessiya o'chirilgan va h.k.).
+    // Foydalanuvchini tozalab, login sahifasiga sabab bilan yo'naltiramiz.
+    // Guest (tokensiz) uchun yo'naltirmaymiz — u shunchaki bo'sh ma'lumot oladi.
+    if (res.status === 401 && getToken()) {
+      let msg = 'Sessiya tugagan, qaytadan kiring'
       try {
         const data = await res.clone().json()
-        const msg = data?.message || ''
-        if (/chiqarib yuborilgan|sessiya tug/i.test(msg)) {
-          clearAuth()
-          if (!window.location.pathname.startsWith('/login')) {
-            try { sessionStorage.setItem('authKickReason', msg) } catch {}
-            window.location.href = '/login'
-          }
-        }
+        if (data?.message) msg = data.message
       } catch {}
+      clearAuth()
+      if (!window.location.pathname.startsWith('/login')) {
+        try { sessionStorage.setItem('authKickReason', msg) } catch {}
+        window.location.href = '/login'
+      }
     }
     return res
   }
