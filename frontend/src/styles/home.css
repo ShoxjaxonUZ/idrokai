@@ -1035,7 +1035,7 @@
   .eduzy-landing .ln-tests { grid-template-columns: repeat(2, 1fr); }
   .eduzy-landing .ln-steps { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
   .eduzy-landing .ln-stats-row { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .eduzy-landing .ln-bento { grid-template-columns: repeat(2, 1fr); }
+  .eduzy-landing .ln-bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: auto; }
   .eduzy-landing .ln-bento-big { grid-column: span 2; grid-row: auto; }
   .eduzy-landing .ln-contact-box { grid-template-columns: 1fr; gap: 32px; }
   /* Hero kod kartochkasi (bezak) matn ustiga tushmasligi uchun yashiriladi */
@@ -1048,6 +1048,7 @@
   .eduzy-landing .ln-tests,
   .eduzy-landing .ln-bento,
   .eduzy-landing .ln-online-visual { grid-template-columns: 1fr; }
+  .eduzy-landing .ln-bento { grid-auto-rows: auto; }
   .eduzy-landing .ln-bento-big { grid-column: auto; }
   .eduzy-landing .ln-stats-row { grid-template-columns: repeat(2, 1fr); }
   .eduzy-landing .ln-vc-2, .eduzy-landing .ln-vc-3 { transform: none; }
