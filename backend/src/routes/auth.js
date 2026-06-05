@@ -9,6 +9,7 @@ const { validatePassword, loginLimiter } = require('../middleware/security')
 const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
 const telegram = require('../lib/telegram')
+const emailLib = require('../lib/email')
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const TOKEN_TTL = '7d'
@@ -466,6 +467,106 @@ router.put('/update-password', authMiddleware, async (req, res) => {
 
     res.json({ message: 'Parol yangilandi. Boshqa qurilmalardagi sessiyalar to\'xtatildi' })
   } catch (err) {
+    res.status(500).json({ message: 'Xatolik yuz berdi' })
+  }
+})
+
+// ====== Parolni tiklash ======
+
+const RESET_COOLDOWN_SECONDS = 60
+
+// 1-qadam: foydalanuvchi emailini kiritadi → tiklash havolasi yuboriladi.
+// Xavfsizlik: email mavjudligini oshkor qilmaslik uchun har doim bir xil javob.
+router.post('/forgot-password', async (req, res) => {
+  const generic = { message: "Agar bu email ro'yxatdan o'tgan bo'lsa, parolni tiklash havolasi yuborildi." }
+  try {
+    const emailRes = validateEmail(req.body?.email)
+    if (emailRes.error) return res.json(generic)
+    const trimmedEmail = emailRes.ok
+
+    const result = await pool.query(
+      'SELECT id, name, reset_sent_at FROM users WHERE email = $1',
+      [trimmedEmail]
+    )
+    if (result.rows.length === 0) return res.json(generic)
+    const user = result.rows[0]
+
+    // Cooldown — spamning oldini olish
+    if (user.reset_sent_at) {
+      const elapsed = (Date.now() - new Date(user.reset_sent_at).getTime()) / 1000
+      if (elapsed < RESET_COOLDOWN_SECONDS) return res.json(generic)
+    }
+
+    const token = crypto.randomBytes(32).toString('hex')
+    const expires = new Date(Date.now() + 60 * 60 * 1000) // 1 soat
+    await pool.query(
+      'UPDATE users SET reset_token = $1, reset_expires = $2, reset_sent_at = NOW() WHERE id = $3',
+      [token, expires, user.id]
+    )
+
+    // Fire-and-forget — javobni kutib turmaymiz
+    emailLib.sendPasswordResetEmail(trimmedEmail, user.name || 'Foydalanuvchi', token)
+      .catch(err => console.error('[reset email] xato:', err.message))
+
+    return res.json(generic)
+  } catch (err) {
+    console.error('Forgot password error:', err.message)
+    res.status(500).json({ message: 'Xatolik yuz berdi' })
+  }
+})
+
+// Token amal qilishini tekshirish (reset sahifasi ochilganda)
+router.get('/verify-reset-token', async (req, res) => {
+  try {
+    const token = typeof req.query?.token === 'string' ? req.query.token : ''
+    if (!token || token.length > 128) return res.json({ valid: false })
+    const r = await pool.query('SELECT reset_expires FROM users WHERE reset_token = $1', [token])
+    if (r.rows.length === 0) return res.json({ valid: false })
+    const exp = r.rows[0].reset_expires
+    if (exp && new Date(exp) < new Date()) return res.json({ valid: false })
+    res.json({ valid: true })
+  } catch {
+    res.json({ valid: false })
+  }
+})
+
+// 2-qadam: yangi parol o'rnatish
+router.post('/reset-password', async (req, res) => {
+  try {
+    const token = typeof req.body?.token === 'string' ? req.body.token : ''
+    const { password } = req.body
+    if (!token || token.length > 128) {
+      return res.status(400).json({ message: 'Havola noto\'g\'ri' })
+    }
+    const pwdErr = validatePassword(password)
+    if (pwdErr) return res.status(400).json({ message: pwdErr })
+
+    const result = await pool.query(
+      'SELECT id, reset_expires FROM users WHERE reset_token = $1',
+      [token]
+    )
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: 'Havola noto\'g\'ri yoki ishlatilgan. Yangi havola so\'rang.' })
+    }
+    const user = result.rows[0]
+    if (user.reset_expires && new Date(user.reset_expires) < new Date()) {
+      return res.status(400).json({ message: 'Havola muddati o\'tgan. Yangi havola so\'rang.', expired: true })
+    }
+
+    const hashed = await bcrypt.hash(password, 12)
+    await pool.query(
+      `UPDATE users
+       SET password = $1, reset_token = NULL, reset_expires = NULL,
+           token_version = COALESCE(token_version, 0) + 1
+       WHERE id = $2`,
+      [hashed, user.id]
+    )
+    // Xavfsizlik — barcha qurilma sessiyalarini tozalash
+    await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [user.id])
+
+    res.json({ message: 'Parol muvaffaqiyatli yangilandi. Endi yangi parol bilan kiring.' })
+  } catch (err) {
+    console.error('Reset password error:', err.message)
     res.status(500).json({ message: 'Xatolik yuz berdi' })
   }
 })

@@ -245,6 +245,10 @@ function Login() {
           </div>
         </div>
 
+        <div className="auth-forgot">
+          <Link to="/forgot-password">Parolni unutdingizmi?</Link>
+        </div>
+
         <button
           className="btn-primary full auth-btn"
           onClick={() => handleLogin()}

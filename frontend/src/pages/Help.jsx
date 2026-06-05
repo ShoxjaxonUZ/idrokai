@@ -46,7 +46,7 @@ function Help() {
     },
     {
       q: "Parolni unutdim, nima qilaman?",
-      a: "Hozircha parolni tiklash funksiyasi yo'q. /contact orqali yozing, admin yordam beradi."
+      a: "Kirish sahifasidagi 'Parolni unutdingizmi?' havolasini bosing, email manzilingizni kiriting — emailingizga tiklash havolasi keladi. Havola orqali yangi parol o'rnatasiz (havola 1 soat amal qiladi)."
     }
   ]
 

@@ -122,6 +122,8 @@ const aiLimiter = rateLimit({
 app.use('/api/', apiLimiter)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
+app.use('/api/auth/forgot-password', authLimiter)
+app.use('/api/auth/reset-password', authLimiter)
 app.use('/api/ai/', aiLimiter)
 app.use('/api/onboarding/chat', aiLimiter)
 app.use('/api/daily/submit', aiLimiter)

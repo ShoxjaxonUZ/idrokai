@@ -238,6 +238,61 @@ const sendVerificationEmail = async (toEmail, name, token) => {
   return sendMail({ to: toEmail, subject, html, text })
 }
 
+// Parol tiklash emaili
+const buildResetHtml = (name, link) => `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f3f4f6; padding: 24px; color: #111827; margin: 0; }
+  .card { max-width: 520px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .header { background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 32px; text-align: center; color: white; }
+  .header h1 { margin: 0; font-size: 26px; }
+  .body { padding: 32px; line-height: 1.6; }
+  .body h2 { margin-top: 0; color: #111827; }
+  .button { display: inline-block; background: #8b5cf6; color: white !important; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-weight: 600; margin: 20px 0; }
+  .footer { padding: 20px; text-align: center; color: #6b7280; font-size: 13px; background: #f9fafb; }
+  .link { word-break: break-all; color: #8b5cf6; font-size: 12px; background: #f3f4f6; padding: 12px; border-radius: 6px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>🎓 Eduzy</h1>
+      <p style="margin: 8px 0 0; opacity: 0.9;">Parolni tiklash</p>
+    </div>
+    <div class="body">
+      <h2>Salom, ${escapeHtml(name)}!</h2>
+      <p>Hisobingiz uchun parolni tiklash so'rovi keldi. Yangi parol o'rnatish uchun quyidagi tugmani bosing:</p>
+      <div style="text-align: center;">
+        <a href="${link}" class="button">🔑 Parolni tiklash</a>
+      </div>
+      <p style="color: #6b7280; font-size: 13px;">Yoki ushbu havolani brauzerga nusxalang:</p>
+      <p class="link">${link}</p>
+      <p style="color: #6b7280; font-size: 13px; margin-top: 24px;">
+        ⏱ Havola <strong>1 soat</strong> davomida amal qiladi.
+      </p>
+      <p style="color: #6b7280; font-size: 13px;">
+        Agar siz bu so'rovni yubormagan bo'lsangiz — bu xabarni e'tiborsiz qoldiring, parolingiz o'zgarmaydi.
+      </p>
+    </div>
+    <div class="footer">
+      © Eduzy — bepul ta'lim platformasi<br>
+      <a href="${APP_URL}" style="color: #8b5cf6;">${APP_URL.replace(/^https?:\/\//, '')}</a>
+    </div>
+  </div>
+</body>
+</html>`
+
+const sendPasswordResetEmail = async (toEmail, name, token) => {
+  const link = `${APP_URL}/reset-password?token=${encodeURIComponent(token)}`
+  const subject = 'Eduzy — Parolni tiklash'
+  const html = buildResetHtml(name, link)
+  const text = `Salom, ${name}!\n\nHisobingiz uchun parolni tiklash so'rovi keldi.\n\nYangi parol o'rnatish uchun quyidagi havolani oching:\n${link}\n\nHavola 1 soat amal qiladi.\n\nAgar bu so'rovni yubormagan bo'lsangiz, bu xabarni e'tiborsiz qoldiring.\n\nEduzy`
+
+  return sendMail({ to: toEmail, subject, html, text })
+}
+
 // Test xabar — admin SMTP ulanishini tekshirish uchun
 const sendTestEmail = async (toEmail) => {
   return sendMail({
@@ -250,4 +305,4 @@ const sendTestEmail = async (toEmail) => {
 
 const getProvider = () => provider
 
-module.exports = { sendMail, sendVerificationEmail, sendTestEmail, isConfigured, getProvider }
+module.exports = { sendMail, sendVerificationEmail, sendPasswordResetEmail, sendTestEmail, isConfigured, getProvider }
