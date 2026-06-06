@@ -190,6 +190,9 @@
   margin-bottom: 18px;
 }
 
+.spin { animation: authSpin 0.8s linear infinite; }
+@keyframes authSpin { to { transform: rotate(360deg); } }
+
 .auth-forgot {
   text-align: right;
   margin: -6px 0 16px;

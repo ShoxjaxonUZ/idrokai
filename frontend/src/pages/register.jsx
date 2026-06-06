@@ -16,7 +16,7 @@ function Register() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
-  const [telegramUrl, setTelegramUrl] = useState('')
+  const [resendMsg, setResendMsg] = useState('')
   const [pollingStatus, setPollingStatus] = useState('waiting') // waiting | verified
 
   useEffect(() => {
@@ -58,7 +58,6 @@ function Register() {
       const data = await res.json()
       if (res.ok) {
         if (data.verificationRequired) {
-          setTelegramUrl(data.telegramUrl || '')
           setVerificationSent(true)
         } else if (data.token) {
           localStorage.setItem('token', data.token)
@@ -93,6 +92,7 @@ function Register() {
   }, [verificationSent, form.email, navigate])
 
   const resendVerification = async () => {
+    setResendMsg('Yuborilmoqda...')
     try {
       const res = await fetch(`${API_URL}/api/auth/resend-verification`, {
         method: 'POST',
@@ -100,12 +100,9 @@ function Register() {
         body: JSON.stringify({ email: form.email })
       })
       const data = await res.json()
-      if (data.telegramUrl) {
-        setTelegramUrl(data.telegramUrl)
-      }
-      alert(data.message || 'Yangi havola tayyor')
+      setResendMsg(data.message || 'Yangi havola emailingizga yuborildi')
     } catch {
-      alert('Server xatosi')
+      setResendMsg('Server xatosi — qayta urinib ko\'ring')
     }
   }
 
@@ -137,72 +134,53 @@ function Register() {
         <div className="auth-card" style={{ textAlign: 'center', padding: '40px 32px' }}>
           <div style={{
             width: 80, height: 80, borderRadius: '50%',
-            background: 'rgba(34, 158, 217, 0.15)',
+            background: 'var(--primary-bg)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 20px'
           }}>
-            <span style={{ fontSize: 40 }}>📲</span>
+            <Mail size={40} color="var(--primary)" />
           </div>
-          <h1 className="auth-title">Bir qadam qoldi</h1>
-          <p style={{ color: '#666', marginBottom: 24, lineHeight: 1.6 }}>
-            Hisobingizni faollashtirish uchun quyidagi tugmani bosing va Telegram botda <strong>"Start"</strong> tugmasini bosing.
+          <h1 className="auth-title">Emailingizni tekshiring 📬</h1>
+          <p style={{ color: 'var(--text-soft)', marginBottom: 24, lineHeight: 1.6 }}>
+            <strong>{form.email}</strong> manziliga tasdiqlash havolasini yubordik.
+            Hisobingizni faollashtirish uchun emailingizdagi havolani bosing.
           </p>
-
-          {telegramUrl && (
-            <a
-              href={telegramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary full"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10,
-                padding: '14px 20px',
-                fontSize: 16,
-                textDecoration: 'none',
-                marginBottom: 16,
-                background: 'linear-gradient(135deg, #0088cc, #006699)'
-              }}
-            >
-              <span style={{ fontSize: 22 }}>📲</span> Telegram'da tasdiqlash
-            </a>
-          )}
 
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '12px', background: 'rgba(139, 92, 246, 0.08)',
-            borderRadius: 8, marginBottom: 16, fontSize: 13
+            padding: '12px', background: 'var(--primary-bg)',
+            borderRadius: 8, marginBottom: 16, fontSize: 13, color: 'var(--text-soft)'
           }}>
             <div className="spin" style={{
-              width: 14, height: 14, border: '2px solid #8b5cf6',
+              width: 14, height: 14, border: '2px solid var(--primary)',
               borderTopColor: 'transparent', borderRadius: '50%'
             }}></div>
             <span>Tasdiqlash kutilmoqda...</span>
           </div>
 
           <div style={{
-            background: 'rgba(245, 158, 11, 0.1)',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 12, textAlign: 'left', lineHeight: 1.5
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--border)',
+            borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 12.5,
+            textAlign: 'left', lineHeight: 1.6, color: 'var(--text-soft)'
           }}>
-            ℹ️ <strong>Qanday qilish:</strong>
+            ℹ️ <strong>Havola kelmadimi?</strong>
             <br />
-            1. Yuqoridagi tugmani bosing — Telegram ochiladi
+            1. <strong>"Spam"</strong> yoki <strong>"Promotions"</strong> papkasini tekshiring
             <br />
-            2. Botda <strong>"Start"</strong> (yoki "Boshlash") tugmasini bosing
+            2. Bir necha daqiqa kuting
             <br />
-            3. Bot tasdiqlash xabarini yuboradi
-            <br />
-            4. Sayt avtomatik yangilanib login sahifasiga olib o'tadi
+            3. Baribir kelmasa — pastdagi "Qayta yuborish" tugmasini bosing
           </div>
 
-          <button className="btn-outline full" onClick={resendVerification} style={{ marginBottom: 12 }}>
-            Yangi havola olish
+          <button className="btn-outline full" onClick={resendVerification} style={{ marginBottom: 8 }}>
+            Havolani qayta yuborish
           </button>
+          {resendMsg && (
+            <p style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 8 }}>{resendMsg}</p>
+          )}
 
-          <Link to="/login" state={fromState} style={{ display: 'block', marginTop: 16, color: '#8b5cf6' }}>
+          <Link to="/login" state={fromState} style={{ display: 'block', marginTop: 16, color: 'var(--primary)' }}>
             ← Login sahifasiga qaytish
           </Link>
         </div>

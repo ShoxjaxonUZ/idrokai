@@ -8,7 +8,6 @@ const { auth: authMiddleware } = require('../middleware/auth')
 const { validatePassword, loginLimiter } = require('../middleware/security')
 const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
-const telegram = require('../lib/telegram')
 const emailLib = require('../lib/email')
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -75,8 +74,6 @@ const getClientIp = (req) =>
   (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
   req.socket?.remoteAddress || ''
 
-const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'Verification_Eduzybot'
-
 router.post('/register', async (req, res) => {
   try {
     const { name, email: rawEmail, password } = req.body
@@ -107,10 +104,10 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
-    // Tasdiqlash uchun unik token (deep link payload)
-    const verifyToken = crypto.randomBytes(20).toString('hex') // 40 hex chars
-    // 1 soat amal qiladi
-    const expires = new Date(Date.now() + 60 * 60 * 1000)
+    // Email tasdiqlash uchun unik token (verify-email havolasi payload'i)
+    const verifyToken = crypto.randomBytes(32).toString('hex')
+    // 24 soat amal qiladi
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
     await pool.query(
       `INSERT INTO users (name, email, password, email_verified, verification_token, verification_expires, verification_sent_at)
@@ -119,15 +116,15 @@ router.post('/register', async (req, res) => {
       [trimmedName, trimmedEmail, hashedPassword, verifyToken, expires]
     )
 
-    // Deep link — foydalanuvchi bosadi va Telegram bot ochiladi
-    const telegramUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${verifyToken}`
+    // Tasdiqlash havolasini emailga yuboramiz (fire-and-forget)
+    emailLib.sendVerificationEmail(trimmedEmail, trimmedName, verifyToken)
+      .catch(err => console.error('[verification email] xato:', err.message))
 
     res.json({
-      message: 'Ro\'yxatdan o\'tildi. Tasdiqlash uchun Telegram havolasini bosing.',
+      message: 'Ro\'yxatdan o\'tildi. Emailingizga tasdiqlash havolasi yuborildi.',
       verificationRequired: true,
       email: trimmedEmail,
-      telegramUrl,
-      method: 'telegram'
+      method: 'email'
     })
 
   } catch (err) {
@@ -204,7 +201,7 @@ router.get('/verify-email', async (req, res) => {
   }
 })
 
-// Yangi Telegram tasdiqlash havolasi olish
+// Yangi email tasdiqlash havolasini qayta yuborish
 router.post('/resend-verification', async (req, res) => {
   try {
     const rawEmail = req.body?.email
@@ -220,7 +217,7 @@ router.post('/resend-verification', async (req, res) => {
     )
 
     if (result.rows.length === 0) {
-      return res.json({ message: 'Agar email tizimda mavjud bo\'lsa, yangi havola tayyor.' })
+      return res.json({ message: 'Agar email tizimda mavjud bo\'lsa, yangi havola yuborildi.' })
     }
 
     const user = result.rows[0]
@@ -239,9 +236,9 @@ router.post('/resend-verification', async (req, res) => {
       }
     }
 
-    // Yangi token va havola
-    const newToken = crypto.randomBytes(20).toString('hex')
-    const expires = new Date(Date.now() + 60 * 60 * 1000)
+    // Yangi token va emailga havola
+    const newToken = crypto.randomBytes(32).toString('hex')
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
     await pool.query(
       `UPDATE users
@@ -250,11 +247,11 @@ router.post('/resend-verification', async (req, res) => {
       [newToken, expires, user.id]
     )
 
-    const telegramUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${newToken}`
+    emailLib.sendVerificationEmail(trimmedEmail, user.name || 'Foydalanuvchi', newToken)
+      .catch(err => console.error('[resend verification email] xato:', err.message))
 
     res.json({
-      message: 'Yangi havola tayyor.',
-      telegramUrl
+      message: 'Yangi tasdiqlash havolasi emailingizga yuborildi.'
     })
 
   } catch (err) {

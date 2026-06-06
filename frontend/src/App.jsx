@@ -5,6 +5,7 @@ import Login from './pages/login'
 import Register from './pages/register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import Courses from './pages/courses'
 import CourseDetail from './pages/coursedetail'
 import Dashboard from './pages/dashboard'
@@ -47,6 +48,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/courses/:id" element={<CourseDetail />} />
               <Route path="/about" element={<About />} />
