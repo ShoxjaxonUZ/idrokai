@@ -35,8 +35,11 @@ function Lesson() {
     const [completedLessons, setCompletedLessons] = useState([])
     const token = localStorage.getItem('token')
     const index = parseInt(lessonIndex)
-    const [videoEnded, setVideoEnded] = useState(false)
     const [moduleTestStatus, setModuleTestStatus] = useState({})
+
+    // Video manbalari (effektlardan oldin kerak — TDZ bo'lmasligi uchun)
+    const youTubeId = getYouTubeId(lesson?.videoUrl)
+    const vimeoId = getVimeoId(lesson?.videoUrl)
 
     // Notes (eslatmalar)
     const [notes, setNotes] = useState('')
@@ -51,7 +54,6 @@ function Lesson() {
     const videoRef = useRef(null)
     const youtubeFrameRef = useRef(null)
     const vimeoFrameRef = useRef(null)
-    const videoSaveTimerRef = useRef(null)
     const [resumeNotice, setResumeNotice] = useState(null) // {seconds, shown}
     const savedPositionRef = useRef(0)
 
@@ -140,34 +142,123 @@ function Lesson() {
             .catch(() => {})
     }, [courseId, index, token])
 
-    // Video saved position'ga jump (loadedmetadata'da)
+    // Pozitsiyani saqlash — throttle (ko'pi bilan 5 soniyada bir marta).
+    // Uzluksiz o'ynayotganda ham muntazam saqlanadi (resume ishonchli bo'lsin).
+    const lastSaveRef = useRef(0)
+    const saveVideoPosition = (pos, dur, force = false) => {
+        if (!token || !Number.isFinite(pos) || pos <= 0) return
+        const now = Date.now()
+        if (!force && now - lastSaveRef.current < 5000) return
+        lastSaveRef.current = now
+        savedPositionRef.current = pos
+        fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ position: Math.floor(pos), duration: dur ? Math.floor(dur) : null }),
+            keepalive: true
+        }).catch(() => {})
+    }
+
+    // HTML5 video — saqlangan joyga o'tish (resume)
     const handleVideoLoaded = (e) => {
         const v = e.target
-        if (savedPositionRef.current > 5 && savedPositionRef.current < (v.duration - 10)) {
+        if (savedPositionRef.current > 5 && savedPositionRef.current < (v.duration - 5)) {
             v.currentTime = savedPositionRef.current
         }
     }
-
-    // Position save (debounced 5s)
     const handleTimeUpdate = (e) => {
-        if (!token) return
         const v = e.target
-        const pos = v.currentTime
-        const dur = v.duration || null
-        if (videoSaveTimerRef.current) clearTimeout(videoSaveTimerRef.current)
-        videoSaveTimerRef.current = setTimeout(() => {
-            fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ position: pos, duration: dur })
-            }).catch(() => {})
-        }, 5000)
+        currentTimeRef.current = v.currentTime
+        saveVideoPosition(v.currentTime, v.duration)
     }
 
     const dismissResume = () => setResumeNotice(null)
+
+    // Tashqi skriptni bir marta yuklash
+    const loadScript = (src) => new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return }
+        const s = document.createElement('script')
+        s.src = src; s.async = true
+        s.onload = () => resolve(); s.onerror = reject
+        document.head.appendChild(s)
+    })
+    const ensureYT = () => new Promise((resolve) => {
+        if (window.YT && window.YT.Player) { resolve(); return }
+        loadScript('https://www.youtube.com/iframe_api').catch(() => {})
+        const prev = window.onYouTubeIframeAPIReady
+        window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve() }
+    })
+    const ensureVimeo = () => new Promise((resolve) => {
+        if (window.Vimeo && window.Vimeo.Player) { resolve(window.Vimeo); return }
+        loadScript('https://player.vimeo.com/api/player.js')
+            .then(() => resolve(window.Vimeo)).catch(() => resolve(null))
+    })
+
+    // YouTube — IFrame API orqali resume + pozitsiya kuzatuvi
+    useEffect(() => {
+        if (!youTubeId) return
+        let player = null, poll = null, destroyed = false
+        ensureYT().then(() => {
+            if (destroyed || !youtubeFrameRef.current || !window.YT?.Player) return
+            try {
+                player = new window.YT.Player(youtubeFrameRef.current, {
+                    events: {
+                        onReady: () => {
+                            const pos = savedPositionRef.current
+                            if (pos > 5) { try { player.seekTo(pos, true) } catch {} }
+                            poll = setInterval(() => {
+                                try {
+                                    const t = player.getCurrentTime?.()
+                                    const d = player.getDuration?.()
+                                    if (Number.isFinite(t) && t > 0) {
+                                        currentTimeRef.current = t
+                                        saveVideoPosition(t, d)
+                                    }
+                                } catch {}
+                            }, 5000)
+                        },
+                        onStateChange: (e) => {
+                            if (e.data === window.YT?.PlayerState?.ENDED) {
+                                markLessonDone()
+                            }
+                        }
+                    }
+                })
+            } catch {}
+        })
+        return () => {
+            destroyed = true
+            if (poll) clearInterval(poll)
+            if (currentTimeRef.current > 0) saveVideoPosition(currentTimeRef.current, null, true)
+            try { player?.destroy?.() } catch {}
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [youTubeId])
+
+    // Vimeo — Player SDK orqali resume + pozitsiya kuzatuvi
+    useEffect(() => {
+        if (!vimeoId) return
+        let player = null, destroyed = false
+        ensureVimeo().then((Vimeo) => {
+            if (destroyed || !Vimeo || !vimeoFrameRef.current) return
+            try {
+                player = new Vimeo.Player(vimeoFrameRef.current)
+                const pos = savedPositionRef.current
+                if (pos > 5) player.setCurrentTime(pos).catch(() => {})
+                player.on('timeupdate', (e) => {
+                    currentTimeRef.current = e.seconds
+                    saveVideoPosition(e.seconds, e.duration)
+                })
+                player.on('ended', () => { markLessonDone() })
+            } catch {}
+        })
+        return () => {
+            destroyed = true
+            if (currentTimeRef.current > 0) saveVideoPosition(currentTimeRef.current, null, true)
+            try { player?.unload?.() } catch {}
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [vimeoId])
 
     // Auto-save (debounced 1s)
     useEffect(() => {
@@ -196,7 +287,6 @@ function Lesson() {
     }, [notes, courseId, index, token])
 
     useEffect(() => {
-        setVideoEnded(false)
         let cancelled = false
 
         const loadCourse = async () => {
@@ -295,10 +385,6 @@ function Lesson() {
     }
 
     const goNext = async () => {
-        if (!videoEnded && !completedLessons.includes(index)) {
-            return
-        }
-
         await markLessonDone()
 
         const next = index + 1
@@ -344,8 +430,6 @@ function Lesson() {
     )
 
     const isDone = completedLessons.includes(index)
-    const youTubeId = getYouTubeId(lesson.videoUrl)
-    const vimeoId = getVimeoId(lesson.videoUrl)
 
     return (
         <div>
@@ -436,7 +520,6 @@ function Lesson() {
                                 onLoadedMetadata={handleVideoLoaded}
                                 onTimeUpdate={handleTimeUpdate}
                                 onEnded={async () => {
-                                    setVideoEnded(true)
                                     await markLessonDone()
 
                                     const isLastInModule = (index + 1) % 5 === 0
@@ -612,8 +695,6 @@ function Lesson() {
                             <button
                                 className="btn-primary"
                                 onClick={goNext}
-                                disabled={!videoEnded && !completedLessons.includes(index)}
-                                style={{ opacity: (!videoEnded && !completedLessons.includes(index)) ? 0.5 : 1 }}
                             >
                                 {(() => {
                                     const isLastInModule = (index + 1) % 5 === 0
