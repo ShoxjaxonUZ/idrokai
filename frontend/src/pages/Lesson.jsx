@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
     Check, CheckCircle2, ChevronLeft, ChevronRight,
     PlayCircle, BookOpen, Flag, Download, Paperclip,
-    Lock, FileText, StickyNote, Save, Loader2, Gauge
+    Lock, FileText, StickyNote, Save, Loader2,
+    Bot, Send, Sparkles
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
@@ -54,38 +55,51 @@ function Lesson() {
     const [resumeNotice, setResumeNotice] = useState(null) // {seconds, shown}
     const savedPositionRef = useRef(0)
 
-    // Playback speed (1x default, localStorage'da saqlanadi)
-    const [playbackSpeed, setPlaybackSpeed] = useState(() => {
+    // Joriy video pozitsiyasi (sekund) — AI yordamiga timestamp uzatish uchun.
+    // HTML5 video uchun videoRef'dan, YT/Vimeo uchun resume mantig'i to'ldiradi.
+    const currentTimeRef = useRef(0)
+    const getCurrentVideoTime = () => {
+        if (videoRef.current && Number.isFinite(videoRef.current.currentTime)) {
+            return videoRef.current.currentTime
+        }
+        return currentTimeRef.current || 0
+    }
+
+    // ====== AI dars yordami paneli ======
+    const [aiMessages, setAiMessages] = useState([]) // {role, text}
+    const [aiInput, setAiInput] = useState('')
+    const [aiSending, setAiSending] = useState(false)
+    const [aiRemaining, setAiRemaining] = useState(null)
+
+    const askLessonAI = async () => {
+        const q = aiInput.trim()
+        if (!q || aiSending || !lesson) return
+        setAiSending(true)
+        setAiInput('')
+        setAiMessages(prev => [...prev, { role: 'user', text: q }])
         try {
-            const saved = parseFloat(localStorage.getItem('lesson_speed'))
-            return [0.75, 1, 1.25, 1.5, 1.75, 2].includes(saved) ? saved : 1
-        } catch { return 1 }
-    })
-
-    const applyPlaybackSpeed = (speed) => {
-        setPlaybackSpeed(speed)
-        try { localStorage.setItem('lesson_speed', String(speed)) } catch {}
-
-        // HTML5 video
-        if (videoRef.current) {
-            videoRef.current.playbackRate = speed
+            const res = await fetch(`${API_URL}/api/ai/lesson-help`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    courseTitle: course?.title,
+                    lessonTitle: lesson?.title,
+                    lessonDescription: lesson?.description,
+                    question: q,
+                    timestamp: Math.round(getCurrentVideoTime())
+                })
+            })
+            const data = await res.json().catch(() => ({}))
+            if (res.ok) {
+                setAiMessages(prev => [...prev, { role: 'ai', text: data.answer }])
+                if (typeof data.remaining === 'number') setAiRemaining(data.remaining)
+            } else {
+                setAiMessages(prev => [...prev, { role: 'ai', text: data.message || 'Xatolik yuz berdi', error: true }])
+            }
+        } catch {
+            setAiMessages(prev => [...prev, { role: 'ai', text: 'Server bilan bog\'lanib bo\'lmadi', error: true }])
         }
-
-        // YouTube iframe (postMessage API)
-        if (youtubeFrameRef.current?.contentWindow) {
-            youtubeFrameRef.current.contentWindow.postMessage(
-                JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [speed] }),
-                'https://www.youtube.com'
-            )
-        }
-
-        // Vimeo iframe (postMessage)
-        if (vimeoFrameRef.current?.contentWindow) {
-            vimeoFrameRef.current.contentWindow.postMessage(
-                JSON.stringify({ method: 'setPlaybackRate', value: speed }),
-                'https://player.vimeo.com'
-            )
-        }
+        setAiSending(false)
     }
 
     // Load notes when lesson changes
@@ -386,7 +400,8 @@ function Lesson() {
                             <button onClick={dismissResume} title="Yopish">×</button>
                         </div>
                     )}
-                    <div className="lesson-video-wrap">
+                    <div className="lesson-stage">
+                        <div className="lesson-video-wrap">
                         {vimeoId ? (
                             <iframe
                                 ref={vimeoFrameRef}
@@ -397,11 +412,6 @@ function Lesson() {
                                 frameBorder="0"
                                 allow="autoplay; fullscreen; picture-in-picture"
                                 allowFullScreen
-                                onLoad={() => {
-                                    setVideoEnded(true)
-                                    // Speed restore
-                                    setTimeout(() => applyPlaybackSpeed(playbackSpeed), 500)
-                                }}
                             />
                         ) : youTubeId ? (
                             <iframe
@@ -413,39 +423,21 @@ function Lesson() {
                                 frameBorder="0"
                                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
-                                onLoad={() => {
-                                    setVideoEnded(true)
-                                    setTimeout(() => applyPlaybackSpeed(playbackSpeed), 500)
-                                }}
                             />
                         ) : lesson.videoUrl ? (
                             <video
-                                ref={(el) => {
-                                    videoRef.current = el
-                                    if (el) el.playbackRate = playbackSpeed
-                                }}
+                                ref={videoRef}
                                 key={lesson.videoUrl}
                                 src={safeUrl(assetUrl(lesson.videoUrl))}
                                 controls
                                 controlsList="nodownload"
                                 className="lesson-video"
                                 poster={assetUrl(course.image)}
-                                onLoadedMetadata={(e) => {
-                                    handleVideoLoaded(e)
-                                    if (videoRef.current) videoRef.current.playbackRate = playbackSpeed
-                                }}
+                                onLoadedMetadata={handleVideoLoaded}
                                 onTimeUpdate={handleTimeUpdate}
                                 onEnded={async () => {
                                     setVideoEnded(true)
                                     await markLessonDone()
-
-                                    // Position'ni reset qilish — qayta ko'rganda boshidan
-                                    if (token) {
-                                        fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
-                                            method: 'DELETE',
-                                            headers: { Authorization: `Bearer ${token}` }
-                                        }).catch(() => {})
-                                    }
 
                                     const isLastInModule = (index + 1) % 5 === 0
                                     const hasMoreLessons = (index + 1) < course.lessons.length
@@ -466,27 +458,52 @@ function Lesson() {
                                 Video qo'shilmagan
                             </div>
                         )}
-                    </div>
-
-                    {/* Speed control panel */}
-                    {(youTubeId || vimeoId || lesson.videoUrl) && (
-                        <div className="lesson-speed-bar">
-                            <span className="lesson-speed-label">
-                                <Gauge size={14} /> Tezlik:
-                            </span>
-                            <div className="lesson-speed-options">
-                                {[0.75, 1, 1.25, 1.5, 1.75, 2].map(speed => (
-                                    <button
-                                        key={speed}
-                                        className={`lesson-speed-btn ${playbackSpeed === speed ? 'active' : ''}`}
-                                        onClick={() => applyPlaybackSpeed(speed)}
-                                    >
-                                        {speed === 1 ? '1x' : `${speed}x`}
-                                    </button>
-                                ))}
-                            </div>
                         </div>
-                    )}
+
+                        {/* AI dars yordami paneli */}
+                        <aside className="lesson-ai">
+                            <div className="lesson-ai-head">
+                                <span className="lesson-ai-title"><Bot size={16} /> AI yordam</span>
+                                {aiRemaining !== null && (
+                                    <span className="lesson-ai-limit">{aiRemaining} ta qoldi</span>
+                                )}
+                            </div>
+                            <div className="lesson-ai-body">
+                                {aiMessages.length === 0 ? (
+                                    <div className="lesson-ai-empty">
+                                        <Sparkles size={26} />
+                                        <p>Darsning tushunmagan joyini so'rang — AI tushuntirib beradi.</p>
+                                        <span>Masalan: "Bu funksiya nima qiladi?"</span>
+                                    </div>
+                                ) : (
+                                    aiMessages.map((m, i) => (
+                                        <div key={i} className={`lesson-ai-msg ${m.role === 'user' ? 'ai-q' : 'ai-a'} ${m.error ? 'ai-err' : ''}`}>
+                                            {m.text}
+                                        </div>
+                                    ))
+                                )}
+                                {aiSending && (
+                                    <div className="lesson-ai-msg ai-a lesson-ai-typing">
+                                        <Loader2 size={15} className="spin" /> Yozyapti…
+                                    </div>
+                                )}
+                            </div>
+                            <div className="lesson-ai-input">
+                                <textarea
+                                    value={aiInput}
+                                    onChange={e => setAiInput(e.target.value)}
+                                    placeholder="Savolingizni yozing…"
+                                    rows={2}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askLessonAI() }
+                                    }}
+                                />
+                                <button onClick={askLessonAI} disabled={aiSending || !aiInput.trim()} title="Yuborish">
+                                    <Send size={16} />
+                                </button>
+                            </div>
+                        </aside>
+                    </div>
 
                     <div className="lesson-content">
                         <div className="lesson-top">

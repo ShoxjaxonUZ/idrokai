@@ -200,6 +200,62 @@
   display: block;
 }
 
+/* Video + AI panel yonma-yon */
+.lesson-stage {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+.lesson-stage .lesson-video-wrap { flex: 1 1 auto; min-width: 0; }
+
+.lesson-ai {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-height: 320px;
+}
+.lesson-ai-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+}
+.lesson-ai-title { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; color: var(--text); }
+.lesson-ai-title svg { color: var(--primary); }
+.lesson-ai-limit { font-size: 11px; color: var(--text-muted); background: var(--primary-bg); padding: 3px 8px; border-radius: 999px; }
+.lesson-ai-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.lesson-ai-empty { margin: auto; text-align: center; color: var(--text-muted); padding: 16px; }
+.lesson-ai-empty svg { color: var(--primary); opacity: .7; margin-bottom: 8px; }
+.lesson-ai-empty p { font-size: 14px; color: var(--text-soft); margin-bottom: 6px; }
+.lesson-ai-empty span { font-size: 12px; }
+.lesson-ai-msg { font-size: 13.5px; line-height: 1.55; padding: 9px 12px; border-radius: 12px; white-space: pre-wrap; word-break: break-word; max-width: 92%; }
+.lesson-ai-msg.ai-q { align-self: flex-end; background: var(--primary); color: var(--text-on-primary); border-bottom-right-radius: 4px; }
+.lesson-ai-msg.ai-a { align-self: flex-start; background: var(--surface); color: var(--text); border-bottom-left-radius: 4px; }
+.lesson-ai-msg.ai-err { background: var(--danger-bg); color: var(--danger); }
+.lesson-ai-typing { display: inline-flex; align-items: center; gap: 7px; color: var(--text-muted); }
+.lesson-ai-input { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); }
+.lesson-ai-input textarea {
+  flex: 1; resize: none; font-family: inherit; font-size: 13.5px;
+  padding: 9px 11px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg-elevated); color: var(--text);
+}
+.lesson-ai-input textarea:focus { outline: none; border-color: var(--primary); box-shadow: var(--shadow-focus); }
+.lesson-ai-input button {
+  flex-shrink: 0; width: 42px; border: none; border-radius: 10px;
+  background: var(--primary); color: var(--text-on-primary);
+  cursor: pointer; display: grid; place-items: center;
+}
+.lesson-ai-input button:disabled { opacity: .5; cursor: default; }
+
+@media (max-width: 900px) {
+  .lesson-stage { flex-direction: column; }
+  .lesson-ai { flex: 1 1 auto; min-height: 380px; }
+}
+
 .lesson-no-video {
   width: 100%;
   height: 100%;
