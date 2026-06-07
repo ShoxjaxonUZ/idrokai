@@ -9,6 +9,50 @@ const getTodayDate = () => new Date().toISOString().split('T')[0]
 
 const { groqFetch } = require('../lib/groq')
 
+// Barcha modullar statusi — BITTA so'rovda (kurs sahifasi uchun, N+1 yo'q)
+router.get('/status-all/:courseId', auth, async (req, res) => {
+  try {
+    const { courseId } = req.params
+    const today = getTodayDate()
+    const [passedRes, todayRes] = await Promise.all([
+      pool.query(`
+        SELECT module_index, MAX(score) AS score
+        FROM module_tests
+        WHERE user_id = $1 AND course_id = $2 AND passed = TRUE
+        GROUP BY module_index
+      `, [req.user.id, courseId]),
+      pool.query(`
+        SELECT DISTINCT ON (module_index) module_index, completed_at
+        FROM module_tests
+        WHERE user_id = $1 AND course_id = $2 AND attempt_date = $3
+        ORDER BY module_index, completed_at DESC NULLS LAST
+      `, [req.user.id, courseId, today])
+    ])
+
+    const passedMap = {}
+    for (const r of passedRes.rows) passedMap[r.module_index] = r
+    const todayMap = {}
+    for (const r of todayRes.rows) todayMap[r.module_index] = r
+
+    const statuses = {}
+    const allIdx = new Set([...Object.keys(passedMap), ...Object.keys(todayMap)])
+    for (const k of allIdx) {
+      const idx = Number(k)
+      const att = todayMap[idx] || null
+      statuses[idx] = {
+        passed: !!passedMap[idx],
+        score: passedMap[idx]?.score ?? null,
+        lastAttempt: att,
+        canAttempt: !att || !att.completed_at
+      }
+    }
+    res.json({ statuses })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
 router.get('/status/:courseId/:moduleIndex', auth, async (req, res) => {
   try {
     const { courseId, moduleIndex } = req.params

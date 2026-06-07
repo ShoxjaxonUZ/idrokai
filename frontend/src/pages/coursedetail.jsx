@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   BookOpen, BarChart3, Target, Play, Rocket, Check,
   Lock, Award, Globe, Clock, CheckCircle2, FileText,
-  StickyNote, ChevronRight, Star
+  StickyNote, ChevronRight, Star, RotateCcw
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -50,12 +50,14 @@ function CourseDetail() {
         setCourse({ ...found, lessons: normalizedLessons })
         document.title = `${found.title} — Eduzy`
 
-        // Module testlarni tekshirish
+        // Module testlar statusi — BITTA so'rovda (avval har modul uchun alohida edi)
         if (token) {
-          const totalModules = Math.ceil(normalizedLessons.length / LESSONS_PER_TEST)
-          for (let i = 0; i < totalModules; i++) {
-            fetchModuleTestStatus(i)
-          }
+          fetch(`${API_URL}/api/module-test/status-all/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => { if (d?.statuses) setModuleTests(d.statuses) })
+            .catch(() => {})
         }
       }
     } catch (err) {
@@ -102,20 +104,6 @@ function CourseDetail() {
       console.error(err)
     }
     setPageLoading(false)
-  }
-
-  const fetchModuleTestStatus = async (moduleIdx) => {
-    try {
-      const res = await fetch(`${API_URL}/api/module-test/status/${id}/${moduleIdx}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setModuleTests(prev => ({ ...prev, [moduleIdx]: data }))
-      }
-    } catch (err) {
-      console.error(err)
-    }
   }
 
   const handleEnroll = async () => {
@@ -355,21 +343,44 @@ function CourseDetail() {
                   <p style={{ textAlign: 'center', fontSize: '13px', color: 'var(--primary-light)', fontWeight: '600', marginBottom: '16px' }}>
                     {progress}% bajarildi
                   </p>
-                  <button
-                    className="btn-primary full"
-                    onClick={() => {
-                      const nextLesson = completedLessons.length > 0
-                        ? Math.max(...completedLessons) + 1
-                        : 0
-                      if (nextLesson < course.lessons.length && !isLessonLocked(nextLesson)) {
-                        navigate(`/courses/${id}/lessons/${nextLesson}`)
-                      } else {
-                        navigate(`/courses/${id}/lessons/0`)
-                      }
-                    }}
-                  >
-                    <Play size={16} /> Davom etish
-                  </button>
+                  {progress >= 100 ? (
+                    (() => {
+                      const totalModules = Math.ceil(course.lessons.length / LESSONS_PER_TEST)
+                      const allPassed = totalModules > 0 &&
+                        Array.from({ length: totalModules }).every((_, i) => moduleTests[i]?.passed)
+                      return allPassed ? (
+                        <>
+                          <button className="btn-primary full" onClick={() => navigate(`/certificate/${id}`)}>
+                            <Award size={16} /> Sertifikatni olish
+                          </button>
+                          <button className="btn-outline full" style={{ marginTop: 8 }}
+                            onClick={() => navigate(`/courses/${id}/lessons/0`)}>
+                            <RotateCcw size={16} /> Boshidan ko'rish
+                          </button>
+                        </>
+                      ) : (
+                        <button className="btn-primary full" onClick={() => navigate(`/courses/${id}/lessons/0`)}>
+                          <RotateCcw size={16} /> Boshidan ko'rish
+                        </button>
+                      )
+                    })()
+                  ) : (
+                    <button
+                      className="btn-primary full"
+                      onClick={() => {
+                        const nextLesson = completedLessons.length > 0
+                          ? Math.max(...completedLessons) + 1
+                          : 0
+                        if (nextLesson < course.lessons.length && !isLessonLocked(nextLesson)) {
+                          navigate(`/courses/${id}/lessons/${nextLesson}`)
+                        } else {
+                          navigate(`/courses/${id}/lessons/0`)
+                        }
+                      }}
+                    >
+                      <Play size={16} /> Davom etish
+                    </button>
+                  )}
                 </>
               ) : (
                 <button
