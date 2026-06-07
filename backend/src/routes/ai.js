@@ -9,6 +9,7 @@ const MAX_MESSAGE_LEN = 2000
 const MAX_HISTORY = 10
 const MAX_HISTORY_CONTENT = 4000
 const DAILY_LIMIT = 20
+const LESSON_HELP_LIMIT = 20 // dars AI yordami uchun alohida kunlik limit
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // ~4MB
 
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
@@ -313,6 +314,107 @@ router.get('/teacher/usage', auth, async (req, res) => {
     res.json({ used, limit: DAILY_LIMIT, remaining: DAILY_LIMIT - used })
   } catch {
     res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
+// ====== Dars AI yordami (video darsni tushuntirish) ======
+// Alohida kunlik limit (AI Teacher'dan mustaqil).
+
+router.get('/lesson-help/usage', auth, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const r = await pool.query(
+      'SELECT count FROM lesson_help_usage WHERE user_id = $1 AND usage_date = $2',
+      [req.user.id, today]
+    )
+    const used = r.rows[0]?.count || 0
+    res.json({ used, limit: LESSON_HELP_LIMIT, remaining: Math.max(0, LESSON_HELP_LIMIT - used) })
+  } catch {
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
+router.post('/lesson-help', auth, async (req, res) => {
+  try {
+    const { courseTitle, lessonTitle, lessonDescription, question, timestamp } = req.body || {}
+    if (typeof question !== 'string' || !question.trim()) {
+      return res.status(400).json({ message: 'Savol kiriting' })
+    }
+    if (question.length > MAX_MESSAGE_LEN) {
+      return res.status(400).json({ message: 'Savol juda uzun' })
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const usageRes = await pool.query(
+      'SELECT count FROM lesson_help_usage WHERE user_id = $1 AND usage_date = $2',
+      [req.user.id, today]
+    )
+    const used = usageRes.rows[0]?.count || 0
+    if (used >= LESSON_HELP_LIMIT) {
+      return res.status(429).json({
+        message: `Kunlik dars-yordam limiti tugadi (${LESSON_HELP_LIMIT}/${LESSON_HELP_LIMIT}). Ertaga davom eting!`,
+        limitReached: true, used, limit: LESSON_HELP_LIMIT
+      })
+    }
+
+    // Vaqt belgisi (sekund) -> "MM:SS" ko'rinishi
+    let timeNote = ''
+    const ts = Number(timestamp)
+    if (Number.isFinite(ts) && ts > 0) {
+      const m = Math.floor(ts / 60)
+      const s = Math.floor(ts % 60)
+      timeNote = `\nTalaba videoning ~${m}:${String(s).padStart(2, '0')} daqiqasida turibdi.`
+    }
+
+    const prompt = `Sen ta'lim platformasidagi DARS YORDAMCHISI AI'san. Talaba video darsni ko'rib, tushunmagan joyini so'rayapti.
+
+KURS: "${String(courseTitle || '').slice(0, 200)}"
+DARS: "${String(lessonTitle || '').slice(0, 200)}"
+${lessonDescription ? `DARS TAVSIFI: "${String(lessonDescription).slice(0, 500)}"` : ''}${timeNote}
+
+TALABA SAVOLI: "${question.slice(0, MAX_MESSAGE_LEN)}"
+
+QOIDALAR:
+- O'zbek tilida (lotin yozuvi), oddiy va tushunarli tushuntir
+- Dars mavzusi doirasida javob ber, kerak bo'lsa misol keltir
+- Qisqa va aniq (150-350 so'z)
+- Markdown ishlatishing mumkin (kod bloklari, ro'yxatlar)
+- Sen videoni ko'rmaysan — mavzu va savol bo'yicha tushuntir`
+
+    let groqRes
+    try {
+      groqRes = await groqFetch({
+        model: TEXT_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.6,
+        max_tokens: 1200
+      }, 30000)
+    } catch {
+      return res.status(504).json({ message: 'AI javob bermadi (timeout)' })
+    }
+
+    const data = await groqRes.json()
+    if (!groqRes.ok || !data.choices?.[0]?.message?.content) {
+      return res.status(502).json({ message: 'AI xizmatida xatolik' })
+    }
+
+    await pool.query(
+      `INSERT INTO lesson_help_usage (user_id, usage_date, count)
+       VALUES ($1, $2, 1)
+       ON CONFLICT (user_id, usage_date)
+       DO UPDATE SET count = lesson_help_usage.count + 1, updated_at = NOW()`,
+      [req.user.id, today]
+    )
+
+    res.json({
+      answer: data.choices[0].message.content,
+      used: used + 1,
+      limit: LESSON_HELP_LIMIT,
+      remaining: Math.max(0, LESSON_HELP_LIMIT - (used + 1))
+    })
+  } catch (err) {
+    console.error('Lesson help error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
   }
 })
 
