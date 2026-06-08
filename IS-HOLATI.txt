@@ -1,149 +1,130 @@
 ═══════════════════════════════════════════════════════════════
   EduUz / Eduzy — IS HOLATI
-  Sana: 2026-05-12
-  Commit: 3384289 (main, origin/main bilan sinxron)
+  Sana: 2026-06-08
+  Commit: b00f1ca (main, origin/main bilan sinxron)
 ═══════════════════════════════════════════════════════════════
 
 
-BUGUN BAJARILGAN ISHLAR
+BUGUN BAJARILGAN ISHLAR (2026-06-08)
 ─────────────────────────────────────────────────
 
-Audit asosida 11 ta kritik xato tuzatildi:
+Audit'dagi qolgan ishlar yopildi + dars sahifasi tuzatildi. 9 ta commit:
 
-BACKEND:
-  1. battle.js POST /submit/:id — Groq AI chaqiruvi BEGIN/COMMIT'dan
-     tashqariga olib chiqildi. Endi DB pool exhaustion bo'lmaydi.
-     INSERT'ga ON CONFLICT DO NOTHING qo'shildi (race himoyasi).
+1. (8903396) DARS SAHIFASI — video resume race fix
+   savedPositionRef fetch player onReady'dan keyin kelsa ham resume
+   ishlaydi. ytPlayerRef/vimeoPlayerRef + seekToSaved() (avval
+   aniqlanmagan edi — ReferenceError berardi).
 
-  2. daily.js POST /submit/:id — xuddi shu refactor. Qo'shimcha:
-     'judging' status + 60 soniya stale recovery — server crash
-     bo'lsa challenge stuck bo'lib qolmaydi.
+2. (d256575) BACKEND TESTLAR — birinchi marta (audit kamchiligi)
+   Node ichki runner (yangi dep yo'q): npm test.
+   jsonParse, disposableDomains, geoip sof funksiyalari qoplandi.
 
-  3. ai.js — data.choices[0] crash yo'li bartaraf qilindi
-     (optional chaining). Generate-quiz prompt'idagi typo
-     ("variyantga") va moduleTest bilan ziddiyat tuzatildi.
+3. (3990149) MODUL TEST KESHI — AI xarajati kamaydi
+   module_test_bank jadval (migration 020): savollar (course_id,
+   module_index) bo'yicha 1 marta generatsiya, prompt_hash bilan
+   invalidatsiya. lib/quizShuffle.js personalize() har userda
+   savol/variant tartibini aralashtiradi (anti-cheat).
 
-  4. middleware/auth.js — token_version va role endi bitta SQL
-     queryda olib kelinadi. Har authenticated request DB'ga
-     1 ta hit kamroq qiladi.
+4. (eeb2778) ABORTCONTROLLER — frontend useEffect fetch'larga
+   Route param tez o'zgarganda stale javob + unmount setState
+   muammosi yo'qoldi. 11 fayl (coursedetail, Lesson, CourseRatings,
+   LessonQA, Leaderboard, Notifications, courses, AITeacher, profile,
+   VerifyCertificate, NotificationBell).
 
-  5. middleware/threatDetector.js — SQL comment naqshi (`-- `, `# `,
-     `/* */`) endi faqat URL/query string'da tekshiriladi.
-     Body izohlarida ("// kod", "-- TODO") false positive yo'q.
+5. (08d426f) EMAIL.JS — legacy Resend olib tashlandi (Brevo asosiy)
+   Resend bepul rejada faqat o'z emailga yuborardi (o'lik kod).
+   sendViaResend + RESEND env'lar tozalandi. Brevo + SMTP qoldi.
+   Bonus: API kalit fragmenti log'ga chiqmaydi (maxfiylik).
 
-  6. package.json — socket.io olib tashlandi (ishlatilmagan).
-     express-rate-limit zaifligi `npm audit fix` orqali tuzatildi.
+6. (4f86337) AI QUIZ / MODULETEST DUBLIKATI birlashtirildi
+   Backend Groq+parse+validatsiya → lib/quizGen.js (ai.js +
+   moduleTest.js shuni ishlatadi). Frontend AIQuiz.jsx dagi o'lik
+   modul-test kodi (localStorage block, course/test param) olib
+   tashlandi — modul test = ModuleTest.jsx (server).
 
-FRONTEND:
-  7. Lesson.jsx — useEffect ichidagi stale closure xatosi
-     bartaraf etildi (modul testlar holati endi to'g'ri yuklanadi).
-     YouTube URL'lar uchun iframe variant qo'shildi (avval
-     ishlamasdi). Dead kod tozalandi, useEffect cleanup qo'shildi.
-
-  8. dashboard.jsx — sertifikat hisobi endi server'dan
-     (/api/courses/certificate-status/:id) olinadi, localStorage
-     orqali emas. Soxta sertifikat ko'rinishi imkonsiz.
-     user.name[0] crash initial() helper bilan tuzatildi.
-
-  9. admin.jsx — hardcoded "admin@eduzy.uz" tekshiruvi o'rniga
-     user.role === 'admin' check.
-
- 10. Battle.jsx — agressiv client-side bloklash (F12, right-click,
-     Ctrl+R/W/T/N/L/U/P/S/F, Backspace) olib tashlandi. Bu UX'ni
-     buzar va texnik bypass qilinardi. beforeunload va visibility
-     warning qoldi.
-
- 11. package.json — socket.io-client olib tashlandi.
-
-DEPLOY:
- 12. render.yaml — RESEND_API_KEY va RESEND_FROM envVars qo'shildi.
-
-EMAIL TIZIMI:
- - Resend hisobi yaratildi
- - RESEND_API_KEY backend/.env'ga qo'shildi (re_Mt4H...1e3q)
- - sendVerificationEmail() test'i muvaffaqiyatli o'tdi
- - shoxjaxon007akbarzoda@gmail.com manziliga test email yuborildi
+7-9. AUTH: JWT localStorage → httpOnly COOKIE + CSRF (2 bosqich)
+   (9acd106) 1-bosqich dual-mode: lib/authCookies.js, middleware/
+   csrf.js (double-submit), auth middleware cookie-first. cookie-parser,
+   CORS credentials:true.
+   (fa687f4) CSRF lockout fix: login/register/forgot/reset/resend
+   CSRF'dan ozod (test paytida topilgan xato).
+   (b00f1ca) 2-bosqich: localStorage'da REAL JWT yo'q — 'token' kaliti
+   faqat sentinel ('cookie'). SSE cookie withCredentials.
 
 
 HOZIRGI HOLAT
 ─────────────────────────────────────────────────
 
 LOKAL:
-  ✅ Backend ishlaydi (PostgreSQL ulanadi, migrations OK)
-  ✅ Frontend build qiladi (Vite, 0 vulnerability)
-  ✅ Backend npm audit: 0 vulnerability
-  ✅ Email Resend orqali yuboriladi (lokal test o'tdi)
+  ✅ Backend ishlaydi (PostgreSQL ulanadi, migrations 020 gacha OK)
+  ✅ Frontend build qiladi (Vite)
+  ✅ Backend testlar: 30/30 o'tadi (npm test)
+  ✅ Auth cookie/CSRF smoke testlar o'tdi (curl)
 
 GIT:
-  ✅ Commit 3384289 origin/main'ga push qilingan
-  ✅ 14 fayl o'zgargan: +307 / -714 satrlar (sof tozalash)
+  ✅ Commit b00f1ca origin/main'ga push qilingan
 
-PRODUCTION (qilish kerak):
-  ⚠️  Render dashboard'da env vars qo'shilmagan:
-      RESEND_API_KEY  ← .env'dagi qiymati
-      RESEND_FROM     ← Eduzy <onboarding@resend.dev>
-      APP_URL         ← Vercel frontend domeni
-      CORS_ORIGIN     ← Vercel frontend domeni
-
-  ⚠️  Vercel dashboard'da tekshirish kerak:
-      VITE_API_URL    ← Render backend domeni
+EMAIL: Brevo (BREVO_API_KEY) asosiy, SMTP fallback. Resend olib tashlandi.
+AUTH:  Email tasdiqlash (Brevo). Login → httpOnly cookie. Telegram
+       faqat contact + security alert uchun (ro'yxatdan o'tish emas).
 
 
-ERTAGA ISHLASH UCHUN
+AUTH COOKIE — DEPLOY TEKSHIRUVI (MUHIM!)
 ─────────────────────────────────────────────────
 
-1) RENDER ENV VARS QO'SHISH (yuqoridagi 4 ta)
+Prod'ga chiqqach quyidagilarni tekshiring:
 
-2) PRODUCTION TEST:
-   - Yangi user /register qilish
-   - Email kelganini tekshirish (Resend dashboard'da
-     ko'rsa ham bo'ladi: https://resend.com/emails)
-   - Havolani bosib /verify-email'ga o'tish
-   - /login orqali kirish
+1) RENDER env: CORS_ORIGIN aynan Vercel domeni bo'lsin (masalan
+   https://eduzy.uz) — '*' EMAS. Credentials bilan wildcard ishlamaydi,
+   aks holda cookie yuborilmaydi va HECH KIM kira olmaydi.
+   NODE_ENV=production bo'lsin (cookie Secure+SameSite=None uchun).
 
-3) AGAR PRODUCTION'DA EMAIL ISHLAMAYDIGAN BO'LSA:
-   - Render logs'da "📧 Email provayder: Resend" yozuvi
-     borligini tekshiring
-   - Yo'q bo'lsa: env var to'g'ri qo'yilmagan
-   - Bor bo'lsa: Resend dashboard'da delivery status
-     (delivered/bounced/complained)
+2) Yangi login qiling → DevTools:
+   - Application → Cookies: auth_token (HttpOnly ✓) + csrf_token
+   - Application → Local Storage: 'token' qiymati = "cookie" (REAL JWT EMAS)
 
-4) RESEND DOMEN TASDIQLASH (production uchun):
-   Hozir onboarding@resend.dev'dan yuboriladi va FAQAT
-   Resend account egasiga (sizning email'ingiz) yuboriladi.
-   Boshqa userlarga email yuborish uchun:
-   - Resend dashboard → Domains → Add Domain
-   - Sizning domeningiz (masalan eduzy.uz)
-   - DNS records qo'shish (SPF, DKIM)
-   - Tasdiqlash → RESEND_FROM ni "Eduzy <noreply@eduzy.uz>"
-     ga o'zgartirish
+3) Sahifalarni aylanib chiqing (dars, test, profil, bildirishnoma).
+   Bildirishnoma qo'ng'irog'i real-time ishlasin (SSE cookie orqali).
 
-5) HALI TUZATILMAGAN MUMKIN ISHLAR (audit'dan qolgan):
-   - GROQ_API_KEY hali rotate qilinmagan (eski kalit leaked'mi?)
-   - JWT localStorage → httpOnly cookie (XSS himoyasi, katta refactor)
-   - AbortController frontend fetch'larda (memory leak past
-     darajada, lekin yaxshilash mumkin)
-   - Module test'larni course darajasida cache qilish (har user
-     uchun alohida AI chaqiruv — bahosi)
-   - Backend testlar yo'q
-   - Production DB password ('1234') va admin password
-     ('Admin1234') — Render env'da kuchli qiymatlar bo'lishi shart
+4) Eski sessiya: deploy'dan oldin kirgan userlar bir marta qayta login
+   qilishlari kerak bo'lishi mumkin (cookie olish uchun). Bu normal.
+
+5) Logout → cookie'lar tozalanishi kerak.
+
+
+HALI QILINMAGAN (sizdan amal talab qiladi)
+─────────────────────────────────────────────────
+
+1) GROQ_API_KEY ROTATE — eski kalit audit'dan beri ochiq bo'lishi
+   mumkin. Groq dashboard'da yangi kalit → Render env yangilash.
+
+2) PRODUCTION PAROLLAR — DB password va ADMIN_PASSWORD kuchli
+   qiymatlar bo'lishi shart (Render env'da). Default '1234'/'Admin1234'
+   ishlatilmasin.
+
+3) RESEND DOMEN emas — endi BREVO. Brevo dashboard'da sender email
+   tasdiqlangan bo'lsin (Senders bo'limi), BREVO_FROM mos kelsin.
+
+
+KELAJAK (texnik qarz, shoshilmaydi)
+─────────────────────────────────────────────────
+  - AI Quiz/ModuleTest backend birlashtirildi, lekin frontend 2 ta
+    alohida sahifa (har xil UX — ataylab).
+  - Teacher tizimi bor lekin kam ishlatiladi.
+  - Route/DB darajasidagi backend testlar hali yo'q (faqat sof liblar).
 
 
 FAYLLAR (siz tahrirlashingiz mumkin)
 ─────────────────────────────────────────────────
-
 backend/.env              ← lokal sirlar (gitignored)
 frontend/.env             ← VITE_API_URL (gitignored)
-backend/.env.example      ← template (gitda bor)
-frontend/.env.example     ← template (gitda bor)
-render.yaml               ← Render deploy config
+render.yaml               ← Render deploy config (CORS_ORIGIN izohi bor)
 frontend/vercel.json      ← Vercel config
 
 
 SAVOL TUG'ILSA, AYTING:
 "hozir qayerdamiz" → bu fayl ochiladi va davom etamiz
-"Render env'larni tekshir" → render dashboard URL'i bilan ish
-"production'da email ishlamayapti" → log'larni ko'rib chiqamiz
+"auth cookie ishlamayapti" → CORS_ORIGIN va NODE_ENV tekshiramiz
+"GROQ kalitni rotate qilaman" → qadamlarni birga bajaramiz
 
 ═══════════════════════════════════════════════════════════════
