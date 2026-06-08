@@ -1,4 +1,5 @@
 const express = require('express')
+const crypto = require('crypto')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
@@ -8,6 +9,10 @@ const notifications = require('../lib/notifications')
 const getTodayDate = () => new Date().toISOString().split('T')[0]
 
 const { groqFetch } = require('../lib/groq')
+const { personalize } = require('../lib/quizShuffle')
+
+// Banki keshini invalidatsiya qilish uchun — prompt mazmunidan barqaror hash
+const hashPrompt = (str) => crypto.createHash('sha256').update(str).digest('hex')
 
 // Barcha modullar statusi — BITTA so'rovda (kurs sahifasi uchun, N+1 yo'q)
 router.get('/status-all/:courseId', auth, async (req, res) => {
@@ -172,47 +177,76 @@ JAVOB FAQAT JSON formatda (boshqa hech narsa yozma):
 
 correct — to'g'ri javob indeksi (0 dan 3 gacha)`
 
-    let groqRes
-    try {
-      groqRes = await groqFetch({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 4000
-      })
-    } catch {
-      return res.status(504).json({ message: 'AI javob bermadi' })
+    const promptHash = hashPrompt(prompt)
+
+    // 1) Kesh: shu modul savollari allaqachon generatsiya qilingan va kurs
+    //    mazmuni o'zgarmagan bo'lsa — AI chaqirmaymiz (xarajat + tezlik).
+    let questions = null
+    const bank = await pool.query(
+      'SELECT questions, prompt_hash FROM module_test_bank WHERE course_id = $1 AND module_index = $2',
+      [courseId, moduleIdx]
+    )
+    if (bank.rows.length > 0 && bank.rows[0].prompt_hash === promptHash) {
+      const cached = typeof bank.rows[0].questions === 'string'
+        ? JSON.parse(bank.rows[0].questions)
+        : bank.rows[0].questions
+      if (Array.isArray(cached) && cached.length >= 20) questions = cached
     }
 
-    const data = await groqRes.json()
-    const text = data.choices?.[0]?.message?.content || ''
-    const parsed = extractAndParseJson(text)
-    if (!parsed) {
-      return res.status(500).json({ message: "AI savollar yaratolmadi" })
+    // 2) Kesh yo'q / eskirgan — AI'dan generatsiya qilamiz va keshga yozamiz.
+    if (!questions) {
+      let groqRes
+      try {
+        groqRes = await groqFetch({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 4000
+        })
+      } catch {
+        return res.status(504).json({ message: 'AI javob bermadi' })
+      }
+
+      const data = await groqRes.json()
+      const text = data.choices?.[0]?.message?.content || ''
+      const parsed = extractAndParseJson(text)
+      if (!parsed) {
+        return res.status(500).json({ message: "AI savollar yaratolmadi" })
+      }
+
+      const all = Array.isArray(parsed.questions) ? parsed.questions : []
+      questions = all
+        .filter(q =>
+          q && typeof q.question === 'string' &&
+          Array.isArray(q.options) && q.options.length === 4 &&
+          Number.isInteger(q.correct) && q.correct >= 0 && q.correct <= 3
+        )
+        .slice(0, 20)
+
+      if (questions.length < 20) {
+        return res.status(500).json({ message: 'Savollar yetarli emas, qayta urinib ko\'ring' })
+      }
+
+      await pool.query(`
+        INSERT INTO module_test_bank (course_id, module_index, questions, prompt_hash)
+        VALUES ($1, $2, $3::jsonb, $4)
+        ON CONFLICT (course_id, module_index)
+        DO UPDATE SET questions = EXCLUDED.questions, prompt_hash = EXCLUDED.prompt_hash, updated_at = NOW()
+      `, [courseId, moduleIdx, JSON.stringify(questions), promptHash])
     }
 
-    const all = Array.isArray(parsed.questions) ? parsed.questions : []
-    const questions = all
-      .filter(q =>
-        q && typeof q.question === 'string' &&
-        Array.isArray(q.options) && q.options.length === 4 &&
-        Number.isInteger(q.correct) && q.correct >= 0 && q.correct <= 3
-      )
-      .slice(0, 20)
-
-    if (questions.length < 20) {
-      return res.status(500).json({ message: 'Savollar yetarli emas, qayta urinib ko\'ring' })
-    }
-
+    // 3) Bu user uchun savol/variant tartibini aralashtiramiz (kesh bo'lsa ham
+    //    har userda bir xil javob kaliti bo'lib qolmaydi) va attempt'ga saqlaymiz.
+    const userQuestions = personalize(questions)
     const inserted = await pool.query(`
       INSERT INTO module_tests (user_id, course_id, module_index, attempt_date, score, total, passed, questions, user_answers, completed_at)
       VALUES ($1, $2, $3, $4, 0, 20, FALSE, $5::jsonb, NULL, NULL)
       ON CONFLICT (user_id, course_id, module_index, attempt_date)
       DO UPDATE SET questions = EXCLUDED.questions
       RETURNING id
-    `, [req.user.id, courseId, moduleIdx, today, JSON.stringify(questions)])
+    `, [req.user.id, courseId, moduleIdx, today, JSON.stringify(userQuestions)])
 
-    const safe = questions.map(q => ({ question: q.question, options: q.options }))
+    const safe = userQuestions.map(q => ({ question: q.question, options: q.options }))
     res.json({ questions: safe, total: safe.length, attemptId: inserted.rows[0].id })
   } catch (err) {
     console.error('Generate error:', err)
