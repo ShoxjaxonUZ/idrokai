@@ -3,12 +3,11 @@ const crypto = require('crypto')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
-const { extractAndParseJson } = require('../lib/jsonParse')
 const notifications = require('../lib/notifications')
 
 const getTodayDate = () => new Date().toISOString().split('T')[0]
 
-const { groqFetch } = require('../lib/groq')
+const { generateQuestions } = require('../lib/quizGen')
 const { personalize } = require('../lib/quizShuffle')
 
 // Banki keshini invalidatsiya qilish uchun — prompt mazmunidan barqaror hash
@@ -195,33 +194,11 @@ correct — to'g'ri javob indeksi (0 dan 3 gacha)`
 
     // 2) Kesh yo'q / eskirgan — AI'dan generatsiya qilamiz va keshga yozamiz.
     if (!questions) {
-      let groqRes
-      try {
-        groqRes = await groqFetch({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 4000
-        })
-      } catch {
-        return res.status(504).json({ message: 'AI javob bermadi' })
+      const gen = await generateQuestions(prompt)
+      if (gen.error) {
+        return res.status(gen.error.status).json({ message: gen.error.message })
       }
-
-      const data = await groqRes.json()
-      const text = data.choices?.[0]?.message?.content || ''
-      const parsed = extractAndParseJson(text)
-      if (!parsed) {
-        return res.status(500).json({ message: "AI savollar yaratolmadi" })
-      }
-
-      const all = Array.isArray(parsed.questions) ? parsed.questions : []
-      questions = all
-        .filter(q =>
-          q && typeof q.question === 'string' &&
-          Array.isArray(q.options) && q.options.length === 4 &&
-          Number.isInteger(q.correct) && q.correct >= 0 && q.correct <= 3
-        )
-        .slice(0, 20)
+      questions = gen.questions.slice(0, 20)
 
       if (questions.length < 20) {
         return res.status(500).json({ message: 'Savollar yetarli emas, qayta urinib ko\'ring' })

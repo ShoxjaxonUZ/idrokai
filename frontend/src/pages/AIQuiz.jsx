@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
-  Bot, Rocket, RefreshCw, BookOpen, Trophy, Award,
+  Bot, Rocket, RefreshCw, BookOpen, Trophy,
   ArrowRight, CheckCircle2, XCircle, Sparkles, Target,
-  ArrowLeft, Lock, Lightbulb
+  Lightbulb
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -12,16 +12,11 @@ import '../styles/aiquiz.css'
 
 function AIQuiz() {
   const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const courseId = params.get('course')
-  const courseTitle = params.get('title')
-  const lessonTitles = params.get('lessons')
-  const testNumber = params.get('test')
 
   const user = JSON.parse(localStorage.getItem('user'))
   const token = localStorage.getItem('token')
 
-  const [topic, setTopic] = useState(courseTitle || '')
+  const [topic, setTopic] = useState('')
   const [count, setCount] = useState(5)
   const [questions, setQuestions] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -30,8 +25,6 @@ function AIQuiz() {
   const [finished, setFinished] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [blocked, setBlocked] = useState(false)
-  const [blockTime, setBlockTime] = useState(null)
 
   const requireAuth = () => {
     if (!user) {
@@ -43,46 +36,7 @@ function AIQuiz() {
 
   useEffect(() => {
     document.title = "AI Test — Eduzy"
-    if (!user) return
-    checkBlock()
   }, [])
-
-  const getBlockKey = () => {
-    if (!courseId || !user) return null
-    if (testNumber) {
-      return `module_test_${courseId}_${testNumber}_${user.id}`
-    }
-    return `ai_quiz_block_${courseId}`
-  }
-
-  const checkBlock = () => {
-    const key = getBlockKey()
-    if (!key) return false
-    const saved = localStorage.getItem(key)
-    if (!saved) return false
-    const state = JSON.parse(saved)
-    if (state.passed) return false
-    const remaining = new Date(state.blockedUntil) - new Date()
-    if (remaining > 0) {
-      setBlocked(true)
-      setBlockTime(state.blockedUntil)
-      return true
-    }
-    return false
-  }
-
-  const doBlock = () => {
-    const key = getBlockKey()
-    if (!key) return
-    const blockedUntil = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    localStorage.setItem(key, JSON.stringify({ blockedUntil: blockedUntil.toISOString(), passed: false }))
-  }
-
-  const clearBlock = () => {
-    const key = getBlockKey()
-    if (!key) return
-    localStorage.setItem(key, JSON.stringify({ passed: true, passedAt: new Date().toISOString() }))
-  }
 
   const generateQuiz = async () => {
     if (!requireAuth()) return
@@ -92,7 +46,6 @@ function AIQuiz() {
 
     try {
       const body = { topic: topic.trim(), count }
-      if (lessonTitles) body.lessons = lessonTitles
 
       const res = await fetch(`${API_URL}/api/ai/generate-quiz`, {
         method: 'POST',
@@ -133,15 +86,6 @@ function AIQuiz() {
       setCurrentIndex(currentIndex + 1)
       setSelected(null)
     } else {
-      const correctCount = newAnswers.filter(a => a.isCorrect).length
-      const percent = Math.round((correctCount / questions.length) * 100)
-      const passed = percent >= 80
-
-      if (courseId) {
-        if (passed) clearBlock()
-        else doBlock()
-      }
-
       setFinished(true)
     }
   }
@@ -153,45 +97,6 @@ function AIQuiz() {
     setAnswers([])
     setFinished(false)
     setError('')
-  }
-
-  const formatBlockTime = (blockUntil) => {
-    if (!blockUntil) return ''
-    const remaining = new Date(blockUntil) - new Date()
-    const hours = Math.floor(remaining / 3600000)
-    const minutes = Math.floor((remaining % 3600000) / 60000)
-    return `${hours}s ${minutes}d`
-  }
-
-  // BLOCKED SCREEN
-  if (blocked) {
-    return (
-      <div>
-        <Navbar />
-        <div className="aiquiz-page">
-          <div className="aiquiz-result">
-            <div className="result-emoji">
-              <Lock size={80} color="#ef4444" />
-            </div>
-            <h2>Test bloklangan</h2>
-            <p style={{ color: 'var(--text-soft)', marginBottom: '24px' }}>
-              Testdan o'ta olmadingiz. Qayta urinish uchun kuting.
-            </p>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: '800',
-              color: '#ef4444',
-              marginBottom: '32px'
-            }}>
-              ⏳ {formatBlockTime(blockTime)}
-            </div>
-            <button className="btn-outline" onClick={() => navigate(-1)}>
-              <ArrowLeft size={16} /> Orqaga qaytish
-            </button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   // FINISHED SCREEN
@@ -255,30 +160,12 @@ function AIQuiz() {
             </div>
 
             <div className="result-actions">
-              {courseId ? (
-                <>
-                  <button className="btn-outline" onClick={() => navigate(-1)}>
-                    <ArrowLeft size={16} /> Kursga qaytish
-                  </button>
-                  {passed && (
-                    <button
-                      className="btn-primary"
-                      onClick={() => navigate(`/certificate/${courseId}`)}
-                    >
-                      <Award size={16} /> Sertifikat olish
-                    </button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <button className="btn-outline" onClick={reset}>
-                    <RefreshCw size={16} /> Yangi test
-                  </button>
-                  <button className="btn-primary" onClick={() => navigate('/courses')}>
-                    <BookOpen size={16} /> Kurslarga o'tish
-                  </button>
-                </>
-              )}
+              <button className="btn-outline" onClick={reset}>
+                <RefreshCw size={16} /> Yangi test
+              </button>
+              <button className="btn-primary" onClick={() => navigate('/courses')}>
+                <BookOpen size={16} /> Kurslarga o'tish
+              </button>
             </div>
           </div>
         </div>

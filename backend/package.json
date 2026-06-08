@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "node --test",
+    "test": "node --test \"test/**/*.test.js\"",
     "migrate": "node -e \"require('dotenv').config(); require('./src/lib/migrate').runMigrations().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1) })\""
   },
   "type": "commonjs",

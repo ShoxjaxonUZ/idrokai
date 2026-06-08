@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
-const { safeParseJson } = require('../lib/jsonParse')
+const { generateQuestions } = require('../lib/quizGen')
 
 const MAX_TOPIC_LEN = 200
 const MAX_MESSAGE_LEN = 2000
@@ -67,41 +67,12 @@ Quyidagi JSON formatda ${safeCount} ta test savoli yarat. Faqat sof JSON qaytarg
 
 "correct" — to'g'ri javob indeksi (0=A, 1=B, 2=C, 3=D).`
 
-    let response
-    try {
-      response = await groqFetch({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 3000,
-        temperature: 0.7
-      })
-    } catch {
-      return res.status(504).json({ message: 'AI javob bermadi' })
+    const gen = await generateQuestions(prompt, { maxTokens: 3000 })
+    if (gen.error) {
+      return res.status(gen.error.status).json({ message: gen.error.message })
     }
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      console.error('Groq xatosi:', data)
-      return res.status(502).json({ message: 'AI xizmatida xatolik' })
-    }
-
-    let text = data.choices?.[0]?.message?.content
-    if (typeof text !== 'string') {
-      console.error('Groq javobida content yo\'q:', data)
-      return res.status(502).json({ message: 'AI noto\'g\'ri javob qaytardi' })
-    }
-    text = text.replace(/```json|```/g, '').trim()
-
-    const firstBrace = text.indexOf('{')
-    const lastBrace = text.lastIndexOf('}')
-    if (firstBrace !== -1 && lastBrace !== -1) {
-      text = text.substring(firstBrace, lastBrace + 1)
-    }
-
-    const parsed = safeParseJson(text)
-    if (!parsed) {
-      return res.status(500).json({ message: "AI noto'g'ri JSON qaytardi" })
+    if (gen.questions.length === 0) {
+      return res.status(500).json({ message: "AI savollar yaratolmadi" })
     }
 
     // Muvaffaqiyatli javobdan keyingina hisoblagichni oshiramiz
@@ -112,7 +83,7 @@ Quyidagi JSON formatda ${safeCount} ta test savoli yarat. Faqat sof JSON qaytarg
       [req.user.id, today]
     )
 
-    res.json(parsed)
+    res.json({ questions: gen.questions })
 
   } catch (err) {
     console.error('AI route xatosi:', err)
