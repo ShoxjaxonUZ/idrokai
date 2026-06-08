@@ -54,6 +54,8 @@ function Lesson() {
     const videoRef = useRef(null)
     const youtubeFrameRef = useRef(null)
     const vimeoFrameRef = useRef(null)
+    const ytPlayerRef = useRef(null)
+    const vimeoPlayerRef = useRef(null)
     const [resumeNotice, setResumeNotice] = useState(null) // {seconds, shown}
     const savedPositionRef = useRef(0)
 
@@ -137,6 +139,8 @@ function Lesson() {
                 if (data && data.position_seconds > 5) {
                     savedPositionRef.current = data.position_seconds
                     setResumeNotice({ seconds: Math.floor(data.position_seconds) })
+                    // Player allaqachon tayyor bo'lsa — darrov o'sha joyga o'tkazamiz
+                    seekToSaved()
                 }
             })
             .catch(() => {})
@@ -157,6 +161,18 @@ function Lesson() {
             body: JSON.stringify({ position: Math.floor(pos), duration: dur ? Math.floor(dur) : null }),
             keepalive: true
         }).catch(() => {})
+    }
+
+    // Saqlangan pozitsiyaga o'tkazish — qaysi player faol bo'lsa o'shanga.
+    // Player onReady'dan keyin yuklangan pozitsiya kelsa ham resume ishlasin.
+    const seekToSaved = () => {
+        const pos = savedPositionRef.current
+        if (!(pos > 5)) return
+        try {
+            if (ytPlayerRef.current?.seekTo) ytPlayerRef.current.seekTo(pos, true)
+            else if (vimeoPlayerRef.current?.setCurrentTime) vimeoPlayerRef.current.setCurrentTime(pos).catch(() => {})
+            else if (videoRef.current && videoRef.current.readyState > 0) videoRef.current.currentTime = pos
+        } catch {}
     }
 
     // HTML5 video — saqlangan joyga o'tish (resume)
@@ -204,6 +220,7 @@ function Lesson() {
                 player = new window.YT.Player(youtubeFrameRef.current, {
                     events: {
                         onReady: () => {
+                            ytPlayerRef.current = player
                             const pos = savedPositionRef.current
                             if (pos > 5) { try { player.seekTo(pos, true) } catch {} }
                             poll = setInterval(() => {
@@ -230,6 +247,7 @@ function Lesson() {
             destroyed = true
             if (poll) clearInterval(poll)
             if (currentTimeRef.current > 0) saveVideoPosition(currentTimeRef.current, null, true)
+            ytPlayerRef.current = null
             try { player?.destroy?.() } catch {}
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -243,6 +261,7 @@ function Lesson() {
             if (destroyed || !Vimeo || !vimeoFrameRef.current) return
             try {
                 player = new Vimeo.Player(vimeoFrameRef.current)
+                vimeoPlayerRef.current = player
                 const pos = savedPositionRef.current
                 if (pos > 5) player.setCurrentTime(pos).catch(() => {})
                 player.on('timeupdate', (e) => {
@@ -255,6 +274,7 @@ function Lesson() {
         return () => {
             destroyed = true
             if (currentTimeRef.current > 0) saveVideoPosition(currentTimeRef.current, null, true)
+            vimeoPlayerRef.current = null
             try { player?.unload?.() } catch {}
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
