@@ -54,10 +54,10 @@ export default function NotificationBell() {
 
     fetchNotifs()
 
-    // SSE real-time stream
+    // SSE real-time stream — auth httpOnly cookie orqali (withCredentials).
     try {
-      const url = `${API_URL}/api/notifications/stream?token=${encodeURIComponent(token)}`
-      const es = new EventSource(url)
+      const url = `${API_URL}/api/notifications/stream`
+      const es = new EventSource(url, { withCredentials: true })
       sseRef.current = es
 
       es.addEventListener('notification', (e) => {

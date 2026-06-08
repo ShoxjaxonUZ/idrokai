@@ -59,9 +59,11 @@ function Register() {
       if (res.ok) {
         if (data.verificationRequired) {
           setVerificationSent(true)
-        } else if (data.token) {
-          localStorage.setItem('token', data.token)
+        } else if (data.user) {
+          // Auto-login (agar backend cookie o'rnatsa) — REAL token cookie'da,
+          // localStorage'da user + 'token' sentinel.
           localStorage.setItem('user', JSON.stringify(data.user))
+          localStorage.setItem('token', 'cookie')
           navigate('/onboarding', { state: fromState })
         }
       } else {

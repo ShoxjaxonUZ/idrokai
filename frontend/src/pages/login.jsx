@@ -56,13 +56,13 @@ function Login() {
           return
         }
         setDeviceLimit(null)
-        localStorage.setItem('token', data.token)
+        // REAL token httpOnly cookie'da (login javobi o'rnatadi). localStorage'ga
+        // user obyekti + 'token' sentinel ('cookie') yoziladi — maxfiy emas.
         localStorage.setItem('user', JSON.stringify(data.user))
+        localStorage.setItem('token', 'cookie')
 
         try {
-          const statusRes = await fetch(`${API_URL}/api/onboarding/status`, {
-            headers: { Authorization: `Bearer ${data.token}` }
-          })
+          const statusRes = await fetch(`${API_URL}/api/onboarding/status`)
           const statusData = await statusRes.json()
           if (statusData.onboarded) {
             navigate(fromPath, { replace: true })

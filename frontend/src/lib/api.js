@@ -19,9 +19,23 @@ export const assetUrl = (path) => {
   return API_URL + '/' + path
 }
 
+// 2-bosqich: REAL JWT endi httpOnly cookie'da — localStorage'da SAQLANMAYDI (XSS
+// himoyasi). 'token' kaliti faqat "cookie orqali login bo'lgan" sentinel'ini
+// saqlaydi (maxfiy emas). Shu sabab eski kod o'zgarishsiz ishlaydi: getToken()
+// va to'g'ridan-to'g'ri getItem('token') guard'lari truthy ko'radi; Bearer
+// header'lar "Bearer cookie" yuboradi — backend uni e'tiborsiz qoldiradi (cookie ustun).
+export const AUTH_SENTINEL = 'cookie'
+
 export const getToken = () => {
   try { return localStorage.getItem('token') } catch { return null }
 }
+
+// Eski (1-bosqich) sessiyalardan localStorage'da qolgan REAL JWT'ni sentinel
+// bilan almashtiramiz — maxfiy qiymat darhol o'chadi.
+try {
+  const t = localStorage.getItem('token')
+  if (t && t !== AUTH_SENTINEL) localStorage.setItem('token', AUTH_SENTINEL)
+} catch {}
 
 export const getUser = () => {
   try {
@@ -33,10 +47,13 @@ export const getUser = () => {
   }
 }
 
-export const setAuth = ({ token, user }) => {
+// 2-bosqich: REAL token localStorage'ga YOZILMAYDI. user obyekti UI uchun, va
+// 'token' kaliti faqat sentinel (login holati signali). token argumenti orqaga
+// moslik uchun qabul qilinadi, lekin saqlanmaydi.
+export const setAuth = ({ user }) => {
   try {
-    if (token) localStorage.setItem('token', token)
     if (user) localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('token', AUTH_SENTINEL)
   } catch {}
 }
 
