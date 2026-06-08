@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
+const cookieParser = require('cookie-parser')
 const rateLimit = require('express-rate-limit')
 require('dotenv').config()
 
@@ -29,6 +30,7 @@ const certificateRoutes = require('./routes/certificate')
 const statsRoutes = require('./routes/stats')
 const dashboardRoutes = require('./routes/dashboard')
 const { threatDetector } = require('./middleware/threatDetector')
+const { csrfProtection } = require('./middleware/csrf')
 const telegram = require('./lib/telegram')
 const { runMigrations } = require('./lib/migrate')
 
@@ -86,11 +88,15 @@ app.use(cors({
     return cb(new Error('CORS: ruxsat berilmagan origin'))
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  // httpOnly cookie auth uchun — brauzer cookie yuborishi va ACAO origin'ni
+  // aks ettirishi shart (credentials bilan '*' ishlamaydi — origin callback
+  // aniq origin'ni qaytaradi).
+  credentials: true
 }))
 
 app.use(express.json({ limit: '6mb' }))
+app.use(cookieParser())
 
 // Threat detector — body parse'dan KEYIN, lekin route'lardan OLDIN.
 // Async fire-and-forget log qiladi, request bloklanmaydi.
@@ -121,6 +127,9 @@ const aiLimiter = rateLimit({
 })
 
 app.use('/api/', apiLimiter)
+// CSRF — cookie-auth bo'lgan mutatsion so'rovlar uchun (double-submit).
+// Bearer header auth va GET'lar ta'sirlanmaydi (csrf.js ichida tekshiriladi).
+app.use('/api/', csrfProtection)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
 app.use('/api/auth/forgot-password', authLimiter)

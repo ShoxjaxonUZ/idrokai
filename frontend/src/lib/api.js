@@ -103,20 +103,44 @@ export const apiPost = (path, body, opts) => api(path, { ...opts, method: 'POST'
 export const apiPut = (path, body, opts) => api(path, { ...opts, method: 'PUT', body })
 export const apiDelete = (path, opts) => api(path, { ...opts, method: 'DELETE' })
 
-// Global 401 ushlovchi — qurilma sessiyasi boshqa joydan chiqarib yuborilsa
-// (yoki sessiya tugasa) istalgan fetch 401 qaytaradi. Bunda foydalanuvchini
-// darhol login sahifasiga, sabab bilan, olib o'tamiz. Barcha sahifalar
-// to'g'ridan-to'g'ri fetch ishlatgani uchun window.fetch'ni o'raymiz.
+// CSRF token cookie'dan o'qish (csrf_token httpOnly EMAS — JS o'qiy oladi).
+export const getCsrfToken = () => {
+  try {
+    const m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/)
+    return m ? decodeURIComponent(m[1]) : null
+  } catch { return null }
+}
+
+// Global fetch o'rovchi. Ikki vazifa:
+//  1) API so'rovlariga httpOnly cookie auth uchun credentials:'include' qo'shadi
+//     va mutatsion so'rovlarga X-CSRF-Token header'ini biriktiradi.
+//  2) 401 (sessiya tugadi / boshqa qurilmadan chiqarildi) bo'lsa — foydalanuvchini
+//     login sahifasiga sabab bilan yo'naltiradi.
+// Barcha sahifalar to'g'ridan-to'g'ri fetch ishlatgani uchun window.fetch'ni o'raymiz.
 if (typeof window !== 'undefined' && !window.__authInterceptor) {
   window.__authInterceptor = true
   const origFetch = window.fetch.bind(window)
-  window.fetch = async (...args) => {
-    const res = await origFetch(...args)
-    // Token mavjud bo'lsa va istalgan 401 qaytsa — sessiya yaroqsiz
+  const MUTATING = new Set(['POST', 'PUT', 'DELETE', 'PATCH'])
+  window.fetch = async (input, init = {}) => {
+    const url = typeof input === 'string' ? input : (input?.url || '')
+    if (url.startsWith(API_URL)) {
+      init = { ...init, credentials: 'include' }
+      const method = (init.method || (typeof input !== 'string' && input?.method) || 'GET').toUpperCase()
+      if (MUTATING.has(method)) {
+        const csrf = getCsrfToken()
+        if (csrf) {
+          const headers = new Headers(init.headers || {})
+          headers.set('X-CSRF-Token', csrf)
+          init.headers = headers
+        }
+      }
+    }
+    const res = await origFetch(input, init)
+    // Token/user mavjud bo'lsa va istalgan 401 qaytsa — sessiya yaroqsiz
     // (muddati o'tgan, imzo noto'g'ri, sessiya o'chirilgan va h.k.).
     // Foydalanuvchini tozalab, login sahifasiga sabab bilan yo'naltiramiz.
     // Guest (tokensiz) uchun yo'naltirmaymiz — u shunchaki bo'sh ma'lumot oladi.
-    if (res.status === 401 && getToken()) {
+    if (res.status === 401 && (getToken() || getUser())) {
       let msg = 'Sessiya tugagan, qaytadan kiring'
       try {
         const data = await res.clone().json()

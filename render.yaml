@@ -26,6 +26,8 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      # MUHIM: httpOnly cookie auth uchun ANIQ origin bo'lishi shart (masalan
+      # https://eduzy.uz). '*' ishlamaydi — credentials bilan wildcard taqiqlangan.
       - key: CORS_ORIGIN
         sync: false
       - key: APP_URL

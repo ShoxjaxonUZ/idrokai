@@ -8,6 +8,7 @@ const { auth: authMiddleware } = require('../middleware/auth')
 const { validatePassword, loginLimiter } = require('../middleware/security')
 const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
+const { setAuthCookies, clearAuthCookies } = require('../lib/authCookies')
 const emailLib = require('../lib/email')
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -342,6 +343,10 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     const token = signToken(user, jti)
 
+    // httpOnly cookie (XSS himoyasi) + CSRF cookie. Dual-mode: token JSON'da
+    // ham qaytariladi (eski Bearer yo'l hali ishlaydi).
+    setAuthCookies(res, token)
+
     res.json({
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
@@ -415,6 +420,7 @@ router.post('/logout', authMiddleware, async (req, res) => {
       'DELETE FROM user_sessions WHERE id = $1 AND user_id = $2',
       [req.user.jti, req.user.id]
     )
+    clearAuthCookies(res)
     res.json({ ok: true })
   } catch {
     res.status(500).json({ message: 'Server xatosi' })
