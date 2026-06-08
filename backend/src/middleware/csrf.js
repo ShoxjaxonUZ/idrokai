@@ -10,8 +10,20 @@ const { AUTH_COOKIE, CSRF_COOKIE } = require('../lib/authCookies')
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
+// Auth-bootstrap yo'llari — CSRF'dan ozod. Bu endpoint'lar orqali sessiya
+// HOSIL qilinadi; CSRF token olish uchun avval login qilish kerak bo'lsa
+// mantiqiy halqa va lockout xavfi paydo bo'ladi (eski auth_token cookie qolsa).
+const EXEMPT_PATHS = new Set([
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/resend-verification'
+])
+
 const csrfProtection = (req, res, next) => {
   if (SAFE_METHODS.has(req.method)) return next()
+  if (EXEMPT_PATHS.has(req.originalUrl.split('?')[0])) return next()
 
   // Cookie orqali kelmagan bo'lsa (header Bearer) — CSRF tekshiruvi shart emas.
   const authCookie = req.cookies?.[AUTH_COOKIE]
