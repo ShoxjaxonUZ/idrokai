@@ -33,21 +33,26 @@ function Notifications() {
 
   useEffect(() => {
     document.title = "Bildirishnomalar — Eduzy"
-    loadNotifications()
+    const ctrl = new AbortController()
+    loadNotifications(ctrl.signal)
+    return () => ctrl.abort()
   }, [])
 
-  const loadNotifications = async () => {
+  const loadNotifications = async (signal) => {
     setLoading(true)
     try {
       const token = getToken()
       const res = await fetch(`${API_URL}/api/notifications?limit=100`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }, signal
       })
       const data = await res.json()
       if (res.ok && Array.isArray(data.items)) {
         setItems(data.items)
       }
-    } catch {}
+    } catch (err) {
+      if (err.name === 'AbortError') return
+    }
+    if (signal?.aborted) return
     setLoading(false)
   }
 

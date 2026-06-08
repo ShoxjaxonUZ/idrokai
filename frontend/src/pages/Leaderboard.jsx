@@ -20,18 +20,24 @@ function Leaderboard() {
 
   useEffect(() => {
     document.title = "Top o'quvchilar — Eduzy"
-    loadData()
+    const ctrl = new AbortController()
+    loadData(ctrl.signal)
+    return () => ctrl.abort()
   }, [])
 
-  const loadData = async () => {
+  const loadData = async (signal) => {
     try {
       const token = getToken()
       const res = await fetch(`${API_URL}/api/leaderboard`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: token ? { Authorization: `Bearer ${token}` } : {}, signal
       })
       const data = await res.json()
       if (Array.isArray(data)) setPlayers(data)
-    } catch (err) { console.error(err) }
+    } catch (err) {
+      if (err.name === 'AbortError') return
+      console.error(err)
+    }
+    if (signal?.aborted) return
     setLoading(false)
   }
 

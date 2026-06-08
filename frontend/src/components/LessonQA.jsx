@@ -20,18 +20,23 @@ export default function LessonQA({ courseId, lessonIndex }) {
 
   useEffect(() => {
     if (!courseId || isNaN(lessonIndex)) return
-    loadQA()
+    const ctrl = new AbortController()
+    loadQA(ctrl.signal)
+    return () => ctrl.abort()
   }, [courseId, lessonIndex])
 
-  const loadQA = async () => {
+  const loadQA = async (signal) => {
     setLoading(true)
     try {
       const res = await fetch(`${API_URL}/api/lesson-qa/${courseId}/${lessonIndex}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: token ? { Authorization: `Bearer ${token}` } : {}, signal
       })
       const data = await res.json()
       if (Array.isArray(data)) setQuestions(data)
-    } catch {}
+    } catch (err) {
+      if (err.name === 'AbortError') return
+    }
+    if (signal?.aborted) return
     setLoading(false)
   }
 

@@ -71,7 +71,9 @@ function AITeacher() {
       } catch {}
     }
 
-    loadUsage()
+    const ctrl = new AbortController()
+    loadUsage(ctrl.signal)
+    return () => ctrl.abort()
   }, [])
 
   useEffect(() => {
@@ -85,14 +87,16 @@ function AITeacher() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const loadUsage = async () => {
+  const loadUsage = async (signal) => {
     try {
       const res = await fetch(`${API_URL}/api/ai/teacher/usage`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }, signal
       })
       const data = await res.json()
       if (res.ok) setUsage(data)
-    } catch {}
+    } catch (err) {
+      if (err.name === 'AbortError') return
+    }
   }
 
   const copyToClipboard = async (text) => {

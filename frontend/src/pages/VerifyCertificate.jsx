@@ -17,11 +17,13 @@ function VerifyCertificate() {
 
   useEffect(() => {
     document.title = "Sertifikat tekshiruvi — Eduzy"
-    fetch(`${API_URL}/api/certificate/verify/${encodeURIComponent(code)}`)
+    const ctrl = new AbortController()
+    fetch(`${API_URL}/api/certificate/verify/${encodeURIComponent(code)}`, { signal: ctrl.signal })
       .then(r => r.json())
       .then(data => setResult(data))
-      .catch(() => setResult({ valid: false }))
-      .finally(() => setLoading(false))
+      .catch((err) => { if (err.name !== 'AbortError') setResult({ valid: false }) })
+      .finally(() => { if (!ctrl.signal.aborted) setLoading(false) })
+    return () => ctrl.abort()
   }, [code])
 
   const formatDate = (ts) => {

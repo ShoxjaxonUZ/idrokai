@@ -30,10 +30,12 @@ function Profile() {
   useEffect(() => {
     if (!user) { navigate('/login'); return }
     document.title = "Profil — Eduzy"
+    const ctrl = new AbortController()
+    const signal = ctrl.signal
 
     // Battle statistikasi — o'z reytingi (leaderboard TOP 20 emas, aniq o'z natija)
     fetch(`${API_URL}/api/battle/my-stats`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }, signal
     })
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) setRating(data) })
@@ -41,7 +43,7 @@ function Profile() {
 
     // Kurslar soni
     fetch(`${API_URL}/api/courses/my`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }, signal
     })
       .then(r => r.json())
       .then(data => {
@@ -51,7 +53,7 @@ function Profile() {
 
     // Sertifikatlar — server'dan (localStorage emas)
     fetch(`${API_URL}/api/certificate/my`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }, signal
     })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
@@ -61,13 +63,15 @@ function Profile() {
 
     // Aktiv qurilma sessiyalari
     fetch(`${API_URL}/api/auth/sessions`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }, signal
     })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
         if (Array.isArray(data)) setSessions(data)
       })
       .catch(() => {})
+
+    return () => ctrl.abort()
   }, [])
 
   const handleRemoveSession = async (id) => {

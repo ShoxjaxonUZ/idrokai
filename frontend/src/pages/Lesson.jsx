@@ -109,10 +109,11 @@ function Lesson() {
     // Load notes when lesson changes
     useEffect(() => {
         if (!token || !courseId || isNaN(index)) return
+        const ctrl = new AbortController()
         initialLoadRef.current = false
         setNotesLoading(true)
         fetch(`${API_URL}/api/lesson-notes/${courseId}/${index}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal
         })
             .then(r => r.ok ? r.json() : null)
             .then(data => {
@@ -123,16 +124,18 @@ function Lesson() {
                 }
             })
             .catch(() => {})
-            .finally(() => setNotesLoading(false))
+            .finally(() => { if (!ctrl.signal.aborted) setNotesLoading(false) })
+        return () => ctrl.abort()
     }, [courseId, index, token])
 
     // Video pozitsiyani yuklash (lesson o'zgarganda)
     useEffect(() => {
         if (!token || !courseId || isNaN(index)) return
+        const ctrl = new AbortController()
         savedPositionRef.current = 0
         setResumeNotice(null)
         fetch(`${API_URL}/api/video-progress/${courseId}/${index}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal
         })
             .then(r => r.ok ? r.json() : null)
             .then(data => {
@@ -144,6 +147,7 @@ function Lesson() {
                 }
             })
             .catch(() => {})
+        return () => ctrl.abort()
     }, [courseId, index, token])
 
     // Pozitsiyani saqlash — throttle (ko'pi bilan 5 soniyada bir marta).

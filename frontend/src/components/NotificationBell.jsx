@@ -26,25 +26,31 @@ export default function NotificationBell() {
   const wrapRef = useRef(null)
   const pollRef = useRef(null)
   const sseRef = useRef(null)
+  const abortRef = useRef(null)
 
   const fetchNotifs = async () => {
     const token = getToken()
     if (!token) return
     try {
       const res = await fetch(`${API_URL}/api/notifications?limit=20`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }, signal: abortRef.current?.signal
       })
       const data = await res.json()
       if (res.ok && Array.isArray(data.items)) {
         setItems(data.items)
         setUnread(data.unread || 0)
       }
-    } catch {}
+    } catch (err) {
+      if (err.name === 'AbortError') return
+    }
   }
 
   useEffect(() => {
     const token = getToken()
     if (!token) return
+
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
 
     fetchNotifs()
 
@@ -80,6 +86,7 @@ export default function NotificationBell() {
 
     return () => {
       clearInterval(pollRef.current)
+      ctrl.abort()
       if (sseRef.current) {
         sseRef.current.close()
         sseRef.current = null

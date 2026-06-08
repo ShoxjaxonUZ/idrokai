@@ -33,17 +33,19 @@ export default function CourseRatings({ courseId, enrolled }) {
 
   useEffect(() => {
     if (!courseId) return
-    loadAll()
+    const ctrl = new AbortController()
+    loadAll(ctrl.signal)
+    return () => ctrl.abort()
   }, [courseId])
 
-  const loadAll = async () => {
+  const loadAll = async (signal) => {
     setLoading(true)
     try {
       const [allRes, myRes] = await Promise.all([
-        fetch(`${API_URL}/api/course-ratings/${courseId}`).then(r => r.ok ? r.json() : null),
+        fetch(`${API_URL}/api/course-ratings/${courseId}`, { signal }).then(r => r.ok ? r.json() : null),
         token
           ? fetch(`${API_URL}/api/course-ratings/${courseId}/my`, {
-              headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` }, signal
             }).then(r => r.ok ? r.json() : null)
           : null
       ])
@@ -53,7 +55,10 @@ export default function CourseRatings({ courseId, enrolled }) {
         setRating(myRes.rating)
         setReview(myRes.review || '')
       }
-    } catch {}
+    } catch (err) {
+      if (err.name === 'AbortError') return
+    }
+    if (signal?.aborted) return
     setLoading(false)
   }
 

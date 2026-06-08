@@ -24,7 +24,8 @@ function Courses() {
 
   useEffect(() => {
     document.title = "Kurslar — Eduzy"
-    fetch(`${API_URL}/api/teacher/all-courses`)
+    const ctrl = new AbortController()
+    fetch(`${API_URL}/api/teacher/all-courses`, { signal: ctrl.signal })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -33,7 +34,8 @@ function Courses() {
         }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch((err) => { if (err.name !== 'AbortError') setLoading(false) })
+    return () => ctrl.abort()
   }, [])
 
   const filtered = allCourses

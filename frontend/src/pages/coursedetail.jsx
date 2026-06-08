@@ -29,12 +29,14 @@ function CourseDetail() {
   const [notes, setNotes] = useState([]) // [{lesson_index, preview, updated_at}]
 
   useEffect(() => {
-    loadCourse()
+    const ctrl = new AbortController()
+    loadCourse(ctrl.signal)
+    return () => ctrl.abort()
   }, [id])
 
-  const loadCourse = async () => {
+  const loadCourse = async (signal) => {
     try {
-      const res = await fetch(`${API_URL}/api/courses/${id}`)
+      const res = await fetch(`${API_URL}/api/courses/${id}`, { signal })
       if (res.ok) {
         const found = await res.json()
         const normalizedLessons = (found.lessons || []).map((l, i) => {
@@ -53,7 +55,7 @@ function CourseDetail() {
         // Module testlar statusi — BITTA so'rovda (avval har modul uchun alohida edi)
         if (token) {
           fetch(`${API_URL}/api/module-test/status-all/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` }, signal
           })
             .then(r => r.ok ? r.json() : null)
             .then(d => { if (d?.statuses) setModuleTests(d.statuses) })
@@ -61,6 +63,7 @@ function CourseDetail() {
         }
       }
     } catch (err) {
+      if (err.name === 'AbortError') return
       console.error(err)
     }
 
@@ -72,11 +75,11 @@ function CourseDetail() {
     try {
       const [myRes, progRes] = await Promise.all([
         fetch(`${API_URL}/api/courses/my`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(r => r.json()).catch(() => []),
+          headers: { Authorization: `Bearer ${token}` }, signal
+        }).then(r => r.json()),
         fetch(`${API_URL}/api/courses/progress/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(r => r.json()).catch(() => [])
+          headers: { Authorization: `Bearer ${token}` }, signal
+        }).then(r => r.json())
       ])
 
       if (Array.isArray(myRes)) {
@@ -95,14 +98,18 @@ function CourseDetail() {
       // Eslatmalar (notes) — kurs ichidagi barcha darslar uchun
       try {
         const notesRes = await fetch(`${API_URL}/api/lesson-notes/course/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }, signal
         })
         const notesData = await notesRes.json()
         if (Array.isArray(notesData)) setNotes(notesData)
-      } catch {}
+      } catch (e) {
+        if (e.name === 'AbortError') return
+      }
     } catch (err) {
+      if (err.name === 'AbortError') return
       console.error(err)
     }
+    if (signal?.aborted) return
     setPageLoading(false)
   }
 
