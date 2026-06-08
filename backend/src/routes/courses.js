@@ -47,8 +47,18 @@ router.get('/my', auth, async (req, res) => {
   try {
     const user_id = req.user.id
 
+    // Kurs tafsilotlari bilan JOIN — dashboard alohida "all-courses" (og'ir,
+    // barcha kurslarning to'liq lessons JSONB'i) so'rovini chaqirmasligi uchun.
+    // To'liq lessons o'rniga faqat dars SONI qaytariladi (payload kichik).
     const result = await pool.query(
-      'SELECT course_id, progress, created_at FROM enrollments WHERE user_id = $1',
+      `SELECT e.course_id, e.progress, e.created_at,
+              c.title, c.emoji, c.category, c.daraja, c.image,
+              CASE WHEN jsonb_typeof(c.lessons) = 'array'
+                   THEN jsonb_array_length(c.lessons) ELSE 0 END AS lessons_count
+       FROM enrollments e
+       LEFT JOIN courses c ON c.id = e.course_id
+       WHERE e.user_id = $1
+       ORDER BY e.created_at DESC`,
       [user_id]
     )
 

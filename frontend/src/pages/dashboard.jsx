@@ -90,8 +90,9 @@ function Dashboard() {
 
     const loadAll = async () => {
       try {
-        const [coursesRes, myRes, recoRes] = await Promise.all([
-          fetch(`${API_URL}/api/teacher/all-courses`).then(r => r.json()).catch(() => []),
+        // all-courses (og'ir) endi kerak emas — /courses/my kurs tafsilotlarini
+        // (title, emoji, lessons_count) JOIN bilan qaytaradi.
+        const [myRes, recoRes] = await Promise.all([
           fetch(`${API_URL}/api/courses/my`, {
             headers: { Authorization: `Bearer ${token}` }
           }).then(r => r.json()).catch(() => []),
@@ -102,12 +103,8 @@ function Dashboard() {
         ])
         if (cancelled) return
 
-        const allCourses = Array.isArray(coursesRes) ? coursesRes : []
         const courses = Array.isArray(myRes)
-          ? myRes.map(e => {
-              const course = allCourses.find(c => String(c.id) === String(e.course_id))
-              return { ...course, progress: e.progress, course_id: e.course_id }
-            }).filter(c => c && c.title && c.title.trim() !== '')
+          ? myRes.filter(c => c && c.title && c.title.trim() !== '')
           : []
         setEnrolledCourses(courses)
 
@@ -130,7 +127,7 @@ function Dashboard() {
   const certCount = certifiedCourseIds.size
 
   const totalLessons = enrolledCourses.reduce((acc, k) =>
-    acc + Math.round(((k.progress || 0) / 100) * (k.lessons?.length || 0)), 0)
+    acc + Math.round(((k.progress || 0) / 100) * (k.lessons_count || 0)), 0)
 
   const avgProgress = enrolledCourses.length > 0
     ? Math.round(enrolledCourses.reduce((a, k) => a + (k.progress || 0), 0) / enrolledCourses.length)

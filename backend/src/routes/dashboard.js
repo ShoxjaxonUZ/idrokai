@@ -8,14 +8,6 @@ const router = express.Router()
 const pool = require('../db')
 const { auth } = require('../middleware/auth')
 
-const countLessons = (lessonsRaw) => {
-  let lessons = lessonsRaw
-  if (typeof lessons === 'string') {
-    try { lessons = JSON.parse(lessons) } catch { return 0 }
-  }
-  return Array.isArray(lessons) ? lessons.length : 0
-}
-
 router.get('/recommendations', auth, async (req, res) => {
   try {
     const userId = req.user.id
@@ -23,7 +15,9 @@ router.get('/recommendations', auth, async (req, res) => {
     // Barcha ma'lumot parallel (bitta yo'l-yo'lakay)
     const [enrollRes, testsRes, certsRes, dailyRes, streakRes] = await Promise.all([
       pool.query(
-        `SELECT e.course_id, e.progress, c.title, c.lessons
+        `SELECT e.course_id, e.progress, c.title,
+                CASE WHEN jsonb_typeof(c.lessons) = 'array'
+                     THEN jsonb_array_length(c.lessons) ELSE 0 END AS lessons_count
          FROM enrollments e JOIN courses c ON c.id = e.course_id
          WHERE e.user_id = $1`, [userId]),
       pool.query(
@@ -53,7 +47,7 @@ router.get('/recommendations', auth, async (req, res) => {
     const certEligible = []
     const inProgress = []
     for (const c of courses) {
-      const total = countLessons(c.lessons)
+      const total = c.lessons_count || 0
       const totalModules = Math.ceil(total / 5)
       const passed = passedByCourse[String(c.course_id)] || new Set()
       let allPassed = totalModules > 0
