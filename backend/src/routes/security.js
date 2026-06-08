@@ -128,7 +128,7 @@ router.post('/email-test', auth, adminOnly, async (req, res) => {
   if (!email.isConfigured()) {
     return res.status(400).json({
       message: 'Email provayder sozlanmagan',
-      hint: 'Render Environment\'da RESEND_API_KEY yoki SMTP_USER+SMTP_PASS o\'rnating'
+      hint: 'Render Environment\'da BREVO_API_KEY yoki SMTP_USER+SMTP_PASS o\'rnating'
     })
   }
   const result = await email.sendTestEmail(to)

@@ -1,7 +1,6 @@
-// Email yuborish — 3 ta provayder qo'llab-quvvatlanadi (prioritet bo'yicha):
+// Email yuborish — 2 ta provayder qo'llab-quvvatlanadi (prioritet bo'yicha):
 // 1. Brevo (BREVO_API_KEY) — HTTPS API, har qanday emailga yuboradi, 300/kun bepul
-// 2. Resend (RESEND_API_KEY) — HTTPS API, bepul rejada faqat o'z emailga
-// 3. SMTP (Gmail va h.k.) — SMTP_HOST + SMTP_USER + SMTP_PASS
+// 2. SMTP (Gmail va h.k.) — SMTP_HOST + SMTP_USER + SMTP_PASS
 // Hech qaysi sozlanmasa: dev rejimda console'ga yoziladi
 
 const nodemailer = require('nodemailer')
@@ -10,7 +9,6 @@ const SMTP_HOST = process.env.SMTP_HOST
 const SMTP_PORT = parseInt(process.env.SMTP_PORT, 10) || 587
 const SMTP_USER = process.env.SMTP_USER
 const SMTP_PASS = process.env.SMTP_PASS
-const RESEND_API_KEY = process.env.RESEND_API_KEY
 const BREVO_API_KEY = process.env.BREVO_API_KEY
 const BREVO_FROM = process.env.BREVO_FROM || process.env.SMTP_FROM || 'Eduzy <noreply@eduzy.uz>'
 const APP_URL = process.env.APP_URL || 'http://localhost:5173'
@@ -25,22 +23,12 @@ if (SMTP_HOST?.includes('gmail') && SMTP_USER) {
   SMTP_FROM = `Eduzy <${SMTP_USER || 'noreply@eduzy.uz'}>`
 }
 
-const RESEND_FROM = process.env.RESEND_FROM || 'Eduzy <onboarding@resend.dev>'
-
 let transporter = null
 let provider = 'none'
 
 if (BREVO_API_KEY) {
   provider = 'brevo'
-  // Diagnostika: kalit boshlanishi va oxirini ko'rsatish (sironi buzmaydi)
-  const keyPreview = BREVO_API_KEY.length > 12
-    ? `${BREVO_API_KEY.slice(0, 10)}...${BREVO_API_KEY.slice(-4)}`
-    : '(juda qisqa)'
-  console.log(`📧 Email provayder: Brevo (kalit: ${keyPreview}, uzunlik: ${BREVO_API_KEY.length})`)
-  console.log(`📧 Brevo sender: ${BREVO_FROM}`)
-} else if (RESEND_API_KEY) {
-  provider = 'resend'
-  console.log('📧 Email provayder: Resend (RESEND_API_KEY topildi)')
+  console.log(`📧 Email provayder: Brevo (sender: ${BREVO_FROM})`)
 } else if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   transporter = nodemailer.createTransport({
     host: SMTP_HOST,
@@ -119,34 +107,6 @@ const sendViaBrevo = async ({ to, subject, html, text, from }) => {
   }
 }
 
-const sendViaResend = async ({ to, subject, html, text, from }) => {
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`
-      },
-      body: JSON.stringify({
-        from: from || RESEND_FROM,
-        to: [to],
-        subject,
-        html,
-        text
-      })
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      console.error('[Resend] xato:', data)
-      return { ok: false, reason: data.message || 'Resend xatosi' }
-    }
-    return { ok: true, messageId: data.id }
-  } catch (err) {
-    console.error('[Resend] tarmoq xatosi:', err.message)
-    return { ok: false, reason: err.message }
-  }
-}
-
 const sendViaSmtp = async ({ to, subject, html, text, from }) => {
   try {
     const info = await transporter.sendMail({
@@ -168,7 +128,6 @@ const sendMail = async ({ to, subject, html, text, from }) => {
   const args = { to, subject, html, text, from }
 
   if (provider === 'brevo') return sendViaBrevo(args)
-  if (provider === 'resend') return sendViaResend(args)
   if (provider === 'smtp') return sendViaSmtp(args)
 
   // Dev rejim — console'ga yozamiz
