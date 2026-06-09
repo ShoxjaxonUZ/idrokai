@@ -61,6 +61,7 @@ export const clearAuth = () => {
   try {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('csrf')
   } catch {}
 }
 
@@ -120,12 +121,40 @@ export const apiPost = (path, body, opts) => api(path, { ...opts, method: 'POST'
 export const apiPut = (path, body, opts) => api(path, { ...opts, method: 'PUT', body })
 export const apiDelete = (path, opts) => api(path, { ...opts, method: 'DELETE' })
 
-// CSRF token cookie'dan o'qish (csrf_token httpOnly EMAS — JS o'qiy oladi).
+// CSRF token o'qish. Cross-domain (Vercel↔Render) deploy'da backend domenidagi
+// csrf_token cookie'ni document.cookie KO'RMAYDI — shu sabab tokenni avval
+// localStorage'dan o'qiymiz (login javobi yoki /csrf endpoint saqlaydi), keyin
+// lokal dev (bir xil host) uchun cookie'dan o'qishga urinamiz.
 export const getCsrfToken = () => {
+  try {
+    const stored = localStorage.getItem('csrf')
+    if (stored) return stored
+  } catch {}
   try {
     const m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/)
     return m ? decodeURIComponent(m[1]) : null
   } catch { return null }
+}
+
+export const setCsrfToken = (t) => {
+  try { if (t) localStorage.setItem('csrf', t) } catch {}
+}
+
+// CSRF token mavjudligini ta'minlash — yo'q bo'lsa backend'dan so'rab oladi.
+// Bir vaqtda bir nechta mutatsion so'rov bo'lsa, bitta so'rov yuborilishi uchun
+// va'dani kesh qilamiz.
+let csrfPromise = null
+export const ensureCsrf = async () => {
+  const existing = getCsrfToken()
+  if (existing) return existing
+  if (!csrfPromise) {
+    csrfPromise = fetch(`${API_URL}/api/auth/csrf`, { credentials: 'include' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d?.csrfToken) setCsrfToken(d.csrfToken); return d?.csrfToken || null })
+      .catch(() => null)
+      .finally(() => { csrfPromise = null })
+  }
+  return csrfPromise
 }
 
 // Global fetch o'rovchi. Ikki vazifa:
@@ -144,7 +173,9 @@ if (typeof window !== 'undefined' && !window.__authInterceptor) {
       init = { ...init, credentials: 'include' }
       const method = (init.method || (typeof input !== 'string' && input?.method) || 'GET').toUpperCase()
       if (MUTATING.has(method)) {
-        const csrf = getCsrfToken()
+        // Cross-domain'da token localStorage'da bo'lmasligi mumkin — backend'dan
+        // olib kelamiz (aks holda CSRF tekshiruvi muvaffaqiyatsiz bo'ladi).
+        const csrf = getCsrfToken() || await ensureCsrf()
         if (csrf) {
           const headers = new Headers(init.headers || {})
           headers.set('X-CSRF-Token', csrf)

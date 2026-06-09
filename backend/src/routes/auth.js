@@ -8,7 +8,7 @@ const { auth: authMiddleware } = require('../middleware/auth')
 const { validatePassword, loginLimiter } = require('../middleware/security')
 const { logFailedLogin } = require('../middleware/threatDetector')
 const { isDisposable, looksFake } = require('../lib/disposableDomains')
-const { setAuthCookies, clearAuthCookies } = require('../lib/authCookies')
+const { setAuthCookies, setCsrfCookie, clearAuthCookies, CSRF_COOKIE } = require('../lib/authCookies')
 const emailLib = require('../lib/email')
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -344,11 +344,13 @@ router.post('/login', loginLimiter, async (req, res) => {
     const token = signToken(user, jti)
 
     // httpOnly cookie (XSS himoyasi) + CSRF cookie. Dual-mode: token JSON'da
-    // ham qaytariladi (eski Bearer yo'l hali ishlaydi).
-    setAuthCookies(res, token)
+    // ham qaytariladi (eski Bearer yo'l hali ishlaydi). csrfToken cross-domain
+    // (Vercel↔Render) uchun javobda — frontend uni saqlab header'da yuboradi.
+    const csrfToken = setAuthCookies(res, token)
 
     res.json({
       token,
+      csrfToken,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
     })
 
@@ -356,6 +358,17 @@ router.post('/login', loginLimiter, async (req, res) => {
     console.error('Login error:', err.message)
     res.status(500).json({ message: 'Xatolik yuz berdi' })
   }
+})
+
+// CSRF tokenni olish — cross-domain (Vercel↔Render) deploy'da frontend backend
+// domenidagi csrf_token cookie'ni document.cookie orqali o'qiy olmaydi. Bu
+// endpoint mavjud csrf_token cookie qiymatini qaytaradi, bo'lmasa yangisini
+// o'rnatadi. GET bo'lgani uchun CSRF tekshiruvidan ozod (xavfsiz metod).
+// Token maxfiy emas (double-submit) — CORS javobni boshqa origin'ga bermaydi.
+router.get('/csrf', (req, res) => {
+  let csrfToken = req.cookies?.[CSRF_COOKIE]
+  if (!csrfToken) csrfToken = setCsrfCookie(res)
+  res.json({ csrfToken })
 })
 
 router.get('/me', authMiddleware, async (req, res) => {

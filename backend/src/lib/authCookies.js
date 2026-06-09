@@ -24,9 +24,19 @@ const baseOpts = {
 const generateCsrf = () => crypto.randomBytes(32).toString('hex')
 
 // Login/register'da chaqiriladi — auth (httpOnly) + csrf (o'qiladigan) cookie.
+// Yaratilgan CSRF tokenni QAYTARADI — cross-domain (Vercel↔Render) deploy'da
+// frontend backend domenidagi csrf_token cookie'ni document.cookie orqali
+// o'qiy olmaydi, shu sabab tokenni JSON javobida ham qaytaramiz.
 const setAuthCookies = (res, token) => {
   res.cookie(AUTH_COOKIE, token, { ...baseOpts, httpOnly: true })
-  res.cookie(CSRF_COOKIE, generateCsrf(), { ...baseOpts, httpOnly: false })
+  return setCsrfCookie(res)
+}
+
+// Faqat CSRF cookie'ni o'rnatadi va qiymatini qaytaradi (csrf endpoint uchun).
+const setCsrfCookie = (res) => {
+  const csrf = generateCsrf()
+  res.cookie(CSRF_COOKIE, csrf, { ...baseOpts, httpOnly: false })
+  return csrf
 }
 
 // Logout'da chaqiriladi.
@@ -36,4 +46,4 @@ const clearAuthCookies = (res) => {
   res.clearCookie(CSRF_COOKIE, { ...opts, httpOnly: false })
 }
 
-module.exports = { setAuthCookies, clearAuthCookies, generateCsrf, AUTH_COOKIE, CSRF_COOKIE }
+module.exports = { setAuthCookies, setCsrfCookie, clearAuthCookies, generateCsrf, AUTH_COOKIE, CSRF_COOKIE }

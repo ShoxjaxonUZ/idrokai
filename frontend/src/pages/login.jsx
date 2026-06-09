@@ -4,7 +4,7 @@ import {
   Mail, Lock, Eye, EyeOff, LogIn, GraduationCap,
   AlertCircle, ArrowRight, Monitor, LogOut, ShieldAlert
 } from 'lucide-react'
-import { API_URL } from '../lib/api'
+import { API_URL, setCsrfToken } from '../lib/api'
 import '../styles/auth.css'
 
 function Login() {
@@ -60,6 +60,8 @@ function Login() {
         // user obyekti + 'token' sentinel ('cookie') yoziladi — maxfiy emas.
         localStorage.setItem('user', JSON.stringify(data.user))
         localStorage.setItem('token', 'cookie')
+        // CSRF token (cross-domain uchun) — mutatsion so'rovlarda header'da yuboriladi
+        setCsrfToken(data.csrfToken)
 
         try {
           const statusRes = await fetch(`${API_URL}/api/onboarding/status`)
