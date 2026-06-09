@@ -98,8 +98,8 @@ Pastga aylanring → **"Environment Variables"** bo'limi → har biri uchun **"A
 | `NODE_ENV` | `production` |
 | `DATABASE_URL` | (Neon'dan olgan connection string) |
 | `JWT_SECRET` | (kuchli random string — pastdagi buyruq orqali olishingiz mumkin) |
-| `ADMIN_EMAIL` | `admin@eduzy.uz` |
-| `ADMIN_PASSWORD` | `Admin1234` (yoki o'zingiz tanlagan kuchli parol) |
+| `ADMIN_EMAIL` | (o'zingizning admin emailingiz) |
+| `ADMIN_PASSWORD` | ⚠️ **KUCHLI, UNIK parol qo'ying** — hech qachon hujjatdagi namunani ishlatmang. Kamida 12 belgi, katta/kichik harf, raqam, belgi. |
 | `GROQ_API_KEY` | (sizdagi `gsk_...` kalit) |
 | `CORS_ORIGIN` | `https://eduzy.vercel.app` (Vercel deploy'dan keyin yangilanadi) |
 | `APP_URL` | `https://eduzy.vercel.app` |
@@ -219,7 +219,7 @@ Foydalanuvchilar haqiqiy email orqali ro'yxatdan o'tishi uchun:
 2. **Health check**: `https://eduzy-api.onrender.com/health` → `{"status":"ok"}` qaytaradimi?
 3. **Register**: yangi haqiqiy email bilan ro'yxatdan o'ting → emailga link kelishi
 4. **Login**: tasdiqlangandan keyin login ishlaydimi?
-5. **Admin**: `admin@eduzy.uz` / `Admin1234` bilan kiring → `/admin` ochiladimi?
+5. **Admin**: o'zingiz `ADMIN_EMAIL`/`ADMIN_PASSWORD`'da qo'ygan ma'lumot bilan kiring → `/admin` ochiladimi?
 6. **Telegram**: Telegram'da xavfsizlik xabari kelganmi?
 
 Hammasi ✅ bo'lsa — investorlarga `https://eduzy.vercel.app` URL'ini yuborishingiz mumkin!

@@ -8,6 +8,7 @@
 const pool = require('../db')
 const geoip = require('../lib/geoip')
 const telegram = require('../lib/telegram')
+const { recordOffense } = require('./attackShield')
 
 // Naqsh ro'yxatlari — har biri (regex, name) shaklida.
 // ESLATMA: regexlar o'zlarida ReDoS bo'lmasligi uchun cheklangan.
@@ -244,6 +245,9 @@ const threatDetector = (req, res, next) => {
     if (threat) {
       console.log(`[Threat] ${threat.severity.toUpperCase()} ${threat.category} (${threat.pattern}) — ${req.method} ${req.url}`)
       logAttack(req, threat)
+      // Hujum qalqoniga ball qo'shamiz — takror zararli IP avtomatik bloklanadi.
+      const ip = req.ip || req.socket?.remoteAddress
+      recordOffense(ip, threat.severity)
     }
   } catch (err) {
     console.error('[Threat] detector error:', err.message)

@@ -9,10 +9,11 @@ const sse = require('../lib/sse')
 const router = express.Router()
 
 // SSE stream — real-time notifications
-// Auth: httpOnly cookie (EventSource withCredentials bilan yuboradi).
-// Orqaga moslik: eski mijozlar uchun query token ham qabul qilinadi.
+// Auth: FAQAT httpOnly cookie (EventSource withCredentials bilan yuboradi).
+// Query'dagi ?token= qabul qilinmaydi — JWT URL'da log/referer orqali sizib
+// ketishi mumkin (xavfsizlik).
 router.get('/stream', async (req, res) => {
-  const token = req.cookies?.auth_token || req.query.token
+  const token = req.cookies?.auth_token
   if (!token) {
     return res.status(401).end()
   }

@@ -30,6 +30,7 @@ const certificateRoutes = require('./routes/certificate')
 const statsRoutes = require('./routes/stats')
 const dashboardRoutes = require('./routes/dashboard')
 const { threatDetector } = require('./middleware/threatDetector')
+const { attackShield } = require('./middleware/attackShield')
 const { csrfProtection } = require('./middleware/csrf')
 const telegram = require('./lib/telegram')
 const { runMigrations } = require('./lib/migrate')
@@ -107,8 +108,13 @@ app.use(cors({
 app.use(express.json({ limit: '6mb' }))
 app.use(cookieParser())
 
+// Hujum qalqoni — takror zararli IP'ni bloklab, soxta (decoy) javob beradi.
+// threatDetector'dan OLDIN: bloklangan IP haqiqiy route'lar va detektorga ham
+// yetib bormaydi, faqat soxta ma'lumot oladi.
+app.use(attackShield)
+
 // Threat detector — body parse'dan KEYIN, lekin route'lardan OLDIN.
-// Async fire-and-forget log qiladi, request bloklanmaydi.
+// Async fire-and-forget log qiladi, request bloklanmaydi (faqat ball qo'shadi).
 app.use(threatDetector)
 
 const apiLimiter = rateLimit({

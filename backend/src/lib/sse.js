@@ -4,10 +4,23 @@
 // userId -> Set<{res, lastPing}> — har user'ning ochiq SSE ulanishlari
 const clients = new Map()
 
+// Bitta foydalanuvchiga maksimal ochiq SSE ulanishlari. Ko'p tab / qayta-ulanish
+// bilan ulanishlar to'planib server resurslarini tugatmasligi uchun cap.
+const MAX_CONN_PER_USER = 5
+
 function addClient(userId, res) {
   if (!clients.has(userId)) clients.set(userId, new Set())
+  const set = clients.get(userId)
+  // Limit oshsa — eng eski ulanishni yopib, yangisiga joy ochamiz (Set
+  // qo'shilish tartibini saqlaydi, birinchi element eng eski).
+  while (set.size >= MAX_CONN_PER_USER) {
+    const oldest = set.values().next().value
+    if (!oldest) break
+    try { oldest.res.end() } catch {}
+    set.delete(oldest)
+  }
   const entry = { res, lastPing: Date.now() }
-  clients.get(userId).add(entry)
+  set.add(entry)
   return entry
 }
 
