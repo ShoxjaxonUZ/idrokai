@@ -1,0 +1,152 @@
+/* ============================================
+   Cookie roziligi banneri — pastki chap burchak
+   (InstallPrompt pastki o'ngda — to'qnashmaydi)
+   ============================================ */
+.cookie-consent {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 300;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-lg);
+  max-width: 400px;
+  animation: cookieFadeIn 0.3s ease;
+}
+
+@keyframes cookieFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cookie-consent-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.cookie-consent-close:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+.cookie-consent-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+
+.cookie-consent-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  padding-right: 18px;
+}
+
+.cookie-consent-text strong {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.cookie-consent-text span {
+  font-size: 11.5px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.cookie-consent-link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cookie-consent-link:hover {
+  text-decoration: underline;
+}
+
+.cookie-consent-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.cookie-consent-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.cookie-consent-btn:hover {
+  background: var(--primary-dark);
+}
+
+.cookie-consent-btn-ghost {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cookie-consent-btn-ghost:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .cookie-consent {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+  .cookie-consent-actions {
+    flex-direction: row;
+  }
+  .cookie-consent-btn,
+  .cookie-consent-btn-ghost {
+    flex: 1;
+  }
+}

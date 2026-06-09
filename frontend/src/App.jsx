@@ -33,6 +33,7 @@ import TeacherDashboard from './pages/TeacherDashboard'
 import RequireAuth from './lib/RequireAuth'
 import Loading from './components/Loading'
 import InstallPrompt from './components/InstallPrompt'
+import CookieConsent from './components/CookieConsent'
 
 const Certificate = lazy(() => import('./pages/certificate'))
 
@@ -80,6 +81,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <InstallPrompt />
+            <CookieConsent />
           </Suspense>
         </Router>
       </NotificationProvider>
