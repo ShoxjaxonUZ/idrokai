@@ -6,7 +6,7 @@ import {
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
   Search, Shield, Mail, UserCheck, AlertTriangle, Check,
   XCircle, Send, ArrowLeft, Globe, Activity, Clock,
-  MessageCircle, Reply, Archive, Megaphone
+  MessageCircle, Reply, Archive, Megaphone, Wallet
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -53,6 +53,11 @@ function Admin() {
   const [broadcasting, setBroadcasting] = useState(false)
   const [recentBroadcasts, setRecentBroadcasts] = useState([])
 
+  // Hisobotlar (kurslar bo'yicha to'lov)
+  const [reportMonth, setReportMonth] = useState(() => new Date().toISOString().slice(0, 7))
+  const [report, setReport] = useState(null)
+  const [reportLoading, setReportLoading] = useState(false)
+
   // Course form
   const [form, setForm] = useState({
     id: '',
@@ -62,6 +67,7 @@ function Admin() {
     description: '',
     about: '',
     image: '',
+    price: 0,
     lessons: []
   })
 
@@ -241,7 +247,28 @@ function Admin() {
     if (activeTab === 'security' && !securityStats) {
       loadSecurity()
     }
+    if (activeTab === 'reports') {
+      loadReport(reportMonth)
+    }
   }, [activeTab])
+
+  // Hisobot yuklash — tanlangan oy bo'yicha
+  const loadReport = async (month) => {
+    setReportLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/admin/reports/courses?month=${month}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (res.ok) setReport(data)
+      else addNotification(data.message || 'Hisobot yuklanmadi', 'error')
+    } catch {
+      addNotification('Server xatosi', 'error')
+    }
+    setReportLoading(false)
+  }
+
+  const fmtSom = (n) => (Number(n) || 0).toLocaleString('uz-UZ') + " so'm"
 
   // Teacher request approve/reject
   const handleRequest = async (id, status) => {
@@ -315,6 +342,7 @@ function Admin() {
       description: '',
       about: '',
       image: '',
+      price: 0,
       lessons: []
     })
     setEditingCourse(null)
@@ -331,6 +359,7 @@ function Admin() {
       description: course.description || course.desc || '',
       about: course.about || '',
       image: course.image || '',
+      price: course.price || 0,
       lessons: Array.isArray(course.lessons) ? course.lessons : []
     })
     setShowCourseForm(true)
@@ -564,6 +593,12 @@ function Admin() {
             </button>
 
             <div className="admin-nav-section">Boshqaruv</div>
+            <button
+              className={`admin-nav-btn ${activeTab === 'reports' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reports')}
+            >
+              <Wallet size={18} /> Hisobotlar
+            </button>
             <button
               className={`admin-nav-btn ${activeTab === 'requests' ? 'active' : ''}`}
               onClick={() => setActiveTab('requests')}
@@ -835,6 +870,18 @@ function Admin() {
                         <option>Yuqori</option>
                       </select>
                     </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Narx — har o'quvchi uchun kurs egasiga to'lov (so'm)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={form.price}
+                      onChange={e => setForm({ ...form, price: e.target.value })}
+                      placeholder="Masalan: 20000 (bepul bo'lsa 0)"
+                    />
                   </div>
 
                   <div className="form-group">
@@ -1191,6 +1238,143 @@ function Admin() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* HISOBOTLAR — kurslar bo'yicha to'lov */}
+          {activeTab === 'reports' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>Hisobotlar</h1>
+                  <p>Kurslar bo'yicha o'quvchilar va kurs egalariga to'lov hisob-kitobi</p>
+                </div>
+                <div className="admin-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="month"
+                    value={reportMonth}
+                    onChange={e => { setReportMonth(e.target.value); loadReport(e.target.value) }}
+                    style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--text)' }}
+                  />
+                  <button className="btn-outline btn-small" onClick={() => loadReport(reportMonth)}>
+                    <Activity size={14} /> Yangilash
+                  </button>
+                </div>
+              </div>
+
+              {reportLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
+                  <Loader2 size={28} className="spin" />
+                </div>
+              ) : !report ? (
+                <div className="admin-empty">Ma'lumot yo'q</div>
+              ) : (
+                <>
+                  {/* Umumiy ko'rsatkichlar */}
+                  <div className="admin-stats">
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
+                        <GraduationCap size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{report.totals.monthStudents}</div>
+                        <div className="admin-stat-label">Shu oyda yangi o'quvchi</div>
+                        <div className="admin-stat-sub">Jami: {report.totals.totalStudents}</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
+                        <Wallet size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{fmtSom(report.totals.monthAmount)}</div>
+                        <div className="admin-stat-label">Shu oy uchun jami to'lov</div>
+                        <div className="admin-stat-sub">Egalariga taqsimlanadi</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9' }}>
+                        <BookOpen size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{report.totals.courses}</div>
+                        <div className="admin-stat-label">Kurslar</div>
+                        <div className="admin-stat-sub">Butun davr to'lovi: {fmtSom(report.totals.totalAmount)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kurs egalariga to'lov — kimga qancha */}
+                  <h3 style={{ margin: '20px 0 10px' }}>💰 Kurs egalariga to'lov ({report.month})</h3>
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Kurs egasi</th>
+                          <th>Email</th>
+                          <th>Kurslar</th>
+                          <th>Shu oy o'quvchi</th>
+                          <th>Shu oy to'lov</th>
+                          <th>Jami to'lov</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report.owners.length === 0 ? (
+                          <tr><td colSpan={6} style={{ textAlign: 'center', opacity: 0.6 }}>Ma'lumot yo'q</td></tr>
+                        ) : report.owners.map((o, i) => (
+                          <tr key={i}>
+                            <td><strong>{o.ownerName}</strong></td>
+                            <td style={{ opacity: 0.75 }}>{o.ownerEmail || '—'}</td>
+                            <td>{o.courses}</td>
+                            <td>{o.monthStudents}</td>
+                            <td><strong style={{ color: '#22c55e' }}>{fmtSom(o.monthAmount)}</strong></td>
+                            <td>{fmtSom(o.totalAmount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Kurslar bo'yicha batafsil */}
+                  <h3 style={{ margin: '24px 0 10px' }}>📊 Kurslar bo'yicha batafsil</h3>
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Kurs</th>
+                          <th>Egasi</th>
+                          <th>Narx</th>
+                          <th>Shu oy</th>
+                          <th>Jami</th>
+                          <th>Faol</th>
+                          <th>Tugatgan</th>
+                          <th>Shu oy to'lov</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report.courses.length === 0 ? (
+                          <tr><td colSpan={8} style={{ textAlign: 'center', opacity: 0.6 }}>Kurs yo'q</td></tr>
+                        ) : report.courses.map((c) => (
+                          <tr key={c.courseId}>
+                            <td><strong>{c.title}</strong></td>
+                            <td style={{ opacity: 0.75 }}>{c.ownerName || "Platforma"}</td>
+                            <td>{fmtSom(c.price)}</td>
+                            <td>{c.monthStudents}</td>
+                            <td>{c.totalStudents}</td>
+                            <td>{c.activeStudents}</td>
+                            <td>{c.completedStudents}</td>
+                            <td><strong style={{ color: '#22c55e' }}>{fmtSom(c.monthAmount)}</strong></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <p style={{ marginTop: 14, fontSize: 12, opacity: 0.6 }}>
+                    To'lov = kurs narxi × o'quvchilar soni. Narxni har kursning tahrirlash oynasida belgilang.
+                  </p>
+                </>
+              )}
             </div>
           )}
 
