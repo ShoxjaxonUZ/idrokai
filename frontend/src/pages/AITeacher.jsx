@@ -5,7 +5,7 @@ import {
   Code2, Lightbulb, BookOpen, Calculator, Atom, Languages,
   AlertCircle, Zap, Image as ImageIcon, X
 } from 'lucide-react'
-import { API_URL, assetUrl } from '../lib/api'
+import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
 import GuestBanner from '../components/GuestBanner'
 import { useNotification } from '../context/NotificationContext'
@@ -79,7 +79,13 @@ function AITeacher() {
   useEffect(() => {
     scrollToBottom()
     if (user && messages.length > 0) {
-      localStorage.setItem(`ai_chat_${user.id}`, JSON.stringify(messages))
+      // Rasmlarni (og'ir base64 dataUrl) saqlamaymiz — localStorage 5MB limitidan
+      // oshib QuotaExceededError bermasligi uchun. Sessiya davomida rasm state'da
+      // qoladi, sahifa yangilangach faqat matn tarixi tiklanadi.
+      try {
+        const slim = messages.map(({ image, ...rest }) => rest)
+        localStorage.setItem(`ai_chat_${user.id}`, JSON.stringify(slim))
+      } catch {}
     }
   }, [messages])
 
@@ -387,7 +393,7 @@ function AITeacher() {
                       <div className={`msg-content ${m.error ? 'msg-error' : ''}`}>
                         {m.image && (
                           <img
-                            src={assetUrl(m.image)}
+                            src={m.image}
                             alt="yuborilgan rasm"
                             className="msg-image"
                           />

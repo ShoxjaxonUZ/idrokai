@@ -39,6 +39,15 @@ require('./db')
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Kutilmagan xatolar serverni jim o'ldirib qo'ymasligi uchun — loglaymiz, lekin
+// process'ni tirik qoldiramiz (fire-and-forget promise'lar va stray xatolar uchun).
+process.on('unhandledRejection', (reason) => {
+  console.error('UnhandledRejection:', reason instanceof Error ? reason.stack : reason)
+})
+process.on('uncaughtException', (err) => {
+  console.error('UncaughtException:', err.stack || err.message)
+})
+
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   console.error('FATAL: JWT_SECRET kuchli emas (>=32 belgi bo\'lishi shart). .env ni tuzating.')
   process.exit(1)
