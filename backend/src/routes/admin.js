@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { auth, adminOnly } = require('../middleware/auth')
+const { getPlan } = require('../lib/plans')
 
 // STATS
 router.get('/stats', auth, adminOnly, async (req, res) => {
@@ -116,6 +117,93 @@ router.get('/reports/courses', auth, adminOnly, async (req, res) => {
   } catch (err) {
     console.error('[admin reports]', err.message)
     res.status(500).json({ message: 'Hisobot xatosi' })
+  }
+})
+
+// ====== OBUNALAR (admin qo'lda boshqaradi — to'lov hozircha yo'q) ======
+
+// Faol obunalar ro'yxati
+router.get('/subscriptions', auth, adminOnly, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT s.id, s.plan, s.months, s.price, s.status,
+              s.started_at, s.expires_at,
+              u.id AS user_id, u.name AS user_name, u.email AS user_email
+       FROM subscriptions s
+       JOIN users u ON u.id = s.user_id
+       WHERE s.status = 'active' AND s.expires_at > NOW()
+       ORDER BY s.expires_at DESC`
+    )
+    res.json(r.rows)
+  } catch (err) {
+    console.error('[admin subscriptions list]', err.message)
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
+// Obunani faollashtirish — {email, plan}. Mavjud faol obuna bo'lsa, muddati
+// uzaytiriladi (joriy tugash sanasidan boshlab).
+router.post('/subscriptions', auth, adminOnly, async (req, res) => {
+  try {
+    const { email, plan: planId } = req.body || {}
+    const plan = getPlan(planId)
+    if (!plan) return res.status(400).json({ message: 'Tarif noto\'g\'ri' })
+    if (typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ message: 'Email kiriting' })
+    }
+
+    const userRes = await pool.query(
+      'SELECT id FROM users WHERE email = $1', [email.trim().toLowerCase()]
+    )
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Bunday foydalanuvchi topilmadi' })
+    }
+    const userId = userRes.rows[0].id
+
+    // Mavjud faol obuna — yangi muddat uning tugashidan boshlanadi (uzaytirish)
+    const activeRes = await pool.query(
+      `SELECT id, expires_at FROM subscriptions
+       WHERE user_id = $1 AND status = 'active' AND expires_at > NOW()
+       ORDER BY expires_at DESC LIMIT 1`,
+      [userId]
+    )
+    const base = activeRes.rows[0] ? new Date(activeRes.rows[0].expires_at) : new Date()
+    const expires = new Date(base)
+    expires.setMonth(expires.getMonth() + plan.months)
+
+    // Eski faol obunani 'cancelled' qilamiz (bittasi faol qolsin), yangisini ochamiz
+    if (activeRes.rows[0]) {
+      await pool.query(
+        "UPDATE subscriptions SET status = 'cancelled' WHERE id = $1",
+        [activeRes.rows[0].id]
+      )
+    }
+
+    const ins = await pool.query(
+      `INSERT INTO subscriptions (user_id, plan, months, price, status, started_at, expires_at, activated_by)
+       VALUES ($1, $2, $3, $4, 'active', NOW(), $5, $6)
+       RETURNING id, expires_at`,
+      [userId, plan.id, plan.months, plan.price, expires.toISOString(), req.user.id]
+    )
+
+    res.json({ message: 'Obuna faollashtirildi', id: ins.rows[0].id, expiresAt: ins.rows[0].expires_at })
+  } catch (err) {
+    console.error('[admin subscriptions activate]', err.message)
+    res.status(500).json({ message: 'Xatolik' })
+  }
+})
+
+// Obunani bekor qilish
+router.delete('/subscriptions/:id', auth, adminOnly, async (req, res) => {
+  try {
+    const r = await pool.query(
+      "UPDATE subscriptions SET status = 'cancelled' WHERE id = $1 RETURNING id",
+      [req.params.id]
+    )
+    if (r.rows.length === 0) return res.status(404).json({ message: 'Topilmadi' })
+    res.json({ message: 'Obuna bekor qilindi' })
+  } catch (err) {
+    res.status(500).json({ message: 'Xatolik' })
   }
 })
 

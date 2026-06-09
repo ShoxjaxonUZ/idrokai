@@ -22,6 +22,7 @@ import Contact from './pages/Contact'
 import Help from './pages/Help'
 import Privacy from './pages/Privacy'
 import AITeacher from './pages/AITeacher'
+import Pricing from './pages/Pricing'
 import Leaderboard from './pages/Leaderboard'
 import Onboarding from './pages/Onboarding'
 import Daily from './pages/Daily'
@@ -56,6 +57,7 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/help" element={<Help />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/certificate-demo" element={<Certificate demo />} />
               <Route path="/verify/:code" element={<VerifyCertificate />} />
 

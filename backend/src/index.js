@@ -29,6 +29,7 @@ const lessonQARoutes = require('./routes/lessonQA')
 const certificateRoutes = require('./routes/certificate')
 const statsRoutes = require('./routes/stats')
 const dashboardRoutes = require('./routes/dashboard')
+const subscriptionRoutes = require('./routes/subscription')
 const { threatDetector } = require('./middleware/threatDetector')
 const { attackShield } = require('./middleware/attackShield')
 const { csrfProtection } = require('./middleware/csrf')
@@ -203,6 +204,7 @@ app.use('/api/lesson-qa', lessonQARoutes)
 app.use('/api/certificate', certificateRoutes)
 app.use('/api/stats', statsRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/subscription', subscriptionRoutes)
 
 // 404 handler
 app.use((req, res) => {

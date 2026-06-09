@@ -4,12 +4,19 @@ const pool = require('../db')
 const { auth } = require('../middleware/auth')
 const { generateQuestions } = require('../lib/quizGen')
 
+const { isSubscribed } = require('../lib/subscription')
+
 const MAX_TOPIC_LEN = 200
 const MAX_MESSAGE_LEN = 2000
 const MAX_HISTORY = 10
 const MAX_HISTORY_CONTENT = 4000
 const DAILY_LIMIT = 20
+const SUBSCRIBED_DAILY_LIMIT = 100 // obunachilar uchun kengaytirilgan kunlik limit
 const LESSON_HELP_LIMIT = 20 // dars AI yordami uchun alohida kunlik limit
+
+// Obunachi bo'lsa kengaytirilgan limit, aks holda bazaviy.
+const getDailyLimit = async (userId) =>
+  (await isSubscribed(userId)) ? SUBSCRIBED_DAILY_LIMIT : DAILY_LIMIT
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // ~4MB
 
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
@@ -41,6 +48,7 @@ router.post('/generate-quiz', auth, async (req, res) => {
     const safeTopic = topic.trim().slice(0, MAX_TOPIC_LEN)
 
     const today = new Date().toISOString().split('T')[0]
+    const limit = await getDailyLimit(req.user.id)
 
     // Kunlik limit tekshiruvi (AI xarajatini cheklash uchun — /teacher bilan bir xil hisoblagich)
     const usageRes = await pool.query(
@@ -48,12 +56,12 @@ router.post('/generate-quiz', auth, async (req, res) => {
       [req.user.id, today]
     )
     const currentCount = usageRes.rows[0]?.count || 0
-    if (currentCount >= DAILY_LIMIT) {
+    if (currentCount >= limit) {
       return res.status(429).json({
-        message: `Kunlik limit tugadi (${DAILY_LIMIT}/${DAILY_LIMIT}). Ertaga qayta urinib ko'ring!`,
+        message: `Kunlik limit tugadi (${currentCount}/${limit}). Ertaga qayta urinib ko'ring!`,
         limitReached: true,
         used: currentCount,
-        limit: DAILY_LIMIT
+        limit
       })
     }
 
@@ -110,6 +118,7 @@ router.post('/teacher', auth, async (req, res) => {
     }
 
     const today = new Date().toISOString().split('T')[0]
+    const limit = await getDailyLimit(userId)
 
     const usageRes = await pool.query(
       'SELECT count FROM ai_teacher_usage WHERE user_id = $1 AND usage_date = $2',
@@ -118,12 +127,12 @@ router.post('/teacher', auth, async (req, res) => {
 
     const currentCount = usageRes.rows[0]?.count || 0
 
-    if (currentCount >= DAILY_LIMIT) {
+    if (currentCount >= limit) {
       return res.status(429).json({
-        message: `Kunlik limit tugadi (${DAILY_LIMIT}/${DAILY_LIMIT}). Ertaga qayta urinib ko'ring!`,
+        message: `Kunlik limit tugadi (${currentCount}/${limit}). Ertaga qayta urinib ko'ring!`,
         limitReached: true,
         used: currentCount,
-        limit: DAILY_LIMIT
+        limit
       })
     }
 
@@ -263,8 +272,8 @@ UMUMIY QOIDALAR:
       answer: data.choices[0].message.content,
       subject,
       used: currentCount + 1,
-      limit: DAILY_LIMIT,
-      remaining: DAILY_LIMIT - (currentCount + 1)
+      limit,
+      remaining: limit - (currentCount + 1)
     })
   } catch (err) {
     console.error('AI Teacher error:', err)
@@ -282,7 +291,8 @@ router.get('/teacher/usage', auth, async (req, res) => {
     )
 
     const used = result.rows[0]?.count || 0
-    res.json({ used, limit: DAILY_LIMIT, remaining: DAILY_LIMIT - used })
+    const limit = await getDailyLimit(req.user.id)
+    res.json({ used, limit, remaining: Math.max(0, limit - used) })
   } catch {
     res.status(500).json({ message: 'Xatolik' })
   }

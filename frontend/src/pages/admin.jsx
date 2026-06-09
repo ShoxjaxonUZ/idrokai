@@ -6,7 +6,7 @@ import {
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
   Search, Shield, Mail, UserCheck, AlertTriangle, Check,
   XCircle, Send, ArrowLeft, Globe, Activity, Clock,
-  MessageCircle, Reply, Archive, Megaphone, Wallet
+  MessageCircle, Reply, Archive, Megaphone, Wallet, Crown
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -57,6 +57,12 @@ function Admin() {
   const [reportMonth, setReportMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const [report, setReport] = useState(null)
   const [reportLoading, setReportLoading] = useState(false)
+
+  // Obunalar
+  const [subs, setSubs] = useState([])
+  const [subPlans, setSubPlans] = useState([])
+  const [subForm, setSubForm] = useState({ email: '', plan: '1m' })
+  const [subActivating, setSubActivating] = useState(false)
 
   // Course form
   const [form, setForm] = useState({
@@ -250,7 +256,67 @@ function Admin() {
     if (activeTab === 'reports') {
       loadReport(reportMonth)
     }
+    if (activeTab === 'subscriptions') {
+      loadSubscriptions()
+    }
   }, [activeTab])
+
+  // Obunalar — ro'yxat + tariflar
+  const loadSubscriptions = async () => {
+    try {
+      const [listRes, plansRes] = await Promise.all([
+        fetch(`${API_URL}/api/admin/subscriptions`, { headers: { Authorization: `Bearer ${token}` } })
+          .then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch(`${API_URL}/api/subscription/plans`).then(r => r.ok ? r.json() : { plans: [] }).catch(() => ({ plans: [] }))
+      ])
+      if (Array.isArray(listRes)) setSubs(listRes)
+      if (plansRes?.plans) setSubPlans(plansRes.plans)
+    } catch (err) {
+      console.error('Subscriptions load:', err)
+    }
+  }
+
+  const activateSub = async () => {
+    if (!subForm.email.trim()) {
+      addNotification('Email kiriting', 'error')
+      return
+    }
+    setSubActivating(true)
+    try {
+      const res = await fetch(`${API_URL}/api/admin/subscriptions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(subForm)
+      })
+      const data = await res.json()
+      if (res.ok) {
+        addNotification('Obuna faollashtirildi!', 'success')
+        setSubForm({ email: '', plan: '1m' })
+        loadSubscriptions()
+      } else {
+        addNotification(data.message || 'Xatolik', 'error')
+      }
+    } catch {
+      addNotification('Server xatosi', 'error')
+    }
+    setSubActivating(false)
+  }
+
+  const cancelSub = async (id) => {
+    if (!confirm('Obunani bekor qilishni xohlaysizmi?')) return
+    try {
+      const res = await fetch(`${API_URL}/api/admin/subscriptions/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        addNotification('Obuna bekor qilindi', 'success')
+        loadSubscriptions()
+      }
+    } catch {
+      addNotification('Server xatosi', 'error')
+    }
+  }
 
   // Hisobot yuklash — tanlangan oy bo'yicha
   const loadReport = async (month) => {
@@ -598,6 +664,13 @@ function Admin() {
               onClick={() => setActiveTab('reports')}
             >
               <Wallet size={18} /> Hisobotlar
+            </button>
+            <button
+              className={`admin-nav-btn ${activeTab === 'subscriptions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('subscriptions')}
+            >
+              <Crown size={18} /> Obunalar
+              {subs.length > 0 && <span className="admin-nav-badge">{subs.length}</span>}
             </button>
             <button
               className={`admin-nav-btn ${activeTab === 'requests' ? 'active' : ''}`}
@@ -1375,6 +1448,85 @@ function Admin() {
                   </p>
                 </>
               )}
+            </div>
+          )}
+
+          {/* OBUNALAR */}
+          {activeTab === 'subscriptions' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>Obunalar</h1>
+                  <p>Obunani qo'lda faollashtirish (to'lov tizimi tez kunda ulanadi)</p>
+                </div>
+              </div>
+
+              {/* Faollashtirish formasi */}
+              <div style={{ padding: 20, marginBottom: 24, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
+                <h3 style={{ marginTop: 0, marginBottom: 14 }}>Yangi obuna faollashtirish</h3>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  <div className="form-group" style={{ flex: '1 1 240px', margin: 0 }}>
+                    <label>Foydalanuvchi emaili</label>
+                    <input
+                      type="email"
+                      value={subForm.email}
+                      onChange={e => setSubForm({ ...subForm, email: e.target.value })}
+                      placeholder="user@email.com"
+                    />
+                  </div>
+                  <div className="form-group" style={{ flex: '0 1 180px', margin: 0 }}>
+                    <label>Tarif</label>
+                    <select
+                      value={subForm.plan}
+                      onChange={e => setSubForm({ ...subForm, plan: e.target.value })}
+                    >
+                      {subPlans.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.label} — {(Number(p.price) || 0).toLocaleString('uz-UZ')} so'm
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button className="btn-primary" onClick={activateSub} disabled={subActivating}>
+                    {subActivating ? <Loader2 size={16} className="spin" /> : <Check size={16} />} Faollashtirish
+                  </button>
+                </div>
+              </div>
+
+              {/* Faol obunalar ro'yxati */}
+              <h3 style={{ margin: '0 0 10px' }}>Faol obunalar ({subs.length})</h3>
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Foydalanuvchi</th>
+                      <th>Email</th>
+                      <th>Tarif</th>
+                      <th>Boshlangan</th>
+                      <th>Tugaydi</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subs.length === 0 ? (
+                      <tr><td colSpan={6} style={{ textAlign: 'center', opacity: 0.6 }}>Faol obuna yo'q</td></tr>
+                    ) : subs.map(s => (
+                      <tr key={s.id}>
+                        <td><strong>{s.user_name}</strong></td>
+                        <td style={{ opacity: 0.75 }}>{s.user_email}</td>
+                        <td>{s.months} oy</td>
+                        <td>{new Date(s.started_at).toLocaleDateString('uz-UZ')}</td>
+                        <td>{new Date(s.expires_at).toLocaleDateString('uz-UZ')}</td>
+                        <td>
+                          <button className="btn-icon" onClick={() => cancelSub(s.id)} title="Bekor qilish">
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
