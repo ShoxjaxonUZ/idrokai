@@ -7,8 +7,7 @@ const MONTHLY = 29000 // 1 oylik bazaviy narx
 const PLANS = [
   { id: '1m',  months: 1,  label: '1 oy',   price: 29000,  popular: false },
   { id: '3m',  months: 3,  label: '3 oy',   price: 79000,  popular: false },
-  { id: '6m',  months: 6,  label: '6 oy',   price: 149000, popular: true  },
-  { id: '12m', months: 12, label: '12 oy',  price: 249000, popular: false }
+  { id: '6m',  months: 6,  label: '6 oy',   price: 149000, popular: true  }
 ]
 
 // Har tarif uchun oylik narx va tejamkorlikni hisoblab beramiz (UI ko'rsatadi).
