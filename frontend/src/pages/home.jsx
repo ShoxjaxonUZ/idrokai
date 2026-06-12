@@ -62,9 +62,8 @@ function Home() {
   const token = getToken()
   const isAuth = !!(user && token)
   const [courses, setCourses] = useState([])
-  // API'dan real son kelguncha (yoki 0 bo'lsa) marketing minimal qiymatlar
-  // ko'rsatiladi — landing'da hech qachon "0 o'quvchi" chiqmasligi kerak
-  const [stats, setStats] = useState({ users: 500, courses: 50, lessons: 300, certificates: 300 })
+  // Real statistika API'dan keladi; 0 bo'lgan ko'rsatkich kartasi ko'rsatilmaydi
+  const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, certificates: 0 })
   const [plans, setPlans] = useState(FALLBACK_PLANS)
   const [openFaq, setOpenFaq] = useState(0)
 
@@ -121,10 +120,10 @@ function Home() {
       .catch(() => { })
     fetch(`${API_URL}/api/stats`)
       .then(r => r.json())
-      .then(d => setStats(s => ({
-        users: d.users || s.users, courses: d.courses || s.courses,
-        lessons: d.lessons || s.lessons, certificates: d.certificates || s.certificates
-      })))
+      .then(d => setStats({
+        users: d.users || 0, courses: d.courses || 0,
+        lessons: d.lessons || 0, certificates: d.certificates || 0
+      }))
       .catch(() => { })
     fetch(`${API_URL}/api/subscription/plans`)
       .then(r => r.json())
@@ -160,13 +159,16 @@ function Home() {
     }
   }
 
-  const aboutStats = [
-    { Icon: Users, value: stats.users, suffix: '+', label: "O'quvchilar" },
-    { Icon: BookOpen, value: stats.courses, suffix: '+', label: 'Kurslar' },
-    { Icon: Play, value: stats.lessons, suffix: '+', label: 'Darslar' },
-    { Icon: Award, value: stats.certificates, suffix: '+', label: 'Sertifikatlar' },
+  // Faqat real (0 dan katta) ko'rsatkichlar chiqadi — "0 kurs" ko'rinmaydi.
+  // Birorta ham real son bo'lmasa (API ishlamasa) butun qator yashiriladi.
+  const hasRealStats = stats.users > 0 || stats.courses > 0 || stats.lessons > 0 || stats.certificates > 0
+  const aboutStats = hasRealStats ? [
+    { Icon: Users, value: stats.users, suffix: '', label: "O'quvchilar" },
+    { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurslar' },
+    { Icon: Play, value: stats.lessons, suffix: '', label: 'Darslar' },
+    { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
     { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam' },
-  ]
+  ].filter(s => Number(s.value) > 0) : []
 
   const smallBenefits = [
     { Icon: Swords, title: 'Code Battle', desc: "Real vaqtda 1–10 kishilik kod musobaqasi va solo praktika." },
@@ -247,7 +249,9 @@ function Home() {
                 <div className="ln-trust-stars">
                   {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#FFCF00" color="#FFCF00" />)}
                 </div>
-                <span><strong>{stats.users}+</strong> o'quvchi bizni tanlagan</span>
+                {stats.users > 0
+                  ? <span><strong>{stats.users}</strong> o'quvchi bizni tanlagan</span>
+                  : <span>Birinchi o'quvchilardan bo'ling!</span>}
               </div>
             </div>
           </div>
@@ -261,17 +265,19 @@ function Home() {
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">Biz haqimizda</span>
             <h2>O'zbekistondagi <span className="ln-gold">zamonaviy</span> ta'lim platformasi</h2>
-            <p>Minglab o'quvchilar tanlagan — sifatli, zamonaviy va o'zbek tilida.</p>
+            <p>O'quvchilar tanlagan — sifatli, zamonaviy va o'zbek tilida.</p>
           </div>
-          <div className="ln-stats-row ln-reveal">
-            {aboutStats.map((s, i) => (
-              <div key={i} className="ln-stat">
-                <div className="ln-stat-ic"><s.Icon size={22} /></div>
-                <div className="ln-stat-num"><CountUp value={s.value} suffix={s.suffix} /></div>
-                <div className="ln-stat-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
+          {aboutStats.length > 0 && (
+            <div className="ln-stats-row ln-reveal">
+              {aboutStats.map((s, i) => (
+                <div key={i} className="ln-stat">
+                  <div className="ln-stat-ic"><s.Icon size={22} /></div>
+                  <div className="ln-stat-num"><CountUp value={s.value} suffix={s.suffix} /></div>
+                  <div className="ln-stat-label">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -443,7 +449,7 @@ function Home() {
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">Natijalar</span>
             <h2>O'quvchilar nima deyishadi?</h2>
-            <p>Minglab o'quvchilarning haqiqiy taassurotlari</p>
+            <p>O'quvchilarimizning haqiqiy taassurotlari</p>
           </div>
           <div className="ln-tests ln-reveal">
             {testimonials.map((t, i) => (
@@ -538,7 +544,7 @@ function Home() {
           <div className="ln-cta-box ln-reveal">
             <div className="ln-cta-ic"><GraduationCap size={30} /></div>
             <h2>Bepul ta'lim <span className="ln-gold">hozir boshlanadi</span></h2>
-            <p>Ro'yxatdan o'ting va {stats.courses}+ kursni kashf qiling. Bepul boshlang — xohlagan paytda Premium'ga o'ting.</p>
+            <p>Ro'yxatdan o'ting va {stats.courses > 0 ? `${stats.courses} ta kursni` : 'kurslarni'} kashf qiling. Bepul boshlang — xohlagan paytda Premium'ga o'ting.</p>
             <div className="ln-cta-actions">
               <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
                 <UserPlus size={18} /> Ro'yxatdan o'tish

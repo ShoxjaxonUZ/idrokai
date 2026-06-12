@@ -1,20 +1,26 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   GraduationCap, Target, Heart, Rocket, Users,
   Award, Globe, Sparkles, ArrowRight, BookOpen,
   Bot, Swords, Flame, Shield, Zap, Calendar,
-  Lightbulb, TrendingUp, Code2, Smartphone, MessageCircle
+  Lightbulb, TrendingUp, Code2, Smartphone, MessageCircle, Play
 } from 'lucide-react'
+import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import '../styles/pages.css'
 
 function About() {
   const navigate = useNavigate()
+  const [stats, setStats] = useState(null)
 
   useEffect(() => {
     document.title = "Biz haqimizda — Eduzy"
+    fetch(`${API_URL}/api/stats`)
+      .then(r => r.json())
+      .then(setStats)
+      .catch(() => { })
   }, [])
 
   const values = [
@@ -28,14 +34,15 @@ function About() {
     { Icon: MessageCircle, title: 'Yordam', desc: "AI Teacher 24/7 + telegram orqali qo'llab-quvvatlash" },
   ]
 
+  // Real statistika API'dan — 0 bo'lgan ko'rsatkichlar ko'rsatilmaydi
   const bigStats = [
-    { Icon: Users, value: '500+', label: "Faol o'quvchi", color: '#5B5BD6' },
-    { Icon: BookOpen, value: '50+', label: 'Sifatli kurs', color: '#0F9D77' },
-    { Icon: Award, value: '300+', label: 'Sertifikat', color: '#DC8B1A' },
+    stats?.users > 0 && { Icon: Users, value: String(stats.users), label: "Faol o'quvchi", color: '#5B5BD6' },
+    stats?.courses > 0 && { Icon: BookOpen, value: String(stats.courses), label: 'Sifatli kurs', color: '#0F9D77' },
+    stats?.lessons > 0 && { Icon: Play, value: String(stats.lessons), label: 'Dars', color: '#EC4899' },
+    stats?.certificates > 0 && { Icon: Award, value: String(stats.certificates), label: 'Sertifikat', color: '#DC8B1A' },
     { Icon: Bot, value: '24/7', label: 'AI yordam', color: '#0788C7' },
-    { Icon: Swords, value: '1000+', label: 'Code Battle', color: '#EC4899' },
-    { Icon: Heart, value: '95%', label: 'Mamnunlik', color: '#A78BFA' },
-  ]
+    stats?.avgRating > 0 && { Icon: Heart, value: `${Math.round(stats.avgRating * 20)}%`, label: 'Mamnunlik', color: '#A78BFA' },
+  ].filter(Boolean)
 
   const timeline = [
     {
@@ -100,20 +107,22 @@ function About() {
           </p>
         </div>
 
-        {/* Big Stats */}
-        <div className="page-section about-stats-section">
-          <div className="about-stats-grid">
-            {bigStats.map((s, i) => (
-              <div key={i} className="about-stat-card">
-                <div className="about-stat-icon" style={{ background: s.color + '15', color: s.color }}>
-                  <s.Icon size={26} />
+        {/* Big Stats — real ko'rsatkichlar bo'lsagina ko'rsatiladi */}
+        {bigStats.length > 1 && (
+          <div className="page-section about-stats-section">
+            <div className="about-stats-grid">
+              {bigStats.map((s, i) => (
+                <div key={i} className="about-stat-card">
+                  <div className="about-stat-icon" style={{ background: s.color + '15', color: s.color }}>
+                    <s.Icon size={26} />
+                  </div>
+                  <div className="about-stat-value">{s.value}</div>
+                  <div className="about-stat-label">{s.label}</div>
                 </div>
-                <div className="about-stat-value">{s.value}</div>
-                <div className="about-stat-label">{s.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Mission */}
         <div className="page-section">
