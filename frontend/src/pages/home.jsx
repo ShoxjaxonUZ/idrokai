@@ -159,16 +159,14 @@ function Home() {
     }
   }
 
-  // Faqat real (0 dan katta) ko'rsatkichlar chiqadi — "0 kurs" ko'rinmaydi.
-  // Birorta ham real son bo'lmasa (API ishlamasa) butun qator yashiriladi.
-  const hasRealStats = stats.users > 0 || stats.courses > 0 || stats.lessons > 0 || stats.certificates > 0
-  const aboutStats = hasRealStats ? [
+  // 5 ta karta doim ko'rinadi — sonlar /api/stats dan real keladi
+  const aboutStats = [
     { Icon: Users, value: stats.users, suffix: '', label: "O'quvchilar" },
     { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurslar' },
     { Icon: Play, value: stats.lessons, suffix: '', label: 'Darslar' },
     { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
     { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam' },
-  ].filter(s => Number(s.value) > 0) : []
+  ]
 
   const smallBenefits = [
     { Icon: Swords, title: 'Code Battle', desc: "Real vaqtda 1–10 kishilik kod musobaqasi va solo praktika." },
@@ -267,17 +265,15 @@ function Home() {
             <h2>O'zbekistondagi <span className="ln-gold">zamonaviy</span> ta'lim platformasi</h2>
             <p>O'quvchilar tanlagan — sifatli, zamonaviy va o'zbek tilida.</p>
           </div>
-          {aboutStats.length > 0 && (
-            <div className="ln-stats-row ln-reveal">
-              {aboutStats.map((s, i) => (
-                <div key={i} className="ln-stat">
-                  <div className="ln-stat-ic"><s.Icon size={22} /></div>
-                  <div className="ln-stat-num"><CountUp value={s.value} suffix={s.suffix} /></div>
-                  <div className="ln-stat-label">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="ln-stats-row ln-reveal">
+            {aboutStats.map((s, i) => (
+              <div key={i} className="ln-stat">
+                <div className="ln-stat-ic"><s.Icon size={22} /></div>
+                <div className="ln-stat-num"><CountUp value={s.value} suffix={s.suffix} /></div>
+                <div className="ln-stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

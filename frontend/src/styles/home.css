@@ -492,10 +492,9 @@
 @keyframes ln-floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
 /* ============ BIZ HAQIMIZDA (stats) ============ */
-/* auto-fit — kartalar soni o'zgaruvchan (0 li ko'rsatkichlar yashiriladi) */
 .eduzy-landing .ln-stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 18px;
 }
 .eduzy-landing .ln-stat {

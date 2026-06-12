@@ -34,12 +34,12 @@ function About() {
     { Icon: MessageCircle, title: 'Yordam', desc: "AI Teacher 24/7 + telegram orqali qo'llab-quvvatlash" },
   ]
 
-  // Real statistika API'dan — 0 bo'lgan ko'rsatkichlar ko'rsatilmaydi
+  // Kartalar doim ko'rinadi — sonlar /api/stats dan real keladi
   const bigStats = [
-    stats?.users > 0 && { Icon: Users, value: String(stats.users), label: "Faol o'quvchi", color: '#5B5BD6' },
-    stats?.courses > 0 && { Icon: BookOpen, value: String(stats.courses), label: 'Sifatli kurs', color: '#0F9D77' },
-    stats?.lessons > 0 && { Icon: Play, value: String(stats.lessons), label: 'Dars', color: '#EC4899' },
-    stats?.certificates > 0 && { Icon: Award, value: String(stats.certificates), label: 'Sertifikat', color: '#DC8B1A' },
+    { Icon: Users, value: String(stats?.users || 0), label: "Faol o'quvchi", color: '#5B5BD6' },
+    { Icon: BookOpen, value: String(stats?.courses || 0), label: 'Sifatli kurs', color: '#0F9D77' },
+    { Icon: Play, value: String(stats?.lessons || 0), label: 'Dars', color: '#EC4899' },
+    { Icon: Award, value: String(stats?.certificates || 0), label: 'Sertifikat', color: '#DC8B1A' },
     { Icon: Bot, value: '24/7', label: 'AI yordam', color: '#0788C7' },
     stats?.avgRating > 0 && { Icon: Heart, value: `${Math.round(stats.avgRating * 20)}%`, label: 'Mamnunlik', color: '#A78BFA' },
   ].filter(Boolean)
@@ -107,22 +107,20 @@ function About() {
           </p>
         </div>
 
-        {/* Big Stats — real ko'rsatkichlar bo'lsagina ko'rsatiladi */}
-        {bigStats.length > 1 && (
-          <div className="page-section about-stats-section">
-            <div className="about-stats-grid">
-              {bigStats.map((s, i) => (
-                <div key={i} className="about-stat-card">
-                  <div className="about-stat-icon" style={{ background: s.color + '15', color: s.color }}>
-                    <s.Icon size={26} />
-                  </div>
-                  <div className="about-stat-value">{s.value}</div>
-                  <div className="about-stat-label">{s.label}</div>
+        {/* Big Stats */}
+        <div className="page-section about-stats-section">
+          <div className="about-stats-grid">
+            {bigStats.map((s, i) => (
+              <div key={i} className="about-stat-card">
+                <div className="about-stat-icon" style={{ background: s.color + '15', color: s.color }}>
+                  <s.Icon size={26} />
                 </div>
-              ))}
-            </div>
+                <div className="about-stat-value">{s.value}</div>
+                <div className="about-stat-label">{s.label}</div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Mission */}
         <div className="page-section">
