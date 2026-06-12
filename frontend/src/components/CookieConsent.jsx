@@ -35,26 +35,25 @@ export default function CookieConsent() {
 
   return (
     <div className="cookie-consent" role="dialog" aria-live="polite" aria-label="Cookie roziligi">
-      <button
-        className="cookie-consent-close"
-        onClick={() => decide('necessary')}
-        aria-label="Yopish"
-      >
-        <X size={16} />
-      </button>
-
-      <div className="cookie-consent-icon">
-        <Cookie size={22} />
+      <div className="cookie-consent-head">
+        <div className="cookie-consent-icon">
+          <Cookie size={19} />
+        </div>
+        <strong>Cookie'lardan foydalanamiz</strong>
+        <button
+          className="cookie-consent-close"
+          onClick={() => decide('necessary')}
+          aria-label="Yopish"
+        >
+          <X size={15} />
+        </button>
       </div>
 
-      <div className="cookie-consent-text">
-        <strong>Biz cookie'lardan foydalanamiz</strong>
-        <span>
-          Saytni xavfsiz va qulay qilish uchun cookie'lardan foydalanamiz (kirish
-          sessiyasi, xavfsizlik). Davom etib, bunga rozilik bildirasiz.{' '}
-          <Link to="/privacy" className="cookie-consent-link">Batafsil</Link>
-        </span>
-      </div>
+      <p className="cookie-consent-text">
+        Saytni xavfsiz va qulay qilish uchun cookie'lar ishlatiladi (kirish
+        sessiyasi, xavfsizlik).{' '}
+        <Link to="/privacy" className="cookie-consent-link">Batafsil</Link>
+      </p>
 
       <div className="cookie-consent-actions">
         <button className="cookie-consent-btn-ghost" onClick={() => decide('necessary')}>

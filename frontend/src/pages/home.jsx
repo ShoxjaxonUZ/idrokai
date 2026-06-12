@@ -4,7 +4,7 @@ import {
   Sparkles, Rocket, BookOpen, Award, Bot, Swords,
   Smartphone, ArrowRight, Star, Users, Play, UserPlus,
   Target, Trophy, ChevronDown, Globe, Flame, Check,
-  Quote, Send, MessageCircle, GraduationCap
+  Quote, Send, MessageCircle, GraduationCap, Crown
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -42,6 +42,14 @@ function CountUp({ value, suffix }) {
   return <span ref={ref}>{display}<span className="ln-stat-suffix">{suffix}</span></span>
 }
 
+// API ishlamasa bo'lim bo'sh qolmasligi uchun zaxira tariflar —
+// qiymatlar backend/src/lib/plans.js bilan bir xil turishi kerak
+const FALLBACK_PLANS = [
+  { id: '1m', months: 1, label: '1 oy', price: 29000, perMonth: 29000, discountPct: 0, popular: false },
+  { id: '3m', months: 3, label: '3 oy', price: 79000, perMonth: 26333, discountPct: 9, popular: false },
+  { id: '6m', months: 6, label: '6 oy', price: 149000, perMonth: 24833, discountPct: 14, popular: true }
+]
+
 const CODE_SNIPPETS = [
   { lang: 'main.py', code: "# Birinchi dasturim\ndef salomlash(ism):\n    return f\"Salom, {ism}!\"\n\nprint(salomlash(\"Aziz\"))\n# Natija: Salom, Aziz!" },
   { lang: 'app.js', code: "// Sonlar yig'indisi\nconst sum = (a, b) => a + b;\n\nconsole.log(sum(7, 14));\n// Natija: 21" },
@@ -57,6 +65,7 @@ function Home() {
   // API'dan real son kelguncha (yoki 0 bo'lsa) marketing minimal qiymatlar
   // ko'rsatiladi — landing'da hech qachon "0 o'quvchi" chiqmasligi kerak
   const [stats, setStats] = useState({ users: 500, courses: 50, lessons: 300, certificates: 300 })
+  const [plans, setPlans] = useState(FALLBACK_PLANS)
   const [openFaq, setOpenFaq] = useState(0)
 
   const [snippetIdx, setSnippetIdx] = useState(0)
@@ -117,7 +126,13 @@ function Home() {
         lessons: d.lessons || s.lessons, certificates: d.certificates || s.certificates
       })))
       .catch(() => { })
+    fetch(`${API_URL}/api/subscription/plans`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.plans) && d.plans.length > 0) setPlans(d.plans) })
+      .catch(() => { })
   }, [isAuth])
+
+  const fmt = (n) => (Number(n) || 0).toLocaleString('uz-UZ')
 
   if (isAuth) return <Navigate to="/dashboard" replace />
 
@@ -387,6 +402,40 @@ function Home() {
           </div>
         </section>
       )}
+
+      {/* ============ PREMIUM TARIFLAR ============ */}
+      <section className="ln-section ln-pricing">
+        <div className="ln-container">
+          <div className="ln-head ln-reveal">
+            <span className="ln-eyebrow">Premium obuna</span>
+            <h2>O'zingizga mos <span className="ln-gold">tarifni</span> tanlang</h2>
+            <p>Bepul boshlang — Premium esa barcha kurslar, kengaytirilgan AI va cheksiz sertifikatlarni ochadi</p>
+          </div>
+          <div className="ln-plans ln-reveal">
+            {plans.map(p => (
+              <div key={p.id} className={`ln-plan ${p.popular ? 'ln-plan-popular' : ''}`}>
+                {p.popular && <span className="ln-plan-tag"><Crown size={13} /> Eng foydali</span>}
+                <div className="ln-plan-label">{p.label}</div>
+                <div className="ln-plan-price">{fmt(p.price)} <span>so'm</span></div>
+                <div className="ln-plan-permonth">≈ {fmt(p.perMonth)} so'm / oy</div>
+                {p.discountPct > 0 && <span className="ln-plan-save">−{p.discountPct}% tejamkor</span>}
+                <button
+                  className={`ln-btn ${p.popular ? 'ln-btn-gold' : 'ln-btn-ghost'} ln-plan-btn`}
+                  onClick={() => navigate('/pricing')}
+                >
+                  Tanlash
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="ln-plan-feats ln-reveal">
+            <span><Check size={15} /> Barcha kurslarga kirish</span>
+            <span><Check size={15} /> AI Teacher — 100 savol/kun</span>
+            <span><Check size={15} /> Cheksiz sertifikatlar</span>
+            <span><Check size={15} /> Code Battle va kunlik masalalar</span>
+          </div>
+        </div>
+      </section>
 
       {/* ============ NATIJALAR / FIKRLAR ============ */}
       <section className="ln-section">
