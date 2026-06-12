@@ -54,7 +54,9 @@ function Home() {
   const token = getToken()
   const isAuth = !!(user && token)
   const [courses, setCourses] = useState([])
-  const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, certificates: 0 })
+  // API'dan real son kelguncha (yoki 0 bo'lsa) marketing minimal qiymatlar
+  // ko'rsatiladi — landing'da hech qachon "0 o'quvchi" chiqmasligi kerak
+  const [stats, setStats] = useState({ users: 500, courses: 50, lessons: 300, certificates: 300 })
   const [openFaq, setOpenFaq] = useState(0)
 
   const [snippetIdx, setSnippetIdx] = useState(0)
@@ -103,17 +105,17 @@ function Home() {
 
   useEffect(() => {
     if (isAuth) return
-    document.title = "Eduzy — O'zbek tilida bepul ta'lim"
+    document.title = "Eduzy — O'zbek tilida zamonaviy ta'lim"
     fetch(`${API_URL}/api/teacher/all-courses`)
       .then(r => r.json())
       .then(data => { if (Array.isArray(data) && data.length > 0) setCourses(data.slice(0, 6)) })
       .catch(() => { })
     fetch(`${API_URL}/api/stats`)
       .then(r => r.json())
-      .then(d => setStats({
-        users: d.users || 0, courses: d.courses || 0,
-        lessons: d.lessons || 0, certificates: d.certificates || 0
-      }))
+      .then(d => setStats(s => ({
+        users: d.users || s.users, courses: d.courses || s.courses,
+        lessons: d.lessons || s.lessons, certificates: d.certificates || s.certificates
+      })))
       .catch(() => { })
   }, [isAuth])
 
@@ -144,10 +146,10 @@ function Home() {
   }
 
   const aboutStats = [
-    { Icon: Users, value: stats.users, suffix: '', label: "O'quvchilar" },
-    { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurslar' },
-    { Icon: Play, value: stats.lessons, suffix: '', label: 'Darslar' },
-    { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
+    { Icon: Users, value: stats.users, suffix: '+', label: "O'quvchilar" },
+    { Icon: BookOpen, value: stats.courses, suffix: '+', label: 'Kurslar' },
+    { Icon: Play, value: stats.lessons, suffix: '+', label: 'Darslar' },
+    { Icon: Award, value: stats.certificates, suffix: '+', label: 'Sertifikatlar' },
     { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam' },
   ]
 
@@ -164,7 +166,7 @@ function Home() {
     "AI ustoz bilan 24/7 shaxsiy mashg'ulotlar",
     "Modulli darslar va avtomatik bilim nazorati",
     "Code Battle orqali amaliyot va musobaqa",
-    "Butunlay bepul — yashirin to'lovsiz",
+    "Bepul boshlang — Premium obuna barchasini ochadi",
   ]
 
   const steps = [
@@ -180,7 +182,7 @@ function Home() {
   ]
 
   const faqs = [
-    { q: 'Eduzy haqiqatan ham bepulmi?', a: "Ha, barcha kurslar to'liq bepul. Hech qanday yashirin to'lov yo'q." },
+    { q: 'Eduzy bepulmi?', a: "Ro'yxatdan o'tish va boshlash bepul — ko'plab kurslar ochiq. Premium obuna esa barcha kurslar, kengaytirilgan AI va cheksiz sertifikatlarni ochadi." },
     { q: 'Sertifikat qanday olaman?', a: "Kursni tugatib AI testlardan o'tsangiz, sertifikat avtomatik PDF formatda tayyor bo'ladi." },
     { q: 'Code Battle nima?', a: "Dasturchilar uchun real vaqtdagi musobaqa — masala yechib ball to'plang va reytingda ko'tariling." },
     { q: 'AI Test qanday ishlaydi?', a: "Sun'iy intellekt har bir kurs uchun shaxsiy testlar yaratadi va har 5 darsdan keyin bilimni tekshiradi." },
@@ -214,7 +216,7 @@ function Home() {
               Kelajak kasblarini<br /><span className="ln-gold">o'zbek tilida</span> o'rganing
             </h1>
             <p className="ln-hero-sub">
-              O'zbekistonning zamonaviy bepul ta'lim platformasi — dasturlash,
+              O'zbekistonning zamonaviy ta'lim platformasi — dasturlash,
               AI yordamchi, Code Battle va rasmiy sertifikatlar bilan.
             </p>
             <button className="ln-btn ln-btn-gold ln-btn-lg" onClick={() => navigate('/register')}>
@@ -230,7 +232,7 @@ function Home() {
                 <div className="ln-trust-stars">
                   {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#FFCF00" color="#FFCF00" />)}
                 </div>
-                <span><strong>{stats.users}</strong> o'quvchi bizni tanlagan</span>
+                <span><strong>{stats.users}+</strong> o'quvchi bizni tanlagan</span>
               </div>
             </div>
           </div>
@@ -244,7 +246,7 @@ function Home() {
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">Biz haqimizda</span>
             <h2>O'zbekistondagi <span className="ln-gold">zamonaviy</span> ta'lim platformasi</h2>
-            <p>Minglab o'quvchilar tanlagan — bepul, sifatli va o'zbek tilida.</p>
+            <p>Minglab o'quvchilar tanlagan — sifatli, zamonaviy va o'zbek tilida.</p>
           </div>
           <div className="ln-stats-row ln-reveal">
             {aboutStats.map((s, i) => (
@@ -358,7 +360,7 @@ function Home() {
                   <div className="ln-course-thumb">
                     {kurs.image ? <img src={assetUrl(kurs.image)} alt={kurs.title} />
                       : <div className="ln-course-empty"><BookOpen size={42} /></div>}
-                    <span className="ln-course-free"><Sparkles size={10} /> Bepul</span>
+                    <span className="ln-course-free"><Sparkles size={10} /> Top</span>
                   </div>
                   <div className="ln-course-body">
                     <div className="ln-course-tags">
@@ -487,7 +489,7 @@ function Home() {
           <div className="ln-cta-box ln-reveal">
             <div className="ln-cta-ic"><GraduationCap size={30} /></div>
             <h2>Bepul ta'lim <span className="ln-gold">hozir boshlanadi</span></h2>
-            <p>Ro'yxatdan o'ting va {stats.courses}+ kursga ega bo'ling. To'lov yo'q — faqat bilim.</p>
+            <p>Ro'yxatdan o'ting va {stats.courses}+ kursni kashf qiling. Bepul boshlang — xohlagan paytda Premium'ga o'ting.</p>
             <div className="ln-cta-actions">
               <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
                 <UserPlus size={18} /> Ro'yxatdan o'tish

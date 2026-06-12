@@ -6,6 +6,14 @@ import Navbar from '../components/Navbar'
 import { useNotification } from '../context/NotificationContext'
 import '../styles/pricing.css'
 
+// API ishlamay qolsa sahifa bo'sh ko'rinmasligi uchun zaxira tariflar —
+// qiymatlar backend/src/lib/plans.js bilan bir xil turishi kerak
+const FALLBACK_PLANS = [
+  { id: '1m', months: 1, label: '1 oy', price: 29000, perMonth: 29000, discountPct: 0, popular: false },
+  { id: '3m', months: 3, label: '3 oy', price: 79000, perMonth: 26333, discountPct: 9, popular: false },
+  { id: '6m', months: 6, label: '6 oy', price: 149000, perMonth: 24833, discountPct: 14, popular: true }
+]
+
 const BENEFITS = [
   { Icon: BookOpen, text: 'Barcha kurslarga to\'liq kirish' },
   { Icon: Bot, text: 'AI Teacher — kuniga 100 ta savol' },
@@ -30,8 +38,10 @@ function Pricing() {
       try {
         const res = await fetch(`${API_URL}/api/subscription/plans`)
         const data = await res.json()
-        setPlans(data.plans || [])
-      } catch {}
+        setPlans(data.plans?.length ? data.plans : FALLBACK_PLANS)
+      } catch {
+        setPlans(FALLBACK_PLANS)
+      }
       if (token) {
         try {
           const r = await fetch(`${API_URL}/api/subscription/me`, {

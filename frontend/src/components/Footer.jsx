@@ -22,7 +22,7 @@ function Footer() {
             <span className="footer-logo">Eduzy</span>
           </div>
           <p className="footer-desc">
-            O'zbek tilida bepul ta'lim platformasi. Dasturlash, matematika, til o'rganish va boshqa ko'plab kurslar.
+            O'zbek tilida zamonaviy ta'lim platformasi. Dasturlash, matematika, til o'rganish va boshqa ko'plab kurslar.
           </p>
           <div className="footer-socials">
             <a href="#" className="social-btn" title="Telegram" rel="noopener noreferrer nofollow">
@@ -48,6 +48,7 @@ function Footer() {
               <li onClick={() => navigate('/courses')}>Barcha kurslar</li>
               <li onClick={() => navigate('/battle')}>Code Battle</li>
               <li onClick={() => navigate('/ai-quiz')}>AI Test</li>
+              <li onClick={() => navigate('/pricing')}>Tariflar</li>
               <li onClick={() => navigate('/dashboard')}>Dashboard</li>
             </ul>
           </div>
@@ -86,7 +87,7 @@ function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
           <span>© {year} Eduzy. Barcha huquqlar himoyalangan.</span>
-          <span>Made with by Eduzy Team</span>
+          <span className="footer-made">Made with <Heart size={13} fill="currentColor" /> by Eduzy Team</span>
         </div>
       </div>
     </footer>
