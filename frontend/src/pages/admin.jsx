@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, BookOpen, Users, Plus, Trash2, Edit3,
@@ -6,7 +6,8 @@ import {
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
   Search, Shield, Mail, UserCheck, AlertTriangle, Check,
   XCircle, Send, ArrowLeft, Globe, Activity, Clock,
-  MessageCircle, Reply, Archive, Megaphone, Wallet, Crown
+  MessageCircle, Reply, Archive, Megaphone, Wallet, Crown,
+  Bot, GitPullRequest, ExternalLink
 } from 'lucide-react'
 import { API_URL, assetUrl, getUser, getToken } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -57,6 +58,11 @@ function Admin() {
   const [reportMonth, setReportMonth] = useState(() => new Date().toISOString().slice(0, 7))
   const [report, setReport] = useState(null)
   const [reportLoading, setReportLoading] = useState(false)
+
+  // AI qo'riqchi agent faoliyati (GitHub PR'lari)
+  const [agentData, setAgentData] = useState(null)
+  const [agentLoading, setAgentLoading] = useState(false)
+  const [agentExpanded, setAgentExpanded] = useState(null) // ochiq hisobot PR raqami
 
   // Obunalar
   const [subs, setSubs] = useState([])
@@ -243,6 +249,25 @@ function Admin() {
     }
   }
 
+  // Agent faoliyati — GitHub'dagi agent/* PR'lari
+  const loadAgentActivity = async (refresh = false) => {
+    setAgentLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/admin/agent-activity${refresh ? '?refresh=1' : ''}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setAgentData(data)
+      } else {
+        addNotification(data.message || "Agent faoliyatini yuklab bo'lmadi", 'error')
+      }
+    } catch {
+      addNotification("Server bilan bog'lanib bo'lmadi", 'error')
+    }
+    setAgentLoading(false)
+  }
+
   useEffect(() => {
     if (activeTab === 'messages') {
       loadContactMessages()
@@ -258,6 +283,9 @@ function Admin() {
     }
     if (activeTab === 'subscriptions') {
       loadSubscriptions()
+    }
+    if (activeTab === 'agent' && !agentData) {
+      loadAgentActivity()
     }
   }, [activeTab])
 
@@ -701,6 +729,15 @@ function Admin() {
               onClick={() => setActiveTab('security')}
             >
               <Shield size={18} /> Xavfsizlik
+            </button>
+            <button
+              className={`admin-nav-btn ${activeTab === 'agent' ? 'active' : ''}`}
+              onClick={() => setActiveTab('agent')}
+            >
+              <Bot size={18} /> AI Qo'riqchi
+              {agentData?.stats?.open > 0 && (
+                <span className="admin-nav-badge admin-nav-badge-warning">{agentData.stats.open}</span>
+              )}
             </button>
             <button
               className={`admin-nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
@@ -1985,6 +2022,181 @@ function Admin() {
                         </tbody>
                       </table>
                     </div>
+                  </div>
+                </>
+              ) : (
+                <div className="admin-empty">
+                  <Loader2 size={32} className="spin-icon" />
+                  <h3>Yuklanmoqda...</h3>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* AI QO'RIQCHI AGENT */}
+          {activeTab === 'agent' && (
+            <div className="admin-content">
+              <div className="admin-page-header">
+                <div>
+                  <h1>AI Qo'riqchi</h1>
+                  <p>Kunlik avtomatik xavfsizlik va sifat tekshiruvi natijalari</p>
+                </div>
+                <button
+                  className="btn-outline btn-small"
+                  onClick={() => loadAgentActivity(true)}
+                  disabled={agentLoading}
+                >
+                  {agentLoading ? <Loader2 size={14} className="spin-icon" /> : <Activity size={14} />} Yangilash
+                </button>
+              </div>
+
+              <div className="admin-section">
+                <h3><Bot size={18} /> Agent haqida</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '12px' }}>
+                  Har kuni soat 07:00 da (Toshkent vaqti) bulutdagi agent loyihani tekshiradi:
+                  build/lint xatolari, oxirgi commitlardagi buglar, npm zaifliklari, sir-kalitlar
+                  oqishi, SQL injection/XSS va boshqa xavfsizlik nuqtalari. Topilgan kichik
+                  muammolarni tuzatib, <code>agent/daily-guard-*</code> branch'ida PR ochadi —
+                  o'zgarishlar siz tasdiqlamaguningizcha saytga chiqmaydi.
+                </p>
+                <div className="admin-info-grid">
+                  <div className="admin-info-item">
+                    <span className="admin-info-label">Repo</span>
+                    <span className="admin-info-value" style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                      {agentData?.repo || 'ShoxjaxonUZ/idrokai'}
+                    </span>
+                  </div>
+                  <div className="admin-info-item">
+                    <span className="admin-info-label">Jadval</span>
+                    <span className="admin-info-value">Har kuni 07:00 (Toshkent)</span>
+                  </div>
+                  <div className="admin-info-item">
+                    <span className="admin-info-label">Boshqaruv</span>
+                    <span className="admin-info-value">
+                      <a href="https://claude.ai/code/routines" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        claude.ai/code/routines <ExternalLink size={12} />
+                      </a>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {agentData ? (
+                <>
+                  <div className="admin-stats">
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9' }}>
+                        <GitPullRequest size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{agentData.stats.total}</div>
+                        <div className="admin-stat-label">Jami PR'lar</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
+                        <AlertTriangle size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{agentData.stats.open}</div>
+                        <div className="admin-stat-label">Tasdiq kutmoqda</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
+                        <Check size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value">{agentData.stats.merged}</div>
+                        <div className="admin-stat-label">Qabul qilingan</div>
+                      </div>
+                    </div>
+                    <div className="admin-stat-card">
+                      <div className="admin-stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
+                        <Clock size={22} />
+                      </div>
+                      <div>
+                        <div className="admin-stat-value" style={{ fontSize: '15px' }}>
+                          {agentData.stats.lastActivityAt
+                            ? new Date(agentData.stats.lastActivityAt).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
+                            : '—'}
+                        </div>
+                        <div className="admin-stat-label">Oxirgi faoliyat</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="admin-section">
+                    <h3><GitPullRequest size={18} /> Agent ochgan PR'lar</h3>
+                    {agentData.prs.length === 0 ? (
+                      <p style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0', textAlign: 'center' }}>
+                        Agent hali PR ochmagan. Tekshiruvda muammo topilmasa PR ochilmaydi —
+                        bu yaxshi belgi. Birinchi tuzatish kiritilganda shu yerda ko'rinadi.
+                      </p>
+                    ) : (
+                      <div className="admin-table-wrap">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Sana</th>
+                              <th>Sarlavha</th>
+                              <th>Branch</th>
+                              <th>Holat</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {agentData.prs.map(pr => {
+                              const badge = pr.status === 'merged'
+                                ? { label: 'Qabul qilingan', bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }
+                                : pr.status === 'open'
+                                  ? { label: 'Tasdiq kutmoqda', bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }
+                                  : { label: 'Rad etilgan', bg: 'rgba(148, 163, 184, 0.15)', color: '#94a3b8' }
+                              return (
+                                <Fragment key={pr.number}>
+                                  <tr
+                                    onClick={() => setAgentExpanded(agentExpanded === pr.number ? null : pr.number)}
+                                    style={{ cursor: pr.report ? 'pointer' : 'default' }}
+                                  >
+                                    <td style={{ fontSize: '12px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                      {new Date(pr.createdAt).toLocaleString('uz-UZ', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                    </td>
+                                    <td style={{ fontWeight: 500 }}>#{pr.number} {pr.title}</td>
+                                    <td style={{ fontFamily: 'monospace', fontSize: '11px' }}>{pr.branch}</td>
+                                    <td>
+                                      <span style={{ background: badge.bg, color: badge.color, padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                        {badge.label}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <a
+                                        href={pr.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={e => e.stopPropagation()}
+                                        title="GitHub'da ochish"
+                                        style={{ display: 'inline-flex', color: 'var(--text-muted)' }}
+                                      >
+                                        <ExternalLink size={15} />
+                                      </a>
+                                    </td>
+                                  </tr>
+                                  {agentExpanded === pr.number && pr.report && (
+                                    <tr>
+                                      <td colSpan={5} style={{ background: 'var(--bg-soft, rgba(148, 163, 184, 0.06))' }}>
+                                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '12px', fontFamily: 'inherit', margin: 0, padding: '12px', color: 'var(--text-soft)' }}>
+                                          {pr.report}
+                                        </pre>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </Fragment>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (

@@ -207,6 +207,74 @@ router.delete('/subscriptions/:id', auth, adminOnly, async (req, res) => {
   }
 })
 
+// ====== AI QO'RIQCHI AGENT FAOLIYATI ======
+// Kunlik qo'riqchi agent GitHub'da agent/* branch'larida PR ochadi.
+// Bu endpoint o'sha PR'larni GitHub API'dan olib beradi. Tokensiz GitHub
+// limiti 60 so'rov/soat — shuning uchun 5 daqiqalik xotira keshi bor.
+// GITHUB_TOKEN env berilsa limit kengayadi (shart emas, repo ochiq).
+const GITHUB_REPO = process.env.GITHUB_REPO || 'ShoxjaxonUZ/idrokai'
+let agentCache = { at: 0, data: null }
+
+router.get('/agent-activity', auth, adminOnly, async (req, res) => {
+  try {
+    const force = req.query.refresh === '1'
+    if (!force && agentCache.data && Date.now() - agentCache.at < 5 * 60 * 1000) {
+      return res.json(agentCache.data)
+    }
+
+    const headers = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'eduzy-admin-panel'
+    }
+    if (process.env.GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
+    }
+
+    const ghRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/pulls?state=all&per_page=50&sort=created&direction=desc`,
+      { headers }
+    )
+    if (!ghRes.ok) {
+      // Limit tugagan bo'lsa eski keshni qaytaramiz (bo'sh javobdan yaxshi)
+      if (agentCache.data) return res.json(agentCache.data)
+      return res.status(502).json({ message: `GitHub API xatosi (${ghRes.status})` })
+    }
+
+    const allPrs = await ghRes.json()
+    const prs = (Array.isArray(allPrs) ? allPrs : [])
+      .filter(pr => pr.head?.ref?.startsWith('agent/'))
+      .map(pr => ({
+        number: pr.number,
+        title: pr.title,
+        branch: pr.head.ref,
+        status: pr.merged_at ? 'merged' : pr.state, // open | closed | merged
+        createdAt: pr.created_at,
+        mergedAt: pr.merged_at,
+        url: pr.html_url,
+        // PR tavsifi — agentning hisoboti (nima va nega tuzatilgani)
+        report: pr.body || ''
+      }))
+
+    const data = {
+      repo: GITHUB_REPO,
+      fetchedAt: new Date().toISOString(),
+      stats: {
+        total: prs.length,
+        open: prs.filter(p => p.status === 'open').length,
+        merged: prs.filter(p => p.status === 'merged').length,
+        lastActivityAt: prs[0]?.createdAt || null
+      },
+      prs
+    }
+    agentCache = { at: Date.now(), data }
+    res.json(data)
+  } catch (err) {
+    console.error('[admin agent-activity]', err.message)
+    if (agentCache.data) return res.json(agentCache.data)
+    res.status(500).json({ message: 'Agent faoliyatini olib bo\'lmadi' })
+  }
+})
+
 // CREATE / UPDATE COURSE
 router.post('/courses', auth, adminOnly, async (req, res) => {
   try {
