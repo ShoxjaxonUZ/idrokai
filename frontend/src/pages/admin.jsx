@@ -62,6 +62,7 @@ function Admin() {
   // AI qo'riqchi agent faoliyati (GitHub PR'lari)
   const [agentData, setAgentData] = useState(null)
   const [agentLoading, setAgentLoading] = useState(false)
+  const [agentError, setAgentError] = useState(null) // {message, rateLimited, hasToken, resetAt}
   const [agentExpanded, setAgentExpanded] = useState(null) // ochiq hisobot PR raqami
 
   // Obunalar
@@ -259,11 +260,13 @@ function Admin() {
       const data = await res.json()
       if (res.ok) {
         setAgentData(data)
+        setAgentError(null)
       } else {
-        addNotification(data.message || "Agent faoliyatini yuklab bo'lmadi", 'error')
+        setAgentError(data)
+        if (refresh) addNotification(data.message || "Agent faoliyatini yuklab bo'lmadi", 'error')
       }
     } catch {
-      addNotification("Server bilan bog'lanib bo'lmadi", 'error')
+      setAgentError({ message: "Server bilan bog'lanib bo'lmadi" })
     }
     setAgentLoading(false)
   }
@@ -2199,6 +2202,32 @@ function Admin() {
                     )}
                   </div>
                 </>
+              ) : agentError ? (
+                <div className="admin-section">
+                  <h3 style={{ color: 'var(--warning, #f59e0b)' }}>
+                    <AlertTriangle size={18} /> {agentError.rateLimited ? 'GitHub so\'rov limiti tugadi' : 'Ma\'lumotni yuklab bo\'lmadi'}
+                  </h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '12px' }}>
+                    {agentError.message}
+                  </p>
+                  {agentError.rateLimited && agentError.resetAt && (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '12px' }}>
+                      Limit tiklanadi: <strong>{new Date(agentError.resetAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</strong>
+                    </p>
+                  )}
+                  {agentError.rateLimited && !agentError.hasToken && (
+                    <div style={{ fontSize: '13px', color: 'var(--text-soft)', lineHeight: 1.6, background: 'var(--bg-soft, rgba(148, 163, 184, 0.06))', padding: '14px 16px', borderRadius: '10px' }}>
+                      <strong>Butunlay hal qilish uchun:</strong> Render'da backend xizmatiga{' '}
+                      <code>GITHUB_TOKEN</code> environment o'zgaruvchisini qo'shing. GitHub'da{' '}
+                      <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer">Settings → Developer settings → Personal access tokens</a>{' '}
+                      bo'limidan ruxsatsiz (public repo uchun yetarli) token yarating. Shunda limit
+                      soatiga 5000 so'rovga ko'tariladi.
+                    </div>
+                  )}
+                  <button className="btn-outline btn-small" style={{ marginTop: '14px' }} onClick={() => loadAgentActivity(true)} disabled={agentLoading}>
+                    {agentLoading ? <Loader2 size={14} className="spin-icon" /> : <Activity size={14} />} Qayta urinish
+                  </button>
+                </div>
               ) : (
                 <div className="admin-empty">
                   <Loader2 size={32} className="spin-icon" />

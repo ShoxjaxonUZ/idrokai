@@ -237,6 +237,23 @@ router.get('/agent-activity', auth, adminOnly, async (req, res) => {
     if (!ghRes.ok) {
       // Limit tugagan bo'lsa eski keshni qaytaramiz (bo'sh javobdan yaxshi)
       if (agentCache.data) return res.json(agentCache.data)
+
+      // 403/429 + remaining=0 — rate-limit. Render IP'si umumiy bo'lgani uchun
+      // tokensiz 60/soat limiti tez tugaydi. GITHUB_TOKEN qo'yilsa hal bo'ladi.
+      const remaining = ghRes.headers.get('x-ratelimit-remaining')
+      const isRateLimited = (ghRes.status === 403 || ghRes.status === 429) && remaining === '0'
+      if (isRateLimited) {
+        const reset = Number(ghRes.headers.get('x-ratelimit-reset'))
+        const resetAt = reset ? new Date(reset * 1000).toISOString() : null
+        return res.status(429).json({
+          message: process.env.GITHUB_TOKEN
+            ? 'GitHub so\'rov limiti vaqtincha tugadi. Birozdan keyin urinib ko\'ring.'
+            : 'GitHub so\'rov limiti tugadi (server IP umumiy). Buni butunlay hal qilish uchun GITHUB_TOKEN qo\'shing.',
+          rateLimited: true,
+          hasToken: !!process.env.GITHUB_TOKEN,
+          resetAt
+        })
+      }
       return res.status(502).json({ message: `GitHub API xatosi (${ghRes.status})` })
     }
 
