@@ -1,0 +1,27 @@
+{
+  "name": "eduzy-agents",
+  "version": "0.1.0",
+  "description": "Eduzy — ko'p agentli AI Orchestrator (autonom muhandislik jamoasi)",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bin": {
+    "eduzy-agents": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "demo": "node src/index.js --dry \"Eduzy backendiga login uchun rate-limiting qo'sh\"",
+    "agent": "node src/index.js"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "orchestrator",
+    "multi-agent",
+    "groq",
+    "eduzy"
+  ],
+  "license": "MIT"
+}

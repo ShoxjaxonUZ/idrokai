@@ -1,0 +1,25 @@
+{
+  "name": "eduzy-market-mcp",
+  "version": "0.1.0",
+  "description": "Eduzy — EdTech/yoshlar bozori tahlili uchun MCP server (Model Context Protocol)",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bin": {
+    "eduzy-market-mcp": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-client.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "edtech",
+    "market-research",
+    "eduzy"
+  ],
+  "license": "MIT"
+}
