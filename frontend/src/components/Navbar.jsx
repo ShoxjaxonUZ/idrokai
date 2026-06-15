@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import {
   GraduationCap, Sun, Moon, Menu, Settings,
-  User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy, Crown, Users
+  User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy, Crown, Users, Briefcase
 } from 'lucide-react'
 import { getUser, clearAuth, apiPost } from '../lib/api'
 import NotificationBell from './NotificationBell'
@@ -128,6 +128,9 @@ function Navbar() {
                       <button className="dropdown-item" onClick={() => goTo('/profile')}>
                         <User size={16} /> Profil
                       </button>
+                      <button className="dropdown-item" onClick={() => goTo('/portfolio')}>
+                        <Briefcase size={16} /> Portfelim
+                      </button>
                       {isAdmin && (
                         <button className="dropdown-item" onClick={() => goTo('/admin')}>
                           <Settings size={16} /> Admin panel
@@ -202,6 +205,9 @@ function Navbar() {
                   </button>
                   <button onClick={() => goTo('/profile')}>
                     <User size={18} /> Profil
+                  </button>
+                  <button onClick={() => goTo('/portfolio')}>
+                    <Briefcase size={18} /> Portfelim
                   </button>
                 </>
               )}

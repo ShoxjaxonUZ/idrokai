@@ -165,7 +165,7 @@ function Friends() {
                     <div key={f.id} style={{ ...card, display: 'flex', alignItems: 'center', gap: 14 }}>
                       <Avatar name={f.name} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700 }}>{f.name}</div>
+                        <div style={{ fontWeight: 700, cursor: 'pointer' }} onClick={() => navigate(`/portfolio/${f.id}`)}>{f.name}</div>
                         <div style={{ display: 'flex', gap: 14, marginTop: 4, flexWrap: 'wrap', color: 'var(--text-muted)', fontSize: 13 }}>
                           <span title="Streak"><Flame size={13} color="#EC4899" /> {f.streak}</span>
                           <span title="Ball"><Star size={13} color="#DC8B1A" /> {f.points}</span>
