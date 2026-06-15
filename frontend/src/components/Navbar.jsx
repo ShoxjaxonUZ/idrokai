@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import {
   GraduationCap, Sun, Moon, Menu, Settings,
-  User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy, Crown
+  User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy, Crown, Users
 } from 'lucide-react'
 import { getUser, clearAuth, apiPost } from '../lib/api'
 import NotificationBell from './NotificationBell'
@@ -85,6 +85,7 @@ function Navbar() {
             <span onClick={() => goTo('/battle')}>Battle</span>
             <span onClick={() => goTo('/ai-teacher')}>AI Teacher</span>
             <span onClick={() => goTo('/leaderboard')}>Reyting</span>
+            {user && <span onClick={() => goTo('/friends')}>Do'stlar</span>}
             <span onClick={() => goTo('/pricing')}>Tariflar</span>
           </div>
 
@@ -195,6 +196,9 @@ function Navbar() {
                 <>
                   <button onClick={() => goTo('/dashboard')}>
                     <LayoutDashboard size={18} /> Dashboard
+                  </button>
+                  <button onClick={() => goTo('/friends')}>
+                    <Users size={18} /> Do'stlar
                   </button>
                   <button onClick={() => goTo('/profile')}>
                     <User size={18} /> Profil

@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   BookOpen, BarChart3, Target, Play, Rocket, Check,
   Lock, Award, Globe, Clock, CheckCircle2, FileText,
-  StickyNote, ChevronRight, Star, RotateCcw
+  StickyNote, ChevronRight, Star, RotateCcw, Zap
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
+import { estimateMinutes, isMicro, formatMinutes, totalMinutes } from '../lib/lessonMeta'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CourseRatings from '../components/CourseRatings'
@@ -45,7 +46,8 @@ function CourseDetail() {
           if (typeof l === 'object') return {
             title: l.title || `${i + 1}-dars`,
             video: l.videoUrl || l.video || '',
-            desc: l.description || l.desc || ''
+            desc: l.description || l.desc || '',
+            minutes: l.minutes
           }
           return { title: `${i + 1}-dars`, video: '', desc: '' }
         })
@@ -182,6 +184,8 @@ function CourseDetail() {
             <p>{course.desc || course.description}</p>
             <div className="detail-meta">
               <span><BookOpen size={14} /> {course.lessons.length} dars</span>
+              <span><Clock size={14} /> ~{formatMinutes(totalMinutes(course.lessons))}</span>
+              <span><Zap size={14} /> Qisqa darslar (3–10 daq)</span>
               <span><BarChart3 size={14} /> {course.daraja}</span>
               <span><Target size={14} /> Har 5 darsdan modul testi</span>
             </div>
@@ -257,6 +261,10 @@ function CourseDetail() {
                                   {isCompleted ? <Check size={14} /> : realIndex + 1}
                                 </span>
                                 <span>{lesson.title}</span>
+                                <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                  {isMicro(lesson) && <Zap size={12} color="#DC8B1A" />}
+                                  <Clock size={12} /> {formatMinutes(estimateMinutes(lesson))}
+                                </span>
                                 {enrolled && isCompleted && (
                                   <span className="lesson-check">
                                     <CheckCircle2 size={18} />
@@ -405,6 +413,7 @@ function CourseDetail() {
 
               <ul className="sidebar-features">
                 <li><CheckCircle2 size={14} /> To'liq bepul</li>
+                <li><Zap size={14} /> Qisqa mikro-darslar (3–10 daq)</li>
                 <li><Award size={14} /> Sertifikat beriladi</li>
                 <li><Globe size={14} /> O'zbek tilida</li>
                 <li><Clock size={14} /> Istalgan vaqtda o'qish</li>
