@@ -28,6 +28,7 @@ import Onboarding from './pages/Onboarding'
 import Daily from './pages/Daily'
 import Friends from './pages/Friends'
 import Portfolio from './pages/Portfolio'
+import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
 import VerifyCertificate from './pages/VerifyCertificate'
 import ModuleTest from './pages/ModuleTest'
@@ -68,6 +69,7 @@ function App() {
               <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
               <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
               <Route path="/portfolio" element={<RequireAuth><Portfolio /></RequireAuth>} />
+              <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
               <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
               <Route path="/certificate/:id" element={<RequireAuth><Certificate /></RequireAuth>} />

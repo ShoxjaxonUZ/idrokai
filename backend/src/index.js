@@ -32,6 +32,7 @@ const dashboardRoutes = require('./routes/dashboard')
 const subscriptionRoutes = require('./routes/subscription')
 const socialRoutes = require('./routes/social')
 const portfolioRoutes = require('./routes/portfolio')
+const messagesRoutes = require('./routes/messages')
 const { threatDetector } = require('./middleware/threatDetector')
 const { attackShield } = require('./middleware/attackShield')
 const { csrfProtection } = require('./middleware/csrf')
@@ -209,6 +210,7 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/subscription', subscriptionRoutes)
 app.use('/api/social', socialRoutes)
 app.use('/api/portfolio', portfolioRoutes)
+app.use('/api/messages', messagesRoutes)
 
 // 404 handler
 app.use((req, res) => {

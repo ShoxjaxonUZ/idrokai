@@ -76,6 +76,14 @@ export default function NotificationBell() {
         } catch {}
       })
 
+      // Xabar (chat) — boshqa komponentlarga window event orqali uzatamiz
+      es.addEventListener('message', (e) => {
+        try {
+          const msg = JSON.parse(e.data)
+          window.dispatchEvent(new CustomEvent('eduzy:message', { detail: msg }))
+        } catch {}
+      })
+
       es.onerror = () => {
         // SSE uzildi — polling fallback ishlaydi
       }

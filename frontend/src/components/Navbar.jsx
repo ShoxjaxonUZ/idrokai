@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import {
   GraduationCap, Sun, Moon, Menu, Settings,
-  User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy, Crown, Users, Briefcase
+  User, LayoutDashboard, LogOut, BookOpen, Swords, Bot, Trophy, Crown, Users, Briefcase, MessageCircle
 } from 'lucide-react'
-import { getUser, clearAuth, apiPost } from '../lib/api'
+import { getUser, clearAuth, apiPost, API_URL } from '../lib/api'
 import NotificationBell from './NotificationBell'
 import '../styles/navbar.css'
 
@@ -24,6 +24,28 @@ function Navbar() {
   const closeTimeoutRef = useRef(null)
   const user = getUser()
   const isAdmin = user?.role === 'admin'
+  const [msgUnread, setMsgUnread] = useState(0)
+
+  // Xabarlar o'qilmagan soni — fetch + real-time (window 'eduzy:message'/'eduzy:msg-read')
+  useEffect(() => {
+    if (!user?.id) return
+    let alive = true
+    const refresh = () => {
+      fetch(`${API_URL}/api/messages/unread-count`)
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => { if (alive && d) setMsgUnread(d.unread || 0) })
+        .catch(() => {})
+    }
+    refresh()
+    window.addEventListener('eduzy:message', refresh)
+    window.addEventListener('eduzy:msg-read', refresh)
+    return () => {
+      alive = false
+      window.removeEventListener('eduzy:message', refresh)
+      window.removeEventListener('eduzy:msg-read', refresh)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   // Scroll holati — landing'da navbar hero ortidan o'tgach oqaradi
   useEffect(() => {
@@ -98,6 +120,14 @@ function Navbar() {
 
             {user ? (
               <>
+                <button className="theme-toggle" onClick={() => goTo('/messages')} title="Xabarlar" style={{ position: 'relative' }}>
+                  <MessageCircle size={18} />
+                  {msgUnread > 0 && (
+                    <span style={{ position: 'absolute', top: -2, right: -2, background: '#EC4899', color: '#fff', borderRadius: 20, fontSize: 10, fontWeight: 700, minWidth: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
+                      {msgUnread > 99 ? '99+' : msgUnread}
+                    </span>
+                  )}
+                </button>
                 <NotificationBell />
                 <button className="nav-dashboard" onClick={() => goTo('/dashboard')}>
                   Dashboard
@@ -202,6 +232,9 @@ function Navbar() {
                   </button>
                   <button onClick={() => goTo('/friends')}>
                     <Users size={18} /> Do'stlar
+                  </button>
+                  <button onClick={() => goTo('/messages')}>
+                    <MessageCircle size={18} /> Xabarlar
                   </button>
                   <button onClick={() => goTo('/profile')}>
                     <User size={18} /> Profil

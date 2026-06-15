@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Users, UserPlus, UserCheck, UserX, Check, X,
-  Flame, Star, Award, BookOpen, Activity, Sparkles
+  Flame, Star, Award, BookOpen, Activity, Sparkles, MessageCircle
 } from 'lucide-react'
 import { apiGet, apiPost, apiDelete } from '../lib/api'
 import Navbar from '../components/Navbar'
@@ -173,6 +173,9 @@ function Friends() {
                           <span title="Sertifikatlar"><Award size={13} /> {f.certificates}</span>
                         </div>
                       </div>
+                      <button onClick={() => navigate(`/messages?u=${f.id}`)} title="Xabar yozish" style={primaryBtn}>
+                        <MessageCircle size={15} /> Xabar
+                      </button>
                       <button
                         onClick={() => remove(f.id)} disabled={busy[f.id]}
                         title="Do'stlikdan chiqarish"
