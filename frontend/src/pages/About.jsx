@@ -27,7 +27,7 @@ function About() {
     { Icon: Target, title: "Sifatli ta'lim", desc: "Har bir kurs professional o'qituvchilar tomonidan tayyorlangan" },
     { Icon: Heart, title: 'Bepul', desc: "Hamma uchun teng ta'lim imkoniyati — to'lov yo'q" },
     { Icon: Globe, title: 'Istalgan joyda', desc: "24/7 onlayn, istalgan qurilmada o'qish mumkin" },
-    { Icon: Rocket, title: 'Innovatsiya', desc: 'AI, Battle va zamonaviy texnologiyalar' },
+    { Icon: Flame, title: 'Tashlamaslik dvigateli', desc: "AI ustoz, Code Battle va reyting — kursni oxirigacha olib boradi" },
     { Icon: Shield, title: 'Xavfsiz', desc: "Ma'lumotlar shifrlangan, parollar himoyalangan" },
     { Icon: Smartphone, title: 'Mobil-first', desc: "Telefon yoki kompyuter — bir xil qulay" },
     { Icon: Zap, title: 'Tezkor', desc: "Yengil sahifalar, tez yuklanish, smooth UX" },
@@ -99,11 +99,11 @@ function About() {
           <div className="page-badge">
             <GraduationCap size={14} /> Biz haqimizda
           </div>
-          <h1>O'zbek tilida <span className="gradient-text">sifatli ta'lim</span> uchun</h1>
+          <h1>O'rganishni <span className="gradient-text">natijaga</span> aylantiramiz</h1>
           <p>
-            Eduzy — O'zbekistondagi zamonaviy ta'lim platformasi.
-            Bepul kurslar, sun'iy intellekt yordami va real vaqtda musobaqalar bilan
-            har kim o'rganishni boshlay oladi.
+            Eduzy — o'zbek tilida online ta'lim. Ko'pchilik kursni yarmida tashlaydi;
+            biz AI ustoz, Code Battle va reyting bilan har bir o'quvchini oxirigacha —
+            haqiqiy ko'nikma va birinchi ishigacha olib boramiz.
           </p>
         </div>
 
@@ -136,8 +136,9 @@ function About() {
               </div>
               <h3>Bizning maqsadimiz</h3>
               <p>
-                Har bir o'zbekistonlik uchun sifatli ta'limni bepul va oson yetkazib
-                berish. Texnologiya, dasturlash va zamonaviy kasblarni har kim o'rgana oladi.
+                Har bir o'quvchi o'rganishni boshlab, uni oxiriga yetkazishi va real
+                natijaga — ko'nikma, sertifikat va ishga erishishi. Boshlash oson,
+                tashlab ketish qiyin bo'lsin.
               </p>
             </div>
 

@@ -113,7 +113,7 @@ function Home() {
 
   useEffect(() => {
     if (isAuth) return
-    document.title = "Eduzy — O'zbek tilida zamonaviy ta'lim"
+    document.title = "Eduzy — o'rgan, tashlama, natijaga yet"
     fetch(`${API_URL}/api/teacher/all-courses`)
       .then(r => r.json())
       .then(data => { if (Array.isArray(data) && data.length > 0) setCourses(data.slice(0, 6)) })
@@ -165,43 +165,45 @@ function Home() {
     { Icon: BookOpen, value: stats.courses, suffix: '', label: 'Kurslar' },
     { Icon: Play, value: stats.lessons, suffix: '', label: 'Darslar' },
     { Icon: Award, value: stats.certificates, suffix: '', label: 'Sertifikatlar' },
-    { Icon: Bot, value: 24, suffix: '/7', label: 'AI yordam' },
+    { Icon: Bot, value: 24, suffix: '/7', label: 'AI ustoz' },
   ]
 
+  // "Tashlab ketmaslik dvigateli" — bizning asosiy, nusxalanmas ustunlik
   const smallBenefits = [
-    { Icon: Swords, title: 'Code Battle', desc: "Real vaqtda 1–10 kishilik kod musobaqasi va solo praktika." },
-    { Icon: Award, title: 'Avtomatik sertifikat', desc: 'Kursni yakunlang — QR kodli rasmiy PDF sertifikat tayyor.' },
-    { Icon: Flame, title: 'Kunlik masala + streak', desc: "Har kuni yangi challenge, bonus ball va reytingda ko'tarilish." },
-    { Icon: Globe, title: "Sof o'zbek tilida", desc: 'Materiallar, AI javoblar va testlar — tarjima emas, o\'zimizniki.' },
-    { Icon: Smartphone, title: 'Mobil-first', desc: 'Telefon, planshet va kompyuterda bir xil qulay ishlaydi.' },
+    { Icon: Swords, title: 'Code Battle', desc: "Real vaqtda raqib bilan kod musobaqasi — o'rganishni o'yinga aylantiradi." },
+    { Icon: Flame, title: 'Streak va kunlik masala', desc: "Har kuni challenge va streak — tashlab ketmaslik odatini shakllantiradi." },
+    { Icon: Trophy, title: 'Reyting va darajalar', desc: "Har bir qadam ko'rinadi — motivatsiya so'nmaydi, oldinga intilasan." },
+    { Icon: Award, title: 'Natija isboti: sertifikat', desc: 'Kursni yakunla — QR kodli rasmiy sertifikat, bilimingning haqiqiy dalili.' },
+    { Icon: Globe, title: "Sof o'zbek tilida", desc: "AI javoblar, materiallar va testlar — tarjima emas, o'zimizniki." },
   ]
 
   const onlineFeatures = [
-    "Istalgan joydan — faqat telefon yoki kompyuter kerak",
-    "AI ustoz bilan 24/7 shaxsiy mashg'ulotlar",
+    "AI ustoz 24/7 — qotib qolganda darhol yo'l ochadi",
+    "Code Battle, streak va reyting — seni oxirigacha ushlab turadi",
     "Modulli darslar va avtomatik bilim nazorati",
-    "Code Battle orqali amaliyot va musobaqa",
-    "Bepul boshlang — Premium obuna barchasini ochadi",
+    "Amaliy ko'nikma va rasmiy sertifikat — natijang isboti",
+    "Bepul boshlang — istalgan joyda, faqat telefon kerak",
   ]
 
+  // Natija halqasi: Boshla → Tashlama → Natijaga yet
   const steps = [
-    { num: '01', Icon: UserPlus, title: "Ro'yxatdan o'ting", desc: 'Bepul akkaunt yarating — bir necha soniyada.' },
-    { num: '02', Icon: BookOpen, title: 'Kursni tanlang', desc: "O'zingizga mos sohani tanlab darslarni boshlang." },
-    { num: '03', Icon: Trophy, title: 'Sertifikat oling', desc: "Testlardan o'ting va rasmiy sertifikatni yuklab oling." },
+    { num: '01', Icon: UserPlus, title: 'Boshla', desc: "Bepul ro'yxatdan o't va sohangni tanla — bir necha soniyada." },
+    { num: '02', Icon: Flame, title: 'Tashlama', desc: "Qotib qolsang AI ustoz yo'l ochadi; Code Battle, streak va reyting motivatsiyangni ushlab turadi." },
+    { num: '03', Icon: Target, title: 'Natijaga yet', desc: "Kursni oxiriga yetkaz — amaliy ko'nikma, rasmiy sertifikat va birinchi ishingga yo'l." },
   ]
 
   const testimonials = [
-    { name: 'Alijon Karimov', role: 'Junior Frontend Developer', text: "Eduzy da Python va JavaScript o'rganib bugun ish topdim. Darslar tushunarli va praktik!", avatar: 'A' },
-    { name: 'Malika Rahimova', role: 'Student', text: "Code Battle eng zo'r qism! Boshqalar bilan real vaqtda kod yozish juda qiziqarli.", avatar: 'M' },
-    { name: 'Bekzod Aliyev', role: "O'qituvchi", text: "AI test juda samarali. O'quvchilarim bilimini avtomatik tekshirish — ajoyib.", avatar: 'B' },
+    { name: 'Alijon Karimov', role: 'Junior Frontend Developer', text: "Avval kurslarni yarmida tashlab ketardim. Eduzy'da AI ustoz va Code Battle ushlab turdi — kursni tugatib ish topdim.", avatar: 'A' },
+    { name: 'Malika Rahimova', role: 'Talaba', text: "Streak va reyting tufayli har kuni kirdim. O'rganish o'yinga o'xshab qoldi — birinchi marta kursni oxiriga yetkazdim!", avatar: 'M' },
+    { name: 'Bekzod Aliyev', role: 'Frilanser', text: "Qotib qolganimda AI ustoz tushuntirdi, tashlamadim. Endi real loyihalar bilan daromad qilyapman.", avatar: 'B' },
   ]
 
   const faqs = [
+    { q: 'Kursni oxiriga yetkaza olamanmi?', a: "Onlayn kurslarni ko'pchilik yarmida tashlaydi — biz buni bilamiz. Shuning uchun AI ustoz (qotib qolganda yordam), Code Battle, kunlik streak va reyting — hammasi seni oxirigacha ushlab turish uchun ishlaydi." },
     { q: 'Eduzy bepulmi?', a: "Ro'yxatdan o'tish va boshlash bepul — ko'plab kurslar ochiq. Premium obuna esa barcha kurslar, kengaytirilgan AI va cheksiz sertifikatlarni ochadi." },
-    { q: 'Sertifikat qanday olaman?', a: "Kursni tugatib AI testlardan o'tsangiz, sertifikat avtomatik PDF formatda tayyor bo'ladi." },
-    { q: 'Code Battle nima?', a: "Dasturchilar uchun real vaqtdagi musobaqa — masala yechib ball to'plang va reytingda ko'tariling." },
-    { q: 'AI Test qanday ishlaydi?', a: "Sun'iy intellekt har bir kurs uchun shaxsiy testlar yaratadi va har 5 darsdan keyin bilimni tekshiradi." },
-    { q: 'Mobil qurilmada ishlaydimi?', a: "Albatta! Eduzy telefon, planshet va kompyuterda bir xil qulay ishlaydi." },
+    { q: "O'rgangandan keyin natija bo'ladimi?", a: "Maqsadimiz — sertifikat emas, haqiqiy natija. Amaliy darslar, Code Battle praktikasi va rasmiy sertifikat birinchi ishing yoki frilans daromading sari yo'l ochadi." },
+    { q: 'AI ustoz qanday yordam beradi?', a: "Bir joyda qotib qolsang, 24/7 shaxsiy AI ustoz darhol tushuntiradi — dasturlash, matematika, fizika va ingliz tili bo'yicha. Rasm yuborib ham savol berasan." },
+    { q: 'Mobil qurilmada ishlaydimi?', a: "Albatta! Eduzy telefon, planshet va kompyuterda bir xil qulay ishlaydi — istalgan joyda davom et." },
   ]
 
   return (
@@ -228,11 +230,12 @@ function Home() {
           <div className="ln-hero-content">
             <span className="ln-hero-eyebrow">EDUZY</span>
             <h1 className="ln-hero-title">
-              Kelajak kasblarini<br /><span className="ln-gold">o'zbek tilida</span> o'rganing
+              Boshla, tashlama,<br /><span className="ln-gold">natijaga yet</span>
             </h1>
             <p className="ln-hero-sub">
-              O'zbekistonning zamonaviy ta'lim platformasi — dasturlash,
-              AI yordamchi, Code Battle va rasmiy sertifikatlar bilan.
+              Ko'pchilik onlayn kursni yarmida tashlaydi. Eduzy seni <strong>oxirigacha</strong> olib
+              boradi — AI ustoz qotib qolganda yo'l ochadi, Code Battle va reyting motivatsiyani
+              ushlab turadi. Natija — sertifikat emas, <strong>haqiqiy ko'nikma va ish.</strong>
             </p>
             <button className="ln-btn ln-btn-gold ln-btn-lg" onClick={() => navigate('/register')}>
               <Rocket size={18} /> Bepul boshlash
@@ -262,8 +265,8 @@ function Home() {
         <div className="ln-container">
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">Biz haqimizda</span>
-            <h2>O'zbekistondagi <span className="ln-gold">zamonaviy</span> ta'lim platformasi</h2>
-            <p>O'quvchilar tanlagan — sifatli, zamonaviy va o'zbek tilida.</p>
+            <h2>O'rganishni <span className="ln-gold">natijaga</span> aylantiramiz</h2>
+            <p>O'quvchilar tanlagan — boshlaganini oxiriga yetkazadigan platforma.</p>
           </div>
           <div className="ln-stats-row ln-reveal">
             {aboutStats.map((s, i) => (
@@ -282,9 +285,9 @@ function Home() {
         <span className="ln-blob ln-blob-b" aria-hidden="true"></span>
         <div className="ln-container">
           <div className="ln-head ln-reveal">
-            <span className="ln-eyebrow">Bizning afzalliklar</span>
+            <span className="ln-eyebrow">Tashlab ketmaslik dvigateli</span>
             <h2>Nima uchun aynan <span className="ln-gold">Eduzy</span>?</h2>
-            <p>Boshqa platformalarda topilmaydigan, faqat bizda mavjud imkoniyatlar</p>
+            <p>Boshqalarda yo'q — seni oxirigacha olib boradigan tizim: AI ustoz, musobaqa va reyting</p>
           </div>
 
           <div className="ln-bento ln-reveal">
@@ -293,8 +296,8 @@ function Home() {
               <div className="ln-bento-big-top">
                 <span className="ln-benefit-tag ln-tag-gold">Faqat Eduzy</span>
                 <div className="ln-bento-ic"><Bot size={26} /></div>
-                <h3>AI Teacher — 4 sohada 24/7</h3>
-                <p>Dasturlash, matematika, fizika va ingliz tili bo'yicha shaxsiy AI yordamchi. Rasm yuborib ham savol bering.</p>
+                <h3>AI Teacher — qotib qolganda yo'l ochadi</h3>
+                <p>Bir joyda tiqilib qoldingmi? 24/7 shaxsiy AI ustoz darhol tushuntiradi — dasturlash, matematika, fizika, ingliz tili. Rasm yuborib ham so'ra. Shuning uchun tashlab ketmaysan.</p>
                 <button className="ln-btn ln-btn-gold ln-btn-sm" onClick={() => navigate('/register')}>
                   Sinab ko'rish <ArrowRight size={15} />
                 </button>
@@ -302,7 +305,7 @@ function Home() {
               <div className="ln-chat" aria-hidden="true">
                 <div className="ln-chat-msg ln-chat-q">Python'da list nima?</div>
                 <div className="ln-chat-msg ln-chat-a">List — bu tartiblangan, o'zgaruvchan to'plam. Misol: <code>sonlar = [1, 2, 3]</code> …</div>
-                <div className="ln-chat-msg ln-chat-q">Rahmat! 🙌</div>
+                <div className="ln-chat-msg ln-chat-q">Tushundim, rahmat! 🙌</div>
               </div>
             </article>
 
@@ -324,7 +327,7 @@ function Home() {
           <div className="ln-online-text ln-reveal">
             <span className="ln-eyebrow ln-eyebrow-dark">Eduzy Online</span>
             <h2>Endi o'rganishga <span className="ln-gold">masofa to'siq emas</span></h2>
-            <p>Bitta smartfon yoki kompyuter — va siz O'zbekistonning eng kuchli ta'lim platformasidasiz.</p>
+            <p>Bitta smartfon yetarli — AI ustoz, Code Battle va reyting har doim yoningda, oxirigacha.</p>
             <ul className="ln-checklist">
               {onlineFeatures.map((f, i) => <li key={i}><Check size={16} /> {f}</li>)}
             </ul>
@@ -341,13 +344,13 @@ function Home() {
         </div>
       </section>
 
-      {/* ============ QANDAY ISHLAYDI ============ */}
+      {/* ============ QANDAY ISHLAYDI (natija halqasi) ============ */}
       <section className="ln-section">
         <div className="ln-container">
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">3 bosqich</span>
-            <h2>Qanday ishlaydi?</h2>
-            <p>Uch oddiy qadamda o'rganishni boshlang</p>
+            <h2>Boshla → Tashlama → <span className="ln-gold">Natijaga yet</span></h2>
+            <p>Ko'pchilik yarmida to'xtaydi. Biz uchta dvigatel bilan seni oxirigacha olib boramiz.</p>
           </div>
           <div className="ln-steps ln-reveal">
             {steps.map((s, i) => (
@@ -411,7 +414,7 @@ function Home() {
           <div className="ln-head ln-reveal">
             <span className="ln-eyebrow">Premium obuna</span>
             <h2>O'zingizga mos <span className="ln-gold">tarifni</span> tanlang</h2>
-            <p>Bepul boshlang — Premium esa barcha kurslar, kengaytirilgan AI va cheksiz sertifikatlarni ochadi</p>
+            <p>Bepul boshlang — Premium barcha kurslar, kengaytirilgan AI ustoz va cheksiz sertifikatlarni ochadi. To'liq dvigatel, to'liq natija.</p>
           </div>
           <div className="ln-plans ln-reveal">
             {plans.map(p => (
@@ -539,8 +542,8 @@ function Home() {
         <div className="ln-container">
           <div className="ln-cta-box ln-reveal">
             <div className="ln-cta-ic"><GraduationCap size={30} /></div>
-            <h2>Bepul ta'lim <span className="ln-gold">hozir boshlanadi</span></h2>
-            <p>Ro'yxatdan o'ting va {stats.courses > 0 ? `${stats.courses} ta kursni` : 'kurslarni'} kashf qiling. Bepul boshlang — xohlagan paytda Premium'ga o'ting.</p>
+            <h2>Bugun boshla — <span className="ln-gold">oxirigacha biz bilan</span></h2>
+            <p>Ro'yxatdan o'ting va {stats.courses > 0 ? `${stats.courses} ta kursni` : 'kurslarni'} kashf qiling. AI ustoz, Code Battle va reyting sizni natijaga olib boradi.</p>
             <div className="ln-cta-actions">
               <button className="ln-btn ln-btn-gold" onClick={() => navigate('/register')}>
                 <UserPlus size={18} /> Ro'yxatdan o'tish
@@ -550,10 +553,10 @@ function Home() {
               </button>
             </div>
             <div className="ln-cta-feats">
-              <span><Check size={14} /> Bepul</span>
-              <span><Check size={14} /> Sertifikat</span>
-              <span><MessageCircle size={14} /> AI yordam</span>
-              <span><Target size={14} /> 24/7</span>
+              <span><Check size={14} /> Bepul boshlash</span>
+              <span><MessageCircle size={14} /> AI ustoz 24/7</span>
+              <span><Flame size={14} /> Tashlamaslik dvigateli</span>
+              <span><Target size={14} /> Natijaga yo'l</span>
             </div>
           </div>
         </div>
