@@ -65,6 +65,7 @@ function Home() {
   // Real statistika API'dan keladi; 0 bo'lgan ko'rsatkich kartasi ko'rsatilmaydi
   const [stats, setStats] = useState({ users: 0, courses: 0, lessons: 0, certificates: 0 })
   const [plans, setPlans] = useState(FALLBACK_PLANS)
+  const [graduates, setGraduates] = useState([])
   const [openFaq, setOpenFaq] = useState(0)
 
   const [snippetIdx, setSnippetIdx] = useState(0)
@@ -129,6 +130,10 @@ function Home() {
       .then(r => r.json())
       .then(d => { if (Array.isArray(d.plans) && d.plans.length > 0) setPlans(d.plans) })
       .catch(() => { })
+    fetch(`${API_URL}/api/stats/graduates`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setGraduates(d) })
+      .catch(() => { })
   }, [isAuth])
 
   const fmt = (n) => (Number(n) || 0).toLocaleString('uz-UZ')
@@ -192,11 +197,11 @@ function Home() {
     { num: '03', Icon: Target, title: 'Natijaga yet', desc: "Kursni oxiriga yetkaz — amaliy ko'nikma, rasmiy sertifikat va birinchi ishingga yo'l." },
   ]
 
-  const testimonials = [
-    { name: 'Alijon Karimov', role: 'Junior Frontend Developer', text: "Avval kurslarni yarmida tashlab ketardim. Eduzy'da AI ustoz va Code Battle ushlab turdi — kursni tugatib ish topdim.", avatar: 'A' },
-    { name: 'Malika Rahimova', role: 'Talaba', text: "Streak va reyting tufayli har kuni kirdim. O'rganish o'yinga o'xshab qoldi — birinchi marta kursni oxiriga yetkazdim!", avatar: 'M' },
-    { name: 'Bekzod Aliyev', role: 'Frilanser', text: "Qotib qolganimda AI ustoz tushuntirdi, tashlamadim. Endi real loyihalar bilan daromad qilyapman.", avatar: 'B' },
-  ]
+  // Real bitiruvchilar API'dan keladi — soxta fikr yo'q. Bo'sh bo'lsa bo'lim yashiriladi.
+  const gradInitial = (name) => (name && name.trim()[0] ? name.trim()[0].toUpperCase() : '?')
+  const gradStory = (g) => (g.bio && g.bio.trim())
+    ? g.bio
+    : `${g.latest_course ? `"${g.latest_course}" kursini tugatdi` : 'Kursni tugatdi'} — ${g.certificates} ta sertifikat oldi.`
 
   const faqs = [
     { q: 'Kursni oxiriga yetkaza olamanmi?', a: "Onlayn kurslarni ko'pchilik yarmida tashlaydi — biz buni bilamiz. Shuning uchun AI ustoz (qotib qolganda yordam), Code Battle, kunlik streak va reyting — hammasi seni oxirigacha ushlab turish uchun ishlaydi." },
@@ -442,34 +447,37 @@ function Home() {
         </div>
       </section>
 
-      {/* ============ NATIJALAR / FIKRLAR ============ */}
-      <section className="ln-section">
-        <div className="ln-container">
-          <div className="ln-head ln-reveal">
-            <span className="ln-eyebrow">Natijalar</span>
-            <h2>O'quvchilar nima deyishadi?</h2>
-            <p>O'quvchilarimizning haqiqiy taassurotlari</p>
-          </div>
-          <div className="ln-tests ln-reveal">
-            {testimonials.map((t, i) => (
-              <div key={i} className="ln-test">
-                <Quote className="ln-test-q" size={28} />
-                <p className="ln-test-text">{t.text}</p>
-                <div className="ln-test-stars">
-                  {[...Array(5)].map((_, j) => <Star key={j} size={13} fill="#FFCF00" color="#FFCF00" />)}
-                </div>
-                <div className="ln-test-author">
-                  <span className="ln-test-avatar">{t.avatar}</span>
-                  <div>
-                    <div className="ln-test-name">{t.name}</div>
-                    <div className="ln-test-role">{t.role}</div>
+      {/* ============ HAQIQIY BITIRUVCHILAR (real, sertifikatli) ============ */}
+      {graduates.length > 0 && (
+        <section className="ln-section">
+          <div className="ln-container">
+            <div className="ln-head ln-reveal">
+              <span className="ln-eyebrow">Natijalar</span>
+              <h2>Haqiqiy <span className="ln-gold">bitiruvchilar</span></h2>
+              <p>Sertifikat olgan, natijaga yetgan real o'quvchilarimiz — portfelini ko'ring</p>
+            </div>
+            <div className="ln-tests ln-reveal">
+              {graduates.map((g) => (
+                <div key={g.id} className="ln-test" style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/portfolio/${g.id}`)}>
+                  <Quote className="ln-test-q" size={28} />
+                  <p className="ln-test-text">{gradStory(g)}</p>
+                  <div className="ln-test-stars" style={{ color: '#DC8B1A', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
+                    <Award size={15} /> {g.certificates} sertifikat{g.looking_for_work ? ' • ish qidiryapti' : ''}
+                  </div>
+                  <div className="ln-test-author">
+                    <span className="ln-test-avatar">{gradInitial(g.name)}</span>
+                    <div>
+                      <div className="ln-test-name">{g.name}</div>
+                      <div className="ln-test-role">{g.headline || 'Eduzy bitiruvchisi'}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ============ FAQ ============ */}
       <section className="ln-section ln-soft">

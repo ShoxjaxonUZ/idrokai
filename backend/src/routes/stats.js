@@ -35,4 +35,30 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /api/stats/graduates — real bitiruvchilar (sertifikatli), portfel bilan boyitilgan.
+// Hikoyasi bor (portfel headline yozgan) bitiruvchilar avval ko'rsatiladi.
+router.get('/graduates', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.name,
+        COALESCE(p.headline, '') AS headline,
+        COALESCE(p.bio, '') AS bio,
+        COALESCE(p.looking_for_work, false) AS looking_for_work,
+        COUNT(c.id)::int AS certificates,
+        (ARRAY_AGG(c.course_title ORDER BY c.issued_at DESC))[1] AS latest_course
+      FROM certificates c
+      JOIN users u ON u.id = c.user_id
+      LEFT JOIN portfolios p ON p.user_id = u.id
+      WHERE u.role <> 'admin'
+      GROUP BY u.id, u.name, p.headline, p.bio, p.looking_for_work
+      ORDER BY (COALESCE(p.headline, '') <> '') DESC, COUNT(c.id) DESC, MAX(c.issued_at) DESC
+      LIMIT 6
+    `)
+    res.json(result.rows)
+  } catch (err) {
+    console.error('[stats] graduates error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
 module.exports = router
