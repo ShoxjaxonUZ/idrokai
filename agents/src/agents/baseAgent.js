@@ -2,7 +2,7 @@
 // LIVE rejim: Groq chaqiruvi (system + user prompt). DRY rejim: mock() natijasi.
 // Har agent buildPrompt(), parse() va mock() ni o'zicha aniqlaydi.
 
-const { groqChat } = require('../llm/groq')
+const { chat } = require('../llm/client')
 const { config } = require('../config')
 
 class BaseAgent {
@@ -21,26 +21,30 @@ class BaseAgent {
 
   async run(context, { logger }) {
     const t0 = Date.now()
-    logger.info(this.key, `${this.icon} ${this.name} — ${this.role}…`)
+    const model = config.agentModels[this.key] || config.defaultModel
+    logger.info(this.key, `${this.icon} ${this.name} — ${this.role} [${model}]…`)
     let result
     if (config.dryRun) {
       result = this.mock(context)
       result._mock = true
     } else {
       try {
-        const { text, usage } = await groqChat([
-          { role: 'system', content: this.systemPrompt },
-          { role: 'user', content: this.buildPrompt(context) }
-        ], { json: this.json })
+        const { text, usage } = await chat({
+          system: this.systemPrompt,
+          user: this.buildPrompt(context),
+          model,
+          json: this.json
+        })
         result = this.parse(text, context) || { text }
         if (usage && usage.total_tokens) logger.metric('tokens', usage.total_tokens)
       } catch (err) {
-        logger.alert(this.key, `Groq xatosi: ${err.message}`)
+        logger.alert(this.key, `LLM xatosi: ${err.message}`)
         result = { text: `(xato) ${err.message}`, error: true }
       }
     }
+    result._model = model
     logger.metric('agentRuns', 1)
-    logger.trace('agent', { key: this.key, ms: Date.now() - t0 })
+    logger.trace('agent', { key: this.key, model, ms: Date.now() - t0 })
     return result
   }
 }

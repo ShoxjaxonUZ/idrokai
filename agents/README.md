@@ -4,8 +4,9 @@
 Bitta vazifa berasiz, Orchestrator uni 9 ta ixtisoslashgan agentga taqsimlab,
 5 bosqichda yakuniy hisobotgacha olib boradi.
 
-> **Tashqi paket YO'Q** — faqat Node.js 20+. **API kalitsiz ham ishlaydi** (DRY mock rejim);
-> `GROQ_API_KEY` qo'yilsa — real Groq (`llama-3.3-70b-versatile`) bilan.
+> **Tashqi paket YO'Q** — faqat Node.js 20+. **API kalitsiz ham ishlaydi** (DRY mock rejim).
+> LIVE rejim: **Claude (Anthropic)** — `ANTHROPIC_API_KEY` qo'ying. **Har agent o'z modeliga ega**
+> (default `claude-opus-4-8`; `.env`'da har biriga alohida model berish mumkin).
 
 ---
 
@@ -18,7 +19,7 @@ node src/index.js --dry "Eduzy backendiga login uchun rate-limiting qo'sh"
 # yoki
 npm run demo
 
-# Real Groq bilan (agents/.env da GROQ_API_KEY bo'lsa)
+# Real Claude bilan (agents/.env da ANTHROPIC_API_KEY bo'lsa)
 node src/index.js --live "..."
 ```
 
@@ -58,15 +59,30 @@ QA Reviewer · SRE Reviewer · Fix Developer · Tech Writer
 - **Qoidalar** (`policy/`) — maxfiy kalitlarni redakt qilish, sandbox tekshiruvi, compliance.
 - **Vositalar** (`tools/`) — fayl (workspace sandbox), Git (o'qish), kod skaneri.
 
-## Sozlamalar (`.env`, ixtiyoriy)
+## AI provayder va modellar
+
+LIVE rejim **Claude (Anthropic) native Messages API** orqali ishlaydi (nol bog'liqlik
+saqlanishi uchun to'g'ridan-to'g'ri, SDK'siz — OpenAI-shim emas). **Har agent o'z modelini oladi:**
 
 ```
-GROQ_API_KEY=          # bo'sh bo'lsa — DRY mock rejim
-AGENT_MODEL=llama-3.3-70b-versatile
-AGENT_TEMPERATURE=0.4
-AGENT_MAX_TOKENS=2000
-AGENT_MAX_FIX_ITER=1
+AGENT_PROVIDER=anthropic            # yoki groq
+ANTHROPIC_API_KEY=...               # LIVE uchun (bo'sh — DRY mock)
+AGENT_MODEL=claude-opus-4-8         # barcha agentlar uchun default
+
+# Har agentga alohida model (default — hammasi AGENT_MODEL):
+AGENT_MODEL_DEVELOPER=claude-opus-4-8
+AGENT_MODEL_PLANNER=claude-sonnet-4-6
+AGENT_MODEL_QA=claude-haiku-4-5
+AGENT_MODEL_SRE=claude-haiku-4-5
+# KEY'lar: INTAKE ORCHESTRATOR ARCHITECT PLANNER DEVELOPER SECURITY QA SRE FIX TECHWRITER
+
+AGENT_EFFORT=high                   # low|medium|high|max (Opus/Sonnet; Haiku'da e'tiborsiz)
+AGENT_MAX_TOKENS=8192
 ```
+
+Default — har agent `claude-opus-4-8`. Model tanlovi sizning qaroringiz; adaptiv
+fikrlash + effort faqat qo'llab-quvvatlovchi modellarga yuboriladi (Opus 4.5+/Sonnet 4.6/Fable —
+Haiku 4.5'ga emas, aks holda API 400 qaytaradi).
 
 ## Tuzilma
 

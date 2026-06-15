@@ -2,7 +2,7 @@
 // 1-bosqich (Vazifa tahlili) va 2-bosqich (Rejalashtirish) shu yerda.
 
 const { config } = require('../config')
-const { groqChat } = require('../llm/groq')
+const { chat } = require('../llm/client')
 const { extractAndParseJson } = require('../llm/jsonParse')
 
 // Qaysi intent qaysi agentlar zanjirini talab qiladi
@@ -23,10 +23,12 @@ async function analyze(ctx) {
     }
   }
   try {
-    const { text } = await groqChat([
-      { role: 'system', content: "Sen bosh muhandissan. Vazifani tahlil qil va kichik vazifalarga bo'l. FAQAT JSON: {\"understanding\":\"...\",\"subtasks\":[\"...\"]}" },
-      { role: 'user', content: ctx.task }
-    ], { json: true })
+    const { text } = await chat({
+      system: "Sen bosh muhandissan. Vazifani tahlil qil va kichik vazifalarga bo'l. FAQAT JSON: {\"understanding\":\"...\",\"subtasks\":[\"...\"]}",
+      user: ctx.task,
+      model: config.agentModels.orchestrator,
+      json: true
+    })
     const j = extractAndParseJson(text) || {}
     return { understanding: j.understanding || ctx.task, subtasks: Array.isArray(j.subtasks) ? j.subtasks : [] }
   } catch {

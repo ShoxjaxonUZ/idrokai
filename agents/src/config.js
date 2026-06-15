@@ -1,5 +1,6 @@
 // Markaziy konfiguratsiya. Tashqi paketsiz minimal .env yuklovchi bilan.
-// GROQ_API_KEY bo'lmasa — dryRun (mock) rejim avtomatik yoqiladi.
+// Provayder: anthropic (default, Claude) yoki groq. Kalit bo'lmasa — DRY (mock) rejim.
+// HAR AGENT o'z modeliga ega: AGENT_MODEL_<KEY> bilan alohida belgilanadi.
 
 const fs = require('fs')
 const path = require('path')
@@ -26,15 +27,39 @@ loadEnv()
 
 const ROOT = path.join(__dirname, '..')
 
+const provider = (process.env.AGENT_PROVIDER || 'anthropic').toLowerCase()
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY || ''
+const groqApiKey = process.env.GROQ_API_KEY || ''
+const activeKey = provider === 'groq' ? groqApiKey : anthropicApiKey
+
+// Default model (provayderga qarab). Skill: Claude default — claude-opus-4-8.
+const defaultModel = process.env.AGENT_MODEL ||
+  (provider === 'groq' ? 'llama-3.3-70b-versatile' : 'claude-opus-4-8')
+
+// Har agent o'z modeli — AGENT_MODEL_<KEY> bilan alohida, aks holda defaultModel.
+const AGENT_KEYS = ['intake', 'orchestrator', 'architect', 'planner', 'developer',
+  'security', 'qa', 'sre', 'fix', 'techwriter']
+const agentModels = {}
+for (const k of AGENT_KEYS) {
+  agentModels[k] = process.env['AGENT_MODEL_' + k.toUpperCase()] || defaultModel
+}
+
 const config = {
   root: ROOT,
-  model: process.env.AGENT_MODEL || 'llama-3.3-70b-versatile',
-  apiKey: process.env.GROQ_API_KEY || '',
-  // Kalit bo'lmasa mock rejim. index.js buni --live/--dry flag bilan bekor qila oladi.
-  dryRun: !process.env.GROQ_API_KEY,
+  provider,
+  anthropicApiKey,
+  groqApiKey,
+  defaultModel,
+  agentModels,
+  effort: process.env.AGENT_EFFORT || 'high',   // low | medium | high | max (Opus/Sonnet)
+  // Groq orqaga-moslik uchun (llm/groq.js shularni o'qiydi):
+  model: defaultModel,
+  apiKey: groqApiKey,
   temperature: Number(process.env.AGENT_TEMPERATURE || 0.4),
-  maxTokens: Number(process.env.AGENT_MAX_TOKENS || 2000),
+  maxTokens: Number(process.env.AGENT_MAX_TOKENS || 8192),
   maxFixIterations: Number(process.env.AGENT_MAX_FIX_ITER || 1),
+  // Faol provayder kaliti bo'lmasa — mock rejim. index.js --live/--dry bilan bekor qiladi.
+  dryRun: !activeKey,
   workspaceDir: path.join(ROOT, 'workspace'),
   runsDir: path.join(ROOT, '.runs')
 }

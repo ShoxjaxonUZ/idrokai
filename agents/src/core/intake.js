@@ -2,7 +2,7 @@
 // LIVE: tezkor LLM tasnifi. DRY: kalit-so'z evristikasi.
 
 const { config } = require('../config')
-const { groqChat } = require('../llm/groq')
+const { chat } = require('../llm/client')
 const { extractAndParseJson } = require('../llm/jsonParse')
 
 function guessAreas(task) {
@@ -28,10 +28,12 @@ async function intake(task) {
     return { intent: heuristicIntent(task), complexity: task.length > 80 ? 'high' : 'medium', areas: guessAreas(task), summary: task.slice(0, 120) }
   }
   try {
-    const { text } = await groqChat([
-      { role: 'system', content: "So'rovni tasnifla. FAQAT JSON: {\"intent\":\"feature|bugfix|security|docs|question\",\"complexity\":\"low|medium|high\",\"areas\":[\"backend|frontend|db\"],\"summary\":\"...\"}" },
-      { role: 'user', content: task }
-    ], { json: true })
+    const { text } = await chat({
+      system: "So'rovni tasnifla. FAQAT JSON: {\"intent\":\"feature|bugfix|security|docs|question\",\"complexity\":\"low|medium|high\",\"areas\":[\"backend|frontend|db\"],\"summary\":\"...\"}",
+      user: task,
+      model: config.agentModels.intake,
+      json: true
+    })
     const j = extractAndParseJson(text) || {}
     return {
       intent: ['feature', 'bugfix', 'security', 'docs', 'question'].includes(j.intent) ? j.intent : heuristicIntent(task),
