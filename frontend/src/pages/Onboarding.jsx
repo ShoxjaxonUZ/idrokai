@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Sparkles, ArrowRight, ArrowLeft, CheckCircle2, Bot,
-  Target, Clock, Briefcase, Loader2, BookOpen, Star, Trophy
+  Target, Clock, Briefcase, Loader2, BookOpen, Star, Trophy, AlertCircle
 } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import '../styles/onboarding.css'
@@ -47,12 +47,29 @@ const QUESTIONS = {
   }
 }
 
+// answers maydoni -> QUESTIONS kaliti
+const fieldKeyMap = {
+  goal: 'goal',
+  field: 'preferredField',
+  time: 'availableTime'
+}
+
+// localStorage'ni xavfsiz o'qish (buzilgan JSON crash qilmasin)
+const safeUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user'))
+  } catch {
+    return null
+  }
+}
+
 function Onboarding() {
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user'))
+  const user = safeUser()
   const token = localStorage.getItem('token')
 
   const [step, setStep] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [answers, setAnswers] = useState({
     goal: '',
     preferredField: '',
@@ -61,11 +78,16 @@ function Onboarding() {
 
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const advanceTimer = useRef(null)
 
   useEffect(() => {
     if (!user) { navigate('/login'); return }
     document.title = "Konsultatsiya — Eduzy"
     checkStatus()
+    // unmount'da auto-advance timeout'ini tozalash
+    return () => clearTimeout(advanceTimer.current)
   }, [])
 
   const checkStatus = async () => {
@@ -76,46 +98,45 @@ function Onboarding() {
       const data = await res.json()
       if (data.onboarded) {
         navigate('/')
+        return
       }
     } catch {}
+    setLoading(false)
   }
 
   const currentStepName = STEPS[step]
   const totalSteps = STEPS.length - 2 // welcome va result hisobga olinmaydi
-  const progress = step === 0 ? 0 : Math.min(100, ((step) / totalSteps) * 100)
+
+  // Progress — javob berilgan savollar soniga qarab (oldindan 100% bo'lmasin)
+  const answeredCount = [answers.goal, answers.preferredField, answers.availableTime].filter(Boolean).length
+  const progress = Math.min(100, (answeredCount / totalSteps) * 100)
 
   const next = () => setStep(s => s + 1)
-  const back = () => setStep(s => Math.max(0, s - 1))
-
-  const fieldKeyMap = {
-    goal: 'goal',
-    field: 'preferredField',
-    time: 'availableTime'
+  const back = () => {
+    clearTimeout(advanceTimer.current)
+    setStep(s => Math.max(0, s - 1))
   }
 
   const isLastQuestion = currentStepName === 'time'
 
-  const selectOption = (questionKey, value, isMultiple = false) => {
-    if (isMultiple) {
-      setAnswers(prev => {
-        const current = prev[questionKey] || []
-        const exists = current.includes(value)
-        return {
-          ...prev,
-          [questionKey]: exists ? current.filter(v => v !== value) : [...current, value]
-        }
-      })
-    } else {
-      setAnswers(prev => ({ ...prev, [questionKey]: value }))
-      // Oxirgi savol bo'lmasa avtomatik keyingi
-      if (!isLastQuestion) {
-        setTimeout(() => next(), 300)
-      }
+  const selectOption = (questionKey, value) => {
+    setAnswers(prev => ({ ...prev, [questionKey]: value }))
+    // Oxirgi savol bo'lmasa avtomatik keyingi (timeout himoyalangan)
+    if (!isLastQuestion) {
+      clearTimeout(advanceTimer.current)
+      advanceTimer.current = setTimeout(() => next(), 300)
     }
+  }
+
+  // value -> inson o'qiydigan label (AI'ga aniq matn yuborish uchun)
+  const labelFor = (questionKey, value) => {
+    const q = QUESTIONS[questionKey]
+    return q?.options.find(o => o.value === value)?.label || value
   }
 
   const completeOnboarding = async () => {
     setSubmitting(true)
+    setError('')
     try {
       const res = await fetch(`${API_URL}/api/onboarding/complete`, {
         method: 'POST',
@@ -123,17 +144,36 @@ function Onboarding() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ ...answers, chatHistory: '' })
+        body: JSON.stringify({
+          goal: labelFor('goal', answers.goal),
+          preferredField: labelFor('field', answers.preferredField),
+          availableTime: labelFor('time', answers.availableTime),
+          chatHistory: ''
+        })
       })
       const data = await res.json()
       if (res.ok) {
         setResult(data)
         next()
+      } else {
+        setError(data.message || 'Tavsiyalarni olishda xatolik yuz berdi. Qayta urinib ko\'ring.')
       }
-    } catch (err) {
-      console.error(err)
+    } catch {
+      setError('Internet aloqasi bilan muammo. Qayta urinib ko\'ring.')
     }
     setSubmitting(false)
+  }
+
+  // ============ LOADING ============
+  if (loading) {
+    return (
+      <div className="onb-page">
+        <div className="onb-bg-glow"></div>
+        <div className="onb-loading">
+          <Loader2 size={40} className="spin" color="var(--primary)" />
+        </div>
+      </div>
+    )
   }
 
   // ============ WELCOME ============
@@ -175,7 +215,12 @@ function Onboarding() {
   }
 
   // ============ RESULT ============
-  if (currentStepName === 'result' && result) {
+  if (currentStepName === 'result') {
+    // Natija yo'q bo'lsa oq ekran o'rniga bosh sahifaga qaytaramiz
+    if (!result) {
+      navigate('/')
+      return null
+    }
     return (
       <div className="onb-page">
         <div className="onb-bg-glow"></div>
@@ -249,10 +294,9 @@ function Onboarding() {
   if (!question) return null
 
   const QIcon = question.Icon
-  const isMultiple = question.multiple
   const fieldKey = fieldKeyMap[currentStepName]
   const currentValue = answers[fieldKey]
-  const canContinue = isMultiple ? (currentValue?.length > 0) : !!currentValue
+  const canContinue = !!currentValue
 
   return (
     <div className="onb-page">
@@ -272,17 +316,14 @@ function Onboarding() {
         <h2 className="onb-question-title">{question.title}</h2>
         <p className="onb-question-sub">{question.subtitle}</p>
 
-        <div className={`onb-options ${isMultiple ? 'onb-options-multi' : ''}`}>
+        <div className="onb-options">
           {question.options.map(opt => {
-            const isSelected = isMultiple
-              ? currentValue?.includes(opt.value)
-              : currentValue === opt.value
-
+            const isSelected = currentValue === opt.value
             return (
               <button
                 key={opt.value}
                 className={`onb-option ${isSelected ? 'onb-option-active' : ''}`}
-                onClick={() => selectOption(fieldKey, opt.value, isMultiple)}
+                onClick={() => selectOption(fieldKey, opt.value)}
               >
                 <div className="onb-option-text">
                   <div className="onb-option-label">{opt.label}</div>
@@ -294,12 +335,17 @@ function Onboarding() {
           })}
         </div>
 
+        {error && (
+          <div className="onb-error">
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </div>
+        )}
+
         <div className="onb-nav">
-          {step > 1 && (
-            <button className="btn-outline" onClick={back}>
-              <ArrowLeft size={16} /> Orqaga
-            </button>
-          )}
+          <button className="btn-outline" onClick={back}>
+            <ArrowLeft size={16} /> Orqaga
+          </button>
 
           {/* Oxirgi savol — Tavsiyalarni olish tugmasi */}
           {isLastQuestion && canContinue && (
@@ -314,18 +360,6 @@ function Onboarding() {
               ) : (
                 <><Sparkles size={18} /> Tavsiyalarni olish</>
               )}
-            </button>
-          )}
-
-          {/* Multiple — Keyingi tugmasi */}
-          {isMultiple && !isLastQuestion && (
-            <button
-              className="btn-primary"
-              onClick={next}
-              disabled={!canContinue}
-              style={{ marginLeft: 'auto' }}
-            >
-              Keyingi <ArrowRight size={16} />
             </button>
           )}
         </div>

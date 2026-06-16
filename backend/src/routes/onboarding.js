@@ -46,18 +46,28 @@ router.post('/complete', auth, async (req, res) => {
     const preferredField = cleanString(req.body.preferredField, 50)
     const chatHistory = cleanString(req.body.chatHistory, MAX_CHAT_HISTORY_LEN)
 
+    // Minimal validatsiya — bo'sh profil bilan onboarding tugatilmasin
+    if (!goal && !preferredField && !availableTime) {
+      return res.status(400).json({ message: 'Iltimos, savollarga javob bering' })
+    }
+
     const coursesRes = await pool.query('SELECT id, title, category, daraja, description FROM courses')
     const allCourses = coursesRes.rows
+
+    // Faqat mavjud (bo'sh bo'lmagan) maydonlarni promptga qo'shamiz
+    const userInfo = [
+      ageGroup && `- Yosh guruhi: ${ageGroup}`,
+      goal && `- Maqsad: ${goal}`,
+      experience && `- Tajriba: ${experience}`,
+      interests.length && `- Qiziqishlari: ${interests.join(', ')}`,
+      availableTime && `- Mavjud vaqt (kunlik): ${availableTime}`,
+      preferredField && `- Afzal soha: ${preferredField}`
+    ].filter(Boolean).join('\n')
 
     const prompt = `Sen Eduzy ta'lim platformasining konsultantsisan. Foydalanuvchining ma'lumotlariga qarab eng mos KURSLARNI tavsiya qil.
 
 FOYDALANUVCHI MA'LUMOTLARI:
-- Yosh guruhi: ${ageGroup}
-- Maqsad: ${goal}
-- Tajriba: ${experience}
-- Qiziqishlari: ${interests.join(', ')}
-- Mavjud vaqt (kunlik): ${availableTime}
-- Afzal soha: ${preferredField}
+${userInfo}
 
 ${chatHistory ? `\nQO'SHIMCHA SUHBAT:\n${chatHistory}` : ''}
 
