@@ -83,7 +83,7 @@ function AITeacher() {
       // oshib QuotaExceededError bermasligi uchun. Sessiya davomida rasm state'da
       // qoladi, sahifa yangilangach faqat matn tarixi tiklanadi.
       try {
-        const slim = messages.map(({ image, ...rest }) => rest)
+        const slim = messages.map(({ image: _image, ...rest }) => rest)
         localStorage.setItem(`ai_chat_${user.id}`, JSON.stringify(slim))
       } catch {}
     }
