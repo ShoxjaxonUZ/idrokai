@@ -74,6 +74,13 @@ function Lesson() {
     const [aiInput, setAiInput] = useState('')
     const [aiSending, setAiSending] = useState(false)
     const [aiRemaining, setAiRemaining] = useState(null)
+    const aiBodyRef = useRef(null)
+
+    // Yangi xabar kelganda AI panelni pastga (oxirgi javobga) suramiz
+    useEffect(() => {
+        const el = aiBodyRef.current
+        if (el) el.scrollTop = el.scrollHeight
+    }, [aiMessages, aiSending])
 
     const askLessonAI = async () => {
         const q = aiInput.trim()
@@ -575,7 +582,7 @@ function Lesson() {
                                     <span className="lesson-ai-limit">{aiRemaining} ta qoldi</span>
                                 )}
                             </div>
-                            <div className="lesson-ai-body">
+                            <div className="lesson-ai-body" ref={aiBodyRef}>
                                 {aiMessages.length === 0 ? (
                                     <div className="lesson-ai-empty">
                                         <Sparkles size={26} />

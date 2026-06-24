@@ -206,7 +206,8 @@
   gap: 16px;
   align-items: stretch;
 }
-.lesson-stage .lesson-video-wrap { flex: 1 1 auto; min-width: 0; }
+/* Video 16:9 nisbatini saqlaydi — AI panel uzun bo'lsa ham cho'zilmaydi */
+.lesson-stage .lesson-video-wrap { flex: 1 1 auto; min-width: 0; align-self: flex-start; }
 
 .lesson-ai {
   flex: 0 0 340px;
@@ -217,6 +218,7 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   min-height: 320px;
+  max-height: 520px;
 }
 .lesson-ai-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -227,7 +229,7 @@
 .lesson-ai-title { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 14px; color: var(--text); }
 .lesson-ai-title svg { color: var(--primary); }
 .lesson-ai-limit { font-size: 11px; color: var(--text-muted); background: var(--primary-bg); padding: 3px 8px; border-radius: 999px; }
-.lesson-ai-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.lesson-ai-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .lesson-ai-empty { margin: auto; text-align: center; color: var(--text-muted); padding: 16px; }
 .lesson-ai-empty svg { color: var(--primary); opacity: .7; margin-bottom: 8px; }
 .lesson-ai-empty p { font-size: 14px; color: var(--text-soft); margin-bottom: 6px; }
@@ -253,7 +255,8 @@
 
 @media (max-width: 900px) {
   .lesson-stage { flex-direction: column; }
-  .lesson-ai { flex: 1 1 auto; min-height: 380px; }
+  .lesson-stage .lesson-video-wrap { align-self: stretch; }
+  .lesson-ai { flex: 1 1 auto; min-height: 380px; max-height: 460px; }
 }
 
 .lesson-no-video {
