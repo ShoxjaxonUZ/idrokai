@@ -37,6 +37,9 @@ export default defineConfig([
       // Klassik 'rules-of-hooks' va 'exhaustive-deps' yoqilgan holicha qoladi.
       'react-hooks/immutability': 'off',
       'react-hooks/purity': 'off',
+      // refs: render vaqtida ref.current = value yozish klassik React'da ruxsat etilgan
+      // (React Compiler uchun qo'shimcha cheklov, bu loyihada Compiler yo'q)
+      'react-hooks/refs': 'off',
       // Context fayllari provider + hook eksport qiladi — HMR'ga ta'sir qiladi, bug emas
       'react-refresh/only-export-components': 'warn',
     },

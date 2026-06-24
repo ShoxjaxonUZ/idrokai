@@ -58,7 +58,7 @@ function Pricing() {
 
   const fmt = (n) => (Number(n) || 0).toLocaleString('uz-UZ')
 
-  const choosePlan = (plan) => {
+  const choosePlan = (_plan) => {
     if (!user) {
       navigate('/register', { state: { from: { pathname: '/pricing' } } })
       return
