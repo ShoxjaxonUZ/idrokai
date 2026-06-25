@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { MessageCircle, Send, ArrowLeft, Users } from 'lucide-react'
 import { API_URL, apiGet, apiPost, getUser } from '../lib/api'
@@ -42,7 +42,7 @@ function Messages() {
 
   const bottomRef = useRef(null)
   const activeRef = useRef(activeId)
-  activeRef.current = activeId
+  useLayoutEffect(() => { activeRef.current = activeId })
 
   const loadConversations = useCallback(async () => {
     try {
