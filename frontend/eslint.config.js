@@ -37,6 +37,10 @@ export default defineConfig([
       // Klassik 'rules-of-hooks' va 'exhaustive-deps' yoqilgan holicha qoladi.
       'react-hooks/immutability': 'off',
       'react-hooks/purity': 'off',
+      // activeRef.current = value render ichida — SSE callback'lar uchun ataylab
+      // ishlatilgan "latest ref" pattern. react-hooks/refs bu naqshni taqiqlaydi,
+      // lekin React docs'da ruxsat etilgan (useRef sync pattern).
+      'react-hooks/refs': 'off',
       // Context fayllari provider + hook eksport qiladi — HMR'ga ta'sir qiladi, bug emas
       'react-refresh/only-export-components': 'warn',
     },
