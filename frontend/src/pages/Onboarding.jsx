@@ -16,7 +16,7 @@ const QUESTIONS = {
     subtitle: "Eduzy'dan nimaga erishmoqchisiz?",
     Icon: Target,
     options: [
-      { value: 'kasb', label: 'Yangi kasb egallash', desc: 'IT, dizayn, biznes va boshqalar' },
+      { value: 'kasb', label: 'Yangi kasb egallash', desc: 'IT, dizayn va boshqalar' },
       { value: 'maktab', label: 'Maktab yoki Universitet', desc: "O'qishimga yordam kerak" },
       { value: 'karyera', label: "O'sish va sertifikat", desc: 'Yuqori darajaga ko\'tarilish' },
       { value: 'qiziqish', label: "Yangi narsa o'rganish", desc: 'Hobbi va qiziqish uchun' }
@@ -24,14 +24,14 @@ const QUESTIONS = {
   },
   field: {
     title: 'Qaysi soha sizga yoqadi?',
-    subtitle: "Asosiy yo'nalishni tanlang",
+    subtitle: "Mavjud yo'nalishlardan birini tanlang",
     Icon: Briefcase,
+    // Variantlar haqiqiy kurs kategoriyalaridan dinamik yuklanadi (pastdagi fetch).
+    // Bu — zaxira ro'yxat (kurslar yuklanmasa ishlatiladi).
     options: [
-      { value: 'dasturlash', label: 'Dasturlash', desc: 'Web, mobil va AI' },
-      { value: 'dizayn', label: 'Dizayn', desc: 'UI/UX va grafika' },
-      { value: 'biznes', label: 'Biznes', desc: 'Marketing va boshqaruv' },
-      { value: 'matematika', label: 'Matematika va fan', desc: 'Hisoblash va fizika' },
-      { value: 'til', label: "Til o'rganish", desc: 'Ingliz tili va boshqalar' }
+      { value: 'Dasturlash', label: 'Dasturlash', desc: 'Web, mobil va AI' },
+      { value: 'Matematika', label: 'Matematika', desc: 'Hisoblash, algebra, fizika' },
+      { value: 'Til', label: "Til o'rganish", desc: 'Ingliz tili va boshqalar' }
     ]
   },
   time: {
@@ -53,6 +53,19 @@ const fieldKeyMap = {
   field: 'preferredField',
   time: 'availableTime'
 }
+
+// Kategoriya nomiga qarab chiroyli tavsif (dinamik soha variantlari uchun)
+const FIELD_META = {
+  dasturlash: 'Web, mobil va AI',
+  matematika: 'Hisoblash, algebra, fizika',
+  fan: 'Tabiiy va aniq fanlar',
+  til: 'Ingliz tili va boshqa tillar',
+  dizayn: 'UI/UX va grafika',
+  biznes: 'Marketing va boshqaruv',
+  marketing: 'SMM va reklama'
+}
+const descForField = (cat) =>
+  FIELD_META[(cat || '').toLowerCase()] || 'Shu yo\'nalishdagi kurslar'
 
 // localStorage'ni xavfsiz o'qish (buzilgan JSON crash qilmasin)
 const safeUser = () => {
@@ -79,6 +92,7 @@ function Onboarding() {
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [fieldOptions, setFieldOptions] = useState([])
 
   const advanceTimer = useRef(null)
 
@@ -86,9 +100,32 @@ function Onboarding() {
     if (!user) { navigate('/login'); return }
     document.title = "Konsultatsiya — Eduzy"
     checkStatus()
+    loadFields()
     // unmount'da auto-advance timeout'ini tozalash
     return () => clearTimeout(advanceTimer.current)
   }, [])
+
+  // Soha variantlarini haqiqiy kurs kategoriyalaridan yuklash —
+  // foydalanuvchi faqat KURSI BOR yo'nalishni tanlay oladi (tavsiya doim mos keladi).
+  const loadFields = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/teacher/all-courses`)
+      const data = await res.json()
+      if (!Array.isArray(data)) return
+      const cats = [...new Set(
+        data.map(c => (c.category || '').trim()).filter(Boolean)
+      )]
+      if (cats.length) {
+        setFieldOptions(cats.map(cat => ({
+          value: cat,
+          label: cat,
+          desc: descForField(cat)
+        })))
+      }
+    } catch {
+      // Zaxira (statik) variantlar ishlatiladi
+    }
+  }
 
   const checkStatus = async () => {
     try {
@@ -146,7 +183,8 @@ function Onboarding() {
         },
         body: JSON.stringify({
           goal: labelFor('goal', answers.goal),
-          preferredField: labelFor('field', answers.preferredField),
+          // Soha qiymati allaqachon haqiqiy kategoriya nomi — to'g'ridan-to'g'ri yuboriladi
+          preferredField: answers.preferredField,
           availableTime: labelFor('time', answers.availableTime),
           chatHistory: ''
         })
@@ -290,7 +328,10 @@ function Onboarding() {
   }
 
   // ============ TEST QUESTIONS ============
-  const question = QUESTIONS[currentStepName]
+  // Soha bosqichida variantlar dinamik (haqiqiy kategoriyalar) ishlatiladi
+  const question = currentStepName === 'field' && fieldOptions.length
+    ? { ...QUESTIONS.field, options: fieldOptions }
+    : QUESTIONS[currentStepName]
   if (!question) return null
 
   const QIcon = question.Icon
