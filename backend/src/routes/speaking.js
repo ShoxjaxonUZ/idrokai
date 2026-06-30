@@ -33,18 +33,66 @@ Return ONLY JSON, nothing else:
 {"reply": "<your short spoken reply in ${p.langName}>", "tip": "<optional one short gentle correction written in Uzbek, or empty string>"}`
 }
 
+// LLM suhbat — userText (yoki start) → {reply, tip}. /talk va /chat shuni ishlatadi.
+async function converse({ lang, userText, history, start }) {
+  const persona = PERSONAS[lang] || PERSONAS.en
+  const messages = [{ role: 'system', content: systemPrompt(persona) }]
+  for (const m of (Array.isArray(history) ? history.slice(-10) : [])) {
+    if (m && m.text && (m.role === 'user' || m.role === 'ai')) {
+      messages.push({ role: m.role === 'ai' ? 'assistant' : 'user', content: String(m.text).slice(0, 500) })
+    }
+  }
+  messages.push({
+    role: 'user',
+    content: start
+      ? '(The learner just opened the app. Greet them warmly and ask one easy opening question.)'
+      : userText
+  })
+
+  const gr = await groqFetch({
+    model: 'llama-3.3-70b-versatile',
+    messages,
+    temperature: 0.7,
+    max_tokens: 220
+  })
+  if (!gr.ok) { const e = new Error('AI band'); e.status = 502; throw e }
+
+  const data = await gr.json()
+  const text = data.choices?.[0]?.message?.content || ''
+  const parsed = extractAndParseJson(text) || {}
+  return {
+    reply: String(parsed.reply || text || '').slice(0, 500).trim(),
+    tip: String(parsed.tip || '').slice(0, 200).trim()
+  }
+}
+
+function parseHistory(raw) {
+  try { const h = JSON.parse(raw || '[]'); return Array.isArray(h) ? h : [] } catch { return [] }
+}
+
+// POST /api/speaking/chat — matnli (jonli brauzer STT uchun, eng tez)
+router.post('/chat', auth, async (req, res) => {
+  try {
+    const lang = req.body.lang === 'ru' ? 'ru' : 'en'
+    const start = req.body.start === true || req.body.start === 'true'
+    const userText = String(req.body.text || '').trim().slice(0, 1000)
+    if (!start && !userText) return res.status(400).json({ message: 'Matn yo\'q' })
+
+    const { reply, tip } = await converse({ lang, userText, history: req.body.history, start })
+    res.json({ userText, reply, tip })
+  } catch (err) {
+    if (err.status === 502) return res.status(502).json({ message: 'AI band — qayta urinib ko\'ring.' })
+    console.error('[speaking] chat error:', err.message)
+    res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// POST /api/speaking/talk — audio (Whisper STT, brauzer SpeechRecognition'ni qo'llamasa fallback)
 router.post('/talk', auth, upload.single('audio'), async (req, res) => {
   try {
     const lang = req.body.lang === 'ru' ? 'ru' : 'en'
-    const persona = PERSONAS[lang]
     const start = req.body.start === 'true' || req.body.start === '1'
 
-    let history = []
-    try { history = JSON.parse(req.body.history || '[]') } catch {}
-    if (!Array.isArray(history)) history = []
-    history = history.slice(-10)
-
-    // 1) Foydalanuvchi nutqini matnga aylantirish (start bo'lmasa)
     let userText = ''
     if (!start) {
       if (!req.file) return res.status(400).json({ message: "Audio yo'q" })
@@ -65,36 +113,10 @@ router.post('/talk', auth, upload.single('audio'), async (req, res) => {
       }
     }
 
-    // 2) LLM suhbat
-    const messages = [{ role: 'system', content: systemPrompt(persona) }]
-    for (const m of history) {
-      if (m && m.text && (m.role === 'user' || m.role === 'ai')) {
-        messages.push({ role: m.role === 'ai' ? 'assistant' : 'user', content: String(m.text).slice(0, 500) })
-      }
-    }
-    messages.push({
-      role: 'user',
-      content: start
-        ? '(The learner just opened the app. Greet them warmly and ask one easy opening question.)'
-        : userText
-    })
-
-    const gr = await groqFetch({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      temperature: 0.7,
-      max_tokens: 220
-    })
-    if (!gr.ok) return res.status(502).json({ message: 'AI band — qayta urinib ko\'ring.' })
-
-    const data = await gr.json()
-    const text = data.choices?.[0]?.message?.content || ''
-    const parsed = extractAndParseJson(text) || {}
-    const reply = String(parsed.reply || text || '').slice(0, 500).trim()
-    const tip = String(parsed.tip || '').slice(0, 200).trim()
-
+    const { reply, tip } = await converse({ lang, userText, history: parseHistory(req.body.history), start })
     res.json({ userText, reply, tip })
   } catch (err) {
+    if (err.status === 502) return res.status(502).json({ message: 'AI band — qayta urinib ko\'ring.' })
     console.error('[speaking] error:', err.message)
     res.status(500).json({ message: 'Server xatosi' })
   }

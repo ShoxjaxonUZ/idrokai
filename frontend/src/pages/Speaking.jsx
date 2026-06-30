@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Mic, Square, Loader2, Volume2, Sparkles, RotateCcw, MessageCircle } from 'lucide-react'
+import { Mic, Pause, Loader2, Volume2, Sparkles, RotateCcw, MessageCircle, Play } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
 import '../styles/speaking.css'
@@ -9,133 +9,224 @@ const LANGS = {
     ru: { label: 'Русский', persona: 'Anya', flag: '🇷🇺', voice: 'ru-RU' }
 }
 
-const FILE_EXT = { 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'mp4' }
+const SR = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
 
 function Speaking() {
     const [lang, setLang] = useState('en')
-    const [messages, setMessages] = useState([]) // {role:'user'|'ai', text, tip?}
-    const [recording, setRecording] = useState(false)
-    const [processing, setProcessing] = useState(false)
+    const [messages, setMessages] = useState([]) // {role, text, tip?}
+    const [status, setStatus] = useState('idle') // idle | listening | thinking | speaking
+    const [interim, setInterim] = useState('')
     const [started, setStarted] = useState(false)
     const [error, setError] = useState('')
 
-    const mediaRef = useRef(null)
-    const chunksRef = useRef([])
-    const streamRef = useRef(null)
+    // Stale-closure'dan qochish uchun ref'lar
+    const liveRef = useRef(false)       // suhbat loop faolmi
+    const langRef = useRef('en')
+    const messagesRef = useRef([])
+    const recRef = useRef(null)
+    const finalRef = useRef('')
+    const speakingRef = useRef(false)
+    const processingRef = useRef(false)
     const bodyRef = useRef(null)
 
     const token = localStorage.getItem('token')
 
-    // Suhbat o'sganda pastga surish
+    useEffect(() => { langRef.current = lang }, [lang])
+    useEffect(() => { messagesRef.current = messages }, [messages])
+
     useEffect(() => {
         const el = bodyRef.current
         if (el) el.scrollTop = el.scrollHeight
-    }, [messages, processing])
+    }, [messages, interim, status])
 
-    // Sahifadan chiqqanda ovozni to'xtatish
-    useEffect(() => () => {
-        try { window.speechSynthesis?.cancel() } catch {}
-        streamRef.current?.getTracks().forEach(t => t.stop())
+    // Brauzer ovozlarini oldindan yuklash
+    useEffect(() => {
+        try { window.speechSynthesis?.getVoices() } catch {}
     }, [])
 
+    // Tozalash
+    useEffect(() => () => {
+        liveRef.current = false
+        try { recRef.current?.abort() } catch {}
+        try { window.speechSynthesis?.cancel() } catch {}
+    }, [])
+
+    // ---- TTS: AI javobini ovozli aytish ----
     const speak = (text) => {
-        if (!text || !window.speechSynthesis) return
+        if (!text || !window.speechSynthesis) { afterSpeak(); return }
         try {
             window.speechSynthesis.cancel()
             const u = new SpeechSynthesisUtterance(text)
-            u.lang = LANGS[lang].voice
+            u.lang = LANGS[langRef.current].voice
             u.rate = 0.95
             const vs = window.speechSynthesis.getVoices()
-            const match = vs.find(v => v.lang === LANGS[lang].voice) || vs.find(v => v.lang?.startsWith(lang))
-            if (match) u.voice = match
+            const m = vs.find(v => v.lang === u.lang) || vs.find(v => v.lang?.startsWith(langRef.current))
+            if (m) u.voice = m
+            speakingRef.current = true
+            setStatus('speaking')
+            u.onend = () => { speakingRef.current = false; afterSpeak() }
+            u.onerror = () => { speakingRef.current = false; afterSpeak() }
             window.speechSynthesis.speak(u)
-        } catch {}
+        } catch {
+            speakingRef.current = false
+            afterSpeak()
+        }
     }
 
-    // Backend bilan bitta almashinuv (audio yoki start)
-    const sendTurn = async ({ audioBlob = null, start = false }) => {
-        setProcessing(true)
-        setError('')
+    // AI gapirib bo'lgach — yana tinglashga o'tish
+    const afterSpeak = () => {
+        if (liveRef.current) startListening()
+        else setStatus('idle')
+    }
+
+    // ---- Tinglash (jonli STT) ----
+    const startListening = () => {
+        if (!SR || !liveRef.current || speakingRef.current || processingRef.current) return
         try {
-            const fd = new FormData()
-            fd.append('lang', lang)
-            fd.append('history', JSON.stringify(messages.map(m => ({ role: m.role, text: m.text }))))
-            if (start) fd.append('start', 'true')
-            if (audioBlob) {
-                const ext = FILE_EXT[audioBlob.type.split(';')[0]] || 'webm'
-                fd.append('audio', audioBlob, `audio.${ext}`)
+            const rec = new SR()
+            recRef.current = rec
+            rec.lang = LANGS[langRef.current].voice
+            rec.continuous = false
+            rec.interimResults = true
+            finalRef.current = ''
+
+            rec.onresult = (e) => {
+                let interimTxt = ''
+                let finalTxt = ''
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const t = e.results[i][0].transcript
+                    if (e.results[i].isFinal) finalTxt += t
+                    else interimTxt += t
+                }
+                if (finalTxt) finalRef.current += finalTxt
+                setInterim(interimTxt || finalRef.current)
             }
 
-            const res = await fetch(`${API_URL}/api/speaking/talk`, {
+            rec.onerror = (e) => {
+                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                    setError('Mikrofonga ruxsat berilmadi. Brauzer sozlamasidan ruxsat bering.')
+                    stopConversation()
+                }
+            }
+
+            rec.onend = () => {
+                const said = finalRef.current.trim()
+                setInterim('')
+                if (said) {
+                    handleUserText(said)
+                } else if (liveRef.current && !speakingRef.current && !processingRef.current) {
+                    // Jim — tinglashda davom etamiz
+                    setTimeout(() => startListening(), 250)
+                }
+            }
+
+            setStatus('listening')
+            rec.start()
+        } catch {
+            // Ba'zi brauzerlar tez-tez start/stop'da xato beradi — biroz kutib qayta
+            setTimeout(() => { if (liveRef.current && !speakingRef.current) startListening() }, 400)
+        }
+    }
+
+    // ---- Foydalanuvchi gapi tayyor → AI javobi ----
+    const handleUserText = async (text) => {
+        processingRef.current = true
+        setStatus('thinking')
+        setError('')
+        setMessages(prev => [...prev, { role: 'user', text }])
+        try {
+            const res = await fetch(`${API_URL}/api/speaking/chat`, {
                 method: 'POST',
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-                body: fd
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({
+                    lang: langRef.current,
+                    text,
+                    history: messagesRef.current.map(m => ({ role: m.role, text: m.text }))
+                })
             })
             const data = await res.json().catch(() => ({}))
-
+            processingRef.current = false
             if (!res.ok) {
-                setError(data.message || 'Xatolik yuz berdi')
-                setProcessing(false)
+                setError(data.message || 'Xatolik')
+                if (liveRef.current) startListening()
                 return
             }
-
-            setMessages(prev => {
-                const next = [...prev]
-                if (data.userText) next.push({ role: 'user', text: data.userText })
-                if (data.reply) next.push({ role: 'ai', text: data.reply, tip: data.tip })
-                return next
-            })
+            if (data.reply) setMessages(prev => [...prev, { role: 'ai', text: data.reply, tip: data.tip }])
             speak(data.reply)
         } catch {
+            processingRef.current = false
             setError('Server bilan bog\'lanib bo\'lmadi')
+            if (liveRef.current) startListening()
         }
-        setProcessing(false)
     }
 
+    // ---- Suhbatni boshlash (AI salomlashadi) ----
     const beginSession = async () => {
+        if (!SR) { setError('Brauzer jonli nutqni qo\'llamaydi. Chrome yoki Edge ishlating.'); return }
         setStarted(true)
         setMessages([])
-        await sendTurn({ start: true })
-    }
-
-    const startRecording = async () => {
-        if (recording || processing) return
+        liveRef.current = true
+        processingRef.current = true
+        setStatus('thinking')
         setError('')
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-            streamRef.current = stream
-            const mr = new MediaRecorder(stream)
-            chunksRef.current = []
-            mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
-            mr.onstop = async () => {
-                streamRef.current?.getTracks().forEach(t => t.stop())
-                const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
-                if (blob.size > 1000) await sendTurn({ audioBlob: blob })
-                else setError('Ovoz juda qisqa — biroz uzunroq gapiring')
+            const res = await fetch(`${API_URL}/api/speaking/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                body: JSON.stringify({ lang: langRef.current, start: true, history: [] })
+            })
+            const data = await res.json().catch(() => ({}))
+            processingRef.current = false
+            if (res.ok && data.reply) {
+                setMessages([{ role: 'ai', text: data.reply, tip: data.tip }])
+                speak(data.reply)
+            } else {
+                setError(data.message || 'Boshlab bo\'lmadi')
             }
-            mediaRef.current = mr
-            mr.start()
-            setRecording(true)
-            try { window.speechSynthesis?.cancel() } catch {}
         } catch {
-            setError('Mikrofonga ruxsat berilmadi. Brauzer sozlamasidan ruxsat bering.')
+            processingRef.current = false
+            setError('Server bilan bog\'lanib bo\'lmadi')
         }
     }
 
-    const stopRecording = () => {
-        if (!recording) return
-        setRecording(false)
-        try { mediaRef.current?.stop() } catch {}
+    // Pauza / davom
+    const toggleLive = () => {
+        if (liveRef.current) {
+            liveRef.current = false
+            try { recRef.current?.abort() } catch {}
+            try { window.speechSynthesis?.cancel() } catch {}
+            speakingRef.current = false
+            setStatus('idle')
+            setInterim('')
+        } else {
+            liveRef.current = true
+            startListening()
+        }
+    }
+
+    const stopConversation = () => {
+        liveRef.current = false
+        try { recRef.current?.abort() } catch {}
+        try { window.speechSynthesis?.cancel() } catch {}
+        speakingRef.current = false
+        setStatus('idle')
+        setInterim('')
     }
 
     const resetSession = () => {
-        try { window.speechSynthesis?.cancel() } catch {}
+        stopConversation()
         setMessages([])
         setStarted(false)
         setError('')
     }
 
     const L = LANGS[lang]
+    const statusText = {
+        listening: '🎙️ Tinglayapman… gapiravering',
+        thinking: `${L.persona} o'ylayapti…`,
+        speaking: `${L.persona} gapiryapti…`,
+        idle: 'Pauza'
+    }[status]
 
     return (
         <div>
@@ -145,7 +236,7 @@ function Speaking() {
                     {/* Header */}
                     <div className="sp-head">
                         <div className="sp-persona">
-                            <div className="sp-avatar">{L.flag}</div>
+                            <div className={`sp-avatar ${status === 'speaking' ? 'speaking' : ''}`}>{L.flag}</div>
                             <div>
                                 <div className="sp-name">{L.persona}</div>
                                 <div className="sp-sub">{L.label} speaking partner</div>
@@ -156,8 +247,8 @@ function Speaking() {
                                 <button
                                     key={k}
                                     className={`sp-lang-btn ${lang === k ? 'active' : ''}`}
-                                    onClick={() => { if (!recording && !processing) { setLang(k); resetSession() } }}
-                                    disabled={recording || processing}
+                                    onClick={() => { if (status === 'idle' || !started) { stopConversation(); setLang(k); if (started) resetSession() } }}
+                                    disabled={started && status !== 'idle'}
                                 >
                                     {v.flag} {v.label}
                                 </button>
@@ -171,10 +262,11 @@ function Speaking() {
                             <div className="sp-empty">
                                 <Sparkles size={32} />
                                 <h3>{L.persona} bilan erkin gaplashing</h3>
-                                <p>Mikrofon orqali gapiring — {L.persona} javob beradi, rag'batlantiradi va suhbatni davom ettiradi. Xato qilsangiz, yumshoq maslahat beradi.</p>
-                                <button className="btn-primary sp-start-btn" onClick={beginSession} disabled={processing}>
-                                    {processing ? <><Loader2 size={16} className="spin" /> Tayyorlanmoqda…</> : <><MessageCircle size={16} /> Suhbatni boshlash</>}
+                                <p>Suhbatni boshlang va shunchaki <strong>gapiravering</strong> — to'xtaganingizda {L.persona} darhol javob beradi. Tugma bosib turish shart emas. Xato qilsangiz yumshoq maslahat beradi.</p>
+                                <button className="btn-primary sp-start-btn" onClick={beginSession} disabled={status === 'thinking'}>
+                                    {status === 'thinking' ? <><Loader2 size={16} className="spin" /> Tayyorlanmoqda…</> : <><MessageCircle size={16} /> Suhbatni boshlash</>}
                                 </button>
+                                {!SR && <p className="sp-warn">⚠️ Jonli rejim uchun Chrome yoki Edge kerak.</p>}
                             </div>
                         ) : (
                             <>
@@ -189,7 +281,10 @@ function Speaking() {
                                         {m.tip && <div className="sp-tip">💡 {m.tip}</div>}
                                     </div>
                                 ))}
-                                {processing && (
+                                {interim && (
+                                    <div className="sp-msg sp-user sp-interim"><div className="sp-msg-text">{interim}</div></div>
+                                )}
+                                {status === 'thinking' && (
                                     <div className="sp-msg sp-ai">
                                         <div className="sp-msg-text sp-typing"><Loader2 size={14} className="spin" /> {L.persona} o'ylayapti…</div>
                                     </div>
@@ -200,26 +295,25 @@ function Speaking() {
 
                     {error && <div className="sp-error">{error}</div>}
 
-                    {/* Mic control */}
+                    {/* Controls */}
                     {started && (
                         <div className="sp-controls">
                             <button className="sp-reset" onClick={resetSession} title="Boshidan">
                                 <RotateCcw size={16} />
                             </button>
                             <button
-                                className={`sp-mic ${recording ? 'recording' : ''}`}
-                                onClick={recording ? stopRecording : startRecording}
-                                disabled={processing}
+                                className={`sp-mic ${status === 'listening' ? 'recording' : ''} ${status === 'speaking' ? 'speaking' : ''}`}
+                                onClick={toggleLive}
+                                title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
                             >
-                                {recording ? <Square size={26} /> : <Mic size={26} />}
+                                {status === 'thinking' ? <Loader2 size={26} className="spin" />
+                                    : liveRef.current ? <Pause size={26} /> : <Play size={26} />}
                             </button>
-                            <div className="sp-mic-hint">
-                                {recording ? 'Tinglayapman… tugatish uchun bosing' : processing ? 'Kutib turing…' : 'Gapirish uchun bosing'}
-                            </div>
+                            <div className="sp-mic-hint">{statusText}</div>
                         </div>
                     )}
                 </div>
-                <p className="sp-note">Prototip · Eng yaxshi Chrome/Edge'da ishlaydi · Ovoz Groq Whisper bilan tahlil qilinadi</p>
+                <p className="sp-note">Prototip · Chrome/Edge'da jonli ishlaydi · Gapiring — {L.persona} o'zi javob beradi</p>
             </div>
         </div>
     )

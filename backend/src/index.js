@@ -162,6 +162,7 @@ app.use('/api/module-test/generate', aiLimiter)
 app.use('/api/battle/submit', aiLimiter)
 app.use('/api/homework/submit', aiLimiter)
 app.use('/api/speaking/talk', aiLimiter)
+app.use('/api/speaking/chat', aiLimiter)
 
 // Static uploads — xavfsizroq sozlamalar:
 // - dotfiles: deny (yashirin fayllar)
