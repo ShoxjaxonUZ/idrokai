@@ -812,3 +812,23 @@
   line-height: 1.6;
   white-space: pre-wrap;
 }
+
+.lesson-hw-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.lesson-hw-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.lesson-hw-note svg { flex-shrink: 0; }

@@ -60,6 +60,15 @@ router.post('/submit', auth, async (req, res) => {
     if (!hw) return res.status(404).json({ message: 'Dars topilmadi' })
     if (!hw.task) return res.status(400).json({ message: 'Bu darsda uy vazifasi yo\'q' })
 
+    // Bir martalik — allaqachon topshirilgan bo'lsa qayta yuborib bo'lmaydi
+    const prev = await pool.query(
+      'SELECT 1 FROM homework_submissions WHERE user_id = $1 AND course_id = $2 AND lesson_index = $3',
+      [req.user.id, String(courseId), idx]
+    )
+    if (prev.rows.length > 0) {
+      return res.status(409).json({ message: 'Vazifa allaqachon topshirilgan — qayta yuborib bo\'lmaydi' })
+    }
+
     const result = await gradeHomework({
       courseTitle: hw.courseTitle,
       lessonTitle: hw.lessonTitle,
@@ -72,19 +81,18 @@ router.post('/submit', auth, async (req, res) => {
       return res.status(503).json({ message: result.feedback })
     }
 
+    // Bir martalik yozuv — poyga bo'lsa (DO NOTHING) ikkinchisi rad etiladi
     const saved = await pool.query(
       `INSERT INTO homework_submissions (user_id, course_id, lesson_index, answer, score, feedback)
        VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (user_id, course_id, lesson_index)
-       DO UPDATE SET
-         answer = EXCLUDED.answer,
-         score = EXCLUDED.score,
-         feedback = EXCLUDED.feedback,
-         attempts = homework_submissions.attempts + 1,
-         updated_at = NOW()
+       ON CONFLICT (user_id, course_id, lesson_index) DO NOTHING
        RETURNING answer, score, feedback, attempts, updated_at`,
       [req.user.id, String(courseId), idx, ans, result.score, result.feedback]
     )
+
+    if (saved.rows.length === 0) {
+      return res.status(409).json({ message: 'Vazifa allaqachon topshirilgan — qayta yuborib bo\'lmaydi' })
+    }
 
     res.json(saved.rows[0])
   } catch (err) {

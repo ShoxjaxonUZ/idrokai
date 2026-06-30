@@ -4,7 +4,7 @@ import {
     Check, CheckCircle2, ChevronLeft, ChevronRight,
     PlayCircle, BookOpen, Flag, Download, Paperclip,
     Lock, FileText, StickyNote, Save, Loader2,
-    Bot, Send, Sparkles, ClipboardList, Award, RotateCcw
+    Bot, Send, Sparkles, ClipboardList, Award
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
@@ -74,7 +74,6 @@ function Lesson() {
     const [hwAnswer, setHwAnswer] = useState('')
     const [hwSubmitting, setHwSubmitting] = useState(false)
     const [hwError, setHwError] = useState('')
-    const [hwEditing, setHwEditing] = useState(false)
 
     // ====== AI dars yordami paneli ======
     const [aiMessages, setAiMessages] = useState([]) // {role, text}
@@ -124,7 +123,7 @@ function Lesson() {
     useEffect(() => {
         if (!token || !courseId || isNaN(index)) return
         const ctrl = new AbortController()
-        setHwSubmission(null); setHwAnswer(''); setHwError(''); setHwEditing(false)
+        setHwSubmission(null); setHwAnswer(''); setHwError('')
         fetch(`${API_URL}/api/homework/${courseId}/${index}`, {
             headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal
         })
@@ -147,7 +146,7 @@ function Lesson() {
                 body: JSON.stringify({ courseId, lessonIndex: index, answer: a })
             })
             const data = await res.json().catch(() => ({}))
-            if (res.ok) { setHwSubmission(data); setHwEditing(false) }
+            if (res.ok) setHwSubmission(data)
             else setHwError(data.message || 'Xatolik yuz berdi')
         } catch {
             setHwError('Server bilan bog\'lanib bo\'lmadi')
@@ -741,15 +740,15 @@ function Lesson() {
                                 </div>
                                 <p className="lesson-hw-task">{lesson.homework}</p>
 
-                                {hwSubmission && !hwEditing ? (
+                                {hwSubmission ? (
                                     <div className="lesson-hw-result">
                                         <div className="lesson-hw-score-row">
                                             <span className={`lesson-hw-score ${hwSubmission.score >= 70 ? 'good' : hwSubmission.score >= 40 ? 'mid' : 'low'}`}>
                                                 <Award size={16} /> {hwSubmission.score} / 100
                                             </span>
-                                            {hwSubmission.attempts > 1 && (
-                                                <span className="lesson-hw-attempts">{hwSubmission.attempts}-urinish</span>
-                                            )}
+                                            <span className="lesson-hw-locked">
+                                                <Lock size={12} /> Topshirilgan
+                                            </span>
                                         </div>
                                         {hwSubmission.feedback && (
                                             <p className="lesson-hw-feedback">{hwSubmission.feedback}</p>
@@ -758,9 +757,6 @@ function Lesson() {
                                             <span className="lesson-hw-submitted-label">Sizning javobingiz:</span>
                                             <p>{hwSubmission.answer}</p>
                                         </div>
-                                        <button className="btn-outline btn-small" onClick={() => setHwEditing(true)}>
-                                            <RotateCcw size={14} /> Qayta yuborish
-                                        </button>
                                     </div>
                                 ) : (
                                     <div className="lesson-hw-form">
@@ -768,17 +764,18 @@ function Lesson() {
                                             className="lesson-hw-textarea"
                                             value={hwAnswer}
                                             onChange={e => setHwAnswer(e.target.value.slice(0, 8000))}
-                                            placeholder="Javobingizni shu yerga yozing..."
+                                            onPaste={e => e.preventDefault()}
+                                            onDrop={e => e.preventDefault()}
+                                            onContextMenu={e => e.preventDefault()}
+                                            placeholder="Javobingizni o'zingiz yozing..."
                                             rows={6}
                                         />
+                                        <div className="lesson-hw-note">
+                                            <Lock size={12} /> Javobni o'zingiz yozing — nusxa ko'chirib joylash o'chirilgan. Bir marta yuboriladi.
+                                        </div>
                                         {hwError && <div className="lesson-hw-error">{hwError}</div>}
                                         <div className="lesson-hw-actions">
                                             <span className="lesson-hw-count">{hwAnswer.length} / 8000</span>
-                                            {hwEditing && hwSubmission && (
-                                                <button className="btn-outline btn-small" onClick={() => { setHwEditing(false); setHwAnswer(hwSubmission.answer || ''); setHwError('') }} disabled={hwSubmitting}>
-                                                    Bekor qilish
-                                                </button>
-                                            )}
                                             <button className="btn-primary btn-small" onClick={submitHomework} disabled={hwSubmitting || hwAnswer.trim().length < 3}>
                                                 {hwSubmitting ? (<><Loader2 size={14} className="spin" /> Baholanmoqda…</>) : (<><Send size={14} /> Yuborish</>)}
                                             </button>
