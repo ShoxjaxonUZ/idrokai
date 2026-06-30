@@ -18,6 +18,7 @@ function Speaking() {
     const [interim, setInterim] = useState('')
     const [started, setStarted] = useState(false)
     const [error, setError] = useState('')
+    const [showLog, setShowLog] = useState(false)
 
     // Stale-closure'dan qochish uchun ref'lar
     const liveRef = useRef(false)       // suhbat loop faolmi
@@ -225,98 +226,114 @@ function Speaking() {
         listening: 'Tinglayapman… gapiravering',
         thinking: `${L.persona} o'ylayapti…`,
         speaking: `${L.persona} gapiryapti…`,
-        idle: 'Pauza — davom etish uchun bosing'
+        idle: 'Pauza'
     }[status]
+    const lastAi = [...messages].reverse().find(m => m.role === 'ai')
 
     return (
         <div>
             <Navbar />
-            <div className="sp-wrap">
-                <div className="sp-card">
-                    {/* Header */}
-                    <div className="sp-head">
-                        <div className="sp-persona">
-                            <div className={`sp-avatar ${status === 'speaking' ? 'speaking' : ''} ${status === 'listening' ? 'listening' : ''}`}>
-                                <AudioLines size={22} />
-                            </div>
-                            <div>
-                                <div className="sp-name">{L.persona}</div>
-                                <div className="sp-sub">{L.label} speaking partner</div>
-                            </div>
-                        </div>
-                        <div className="sp-lang-toggle">
-                            {Object.entries(LANGS).map(([k, v]) => (
-                                <button
-                                    key={k}
-                                    className={`sp-lang-btn ${lang === k ? 'active' : ''}`}
-                                    onClick={() => { if (status === 'idle' || !started) { stopConversation(); setLang(k); if (started) resetSession() } }}
-                                    disabled={started && status !== 'idle'}
-                                    title={v.label}
-                                >
-                                    {v.code}
-                                </button>
-                            ))}
-                        </div>
+            <div className="spk">
+                {/* Top bar */}
+                <div className="spk-top">
+                    <div className="spk-who">
+                        <AudioLines size={15} /> {L.persona} · {L.label}
                     </div>
-
-                    {/* Conversation */}
-                    <div className="sp-body" ref={bodyRef}>
-                        {!started ? (
-                            <div className="sp-empty">
-                                <div className="sp-orb"><Sparkles size={44} /></div>
-                                <h3>{L.persona} bilan erkin gaplashing</h3>
-                                <p>Suhbatni boshlang va shunchaki <strong>gapiravering</strong> — to'xtaganingizda {L.persona} darhol javob beradi. Tugma bosib turish shart emas. Xato qilsangiz yumshoq maslahat beradi.</p>
-                                <button className="sp-start-btn" onClick={beginSession} disabled={status === 'thinking'}>
-                                    {status === 'thinking' ? <><Loader2 size={16} className="spin" /> Tayyorlanmoqda…</> : <><MessageCircle size={16} /> Suhbatni boshlash</>}
-                                </button>
-                                {!SR && <p className="sp-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
-                            </div>
-                        ) : (
-                            <>
-                                {messages.map((m, i) => (
-                                    <div key={i} className={`sp-msg ${m.role === 'user' ? 'sp-user' : 'sp-ai'}`}>
-                                        {m.role === 'ai' && (
-                                            <button className="sp-replay" title="Qayta tinglash" onClick={() => speak(m.text)}>
-                                                <Volume2 size={14} />
-                                            </button>
-                                        )}
-                                        <div className="sp-msg-text">{m.text}</div>
-                                        {m.tip && <div className="sp-tip"><Lightbulb size={13} /> {m.tip}</div>}
-                                    </div>
-                                ))}
-                                {interim && (
-                                    <div className="sp-msg sp-user sp-interim"><div className="sp-msg-text">{interim}</div></div>
-                                )}
-                                {status === 'thinking' && (
-                                    <div className="sp-msg sp-ai">
-                                        <div className="sp-msg-text sp-typing"><Loader2 size={14} className="spin" /> {L.persona} o'ylayapti…</div>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-
-                    {error && <div className="sp-error">{error}</div>}
-
-                    {/* Controls */}
-                    {started && (
-                        <div className="sp-controls">
-                            <button className="sp-reset" onClick={resetSession} title="Boshidan">
-                                <RotateCcw size={16} />
-                            </button>
+                    <div className="spk-langs">
+                        {Object.entries(LANGS).map(([k, v]) => (
                             <button
-                                className={`sp-mic ${status === 'listening' ? 'recording' : ''} ${status === 'speaking' ? 'speaking' : ''}`}
-                                onClick={toggleLive}
-                                title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
+                                key={k}
+                                className={`spk-lang ${lang === k ? 'active' : ''}`}
+                                onClick={() => { if (status === 'idle' || !started) { stopConversation(); setLang(k); if (started) resetSession() } }}
+                                disabled={started && status !== 'idle'}
+                                title={v.label}
                             >
-                                {status === 'thinking' ? <Loader2 size={26} className="spin" />
-                                    : liveRef.current ? <Pause size={26} /> : <Play size={26} />}
+                                {v.code}
                             </button>
-                            <div className="sp-mic-hint">{statusText}</div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Stage */}
+                <div className="spk-stage">
+                    {!started ? (
+                        <div className="spk-intro">
+                            <div className="spk-orb spk-orb--idle">
+                                <div className="spk-orb-core" />
+                            </div>
+                            <h2>{L.persona} bilan erkin gaplashing</h2>
+                            <p>Suhbatni boshlang va shunchaki <strong>gapiravering</strong> — to'xtaganingizda {L.persona} darhol javob beradi. Tugma bosib turish shart emas.</p>
+                            <button className="spk-start" onClick={beginSession} disabled={status === 'thinking'}>
+                                {status === 'thinking' ? <><Loader2 size={17} className="spin" /> Tayyorlanmoqda…</> : <><Mic size={17} /> Suhbatni boshlash</>}
+                            </button>
+                            {!SR && <p className="spk-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
+                        </div>
+                    ) : (
+                        <div className="spk-live">
+                            <div className={`spk-orb spk-orb--${status}`}>
+                                <div className="spk-orb-core" />
+                                {status === 'thinking' && <Loader2 className="spk-orb-icon spin" size={30} />}
+                            </div>
+
+                            <div className="spk-status">{statusText}</div>
+
+                            <div className="spk-captions">
+                                {lastAi && (
+                                    <p className="spk-cap-ai">
+                                        {lastAi.text}
+                                        <button className="spk-cap-replay" title="Qayta tinglash" onClick={() => speak(lastAi.text)}>
+                                            <Volume2 size={15} />
+                                        </button>
+                                    </p>
+                                )}
+                                {lastAi?.tip && <p className="spk-cap-tip"><Lightbulb size={13} /> {lastAi.tip}</p>}
+                                {interim && <p className="spk-cap-user">{interim}…</p>}
+                            </div>
                         </div>
                     )}
                 </div>
-                <p className="sp-note">Prototip · Chrome/Edge'da jonli ishlaydi · Gapiring — {L.persona} o'zi javob beradi</p>
+
+                {error && <div className="spk-error">{error}</div>}
+
+                {/* Controls */}
+                {started && (
+                    <div className="spk-controls">
+                        <button className="spk-ctrl" onClick={resetSession} title="Boshidan">
+                            <RotateCcw size={18} />
+                        </button>
+                        <button
+                            className={`spk-ctrl spk-ctrl--main ${liveRef.current && status !== 'idle' ? 'live' : ''}`}
+                            onClick={toggleLive}
+                            title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
+                        >
+                            {liveRef.current && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
+                        </button>
+                        <button
+                            className={`spk-ctrl ${showLog ? 'active' : ''}`}
+                            onClick={() => setShowLog(s => !s)}
+                            title="Suhbat tarixi"
+                        >
+                            <MessageCircle size={18} />
+                        </button>
+                    </div>
+                )}
+
+                {/* Transcript overlay */}
+                {showLog && started && (
+                    <div className="spk-log" onClick={() => setShowLog(false)}>
+                        <div className="spk-log-panel" onClick={e => e.stopPropagation()} ref={bodyRef}>
+                            <div className="spk-log-head"><Sparkles size={15} /> Suhbat tarixi</div>
+                            {messages.length === 0 ? (
+                                <p className="spk-log-empty">Hali xabar yo'q</p>
+                            ) : messages.map((m, i) => (
+                                <div key={i} className={`spk-log-msg ${m.role}`}>
+                                    <span className="spk-log-who">{m.role === 'ai' ? L.persona : 'Siz'}</span>
+                                    <span>{m.text}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
