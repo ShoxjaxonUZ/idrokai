@@ -22,6 +22,7 @@ import Contact from './pages/Contact'
 import Help from './pages/Help'
 import Privacy from './pages/Privacy'
 import AITeacher from './pages/AITeacher'
+import Speaking from './pages/Speaking'
 import Pricing from './pages/Pricing'
 import Leaderboard from './pages/Leaderboard'
 import Onboarding from './pages/Onboarding'
@@ -76,6 +77,7 @@ function App() {
               {/* Guest ham ko'ra oladi — preview rejim. Interaktiv action'lar register'ga yo'naltiradi */}
               <Route path="/ai-quiz" element={<AIQuiz />} />
               <Route path="/ai-teacher" element={<AITeacher />} />
+              <Route path="/speaking" element={<RequireAuth><Speaking /></RequireAuth>} />
               <Route path="/battle" element={<Battle />} />
               <Route path="/daily" element={<Daily />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
