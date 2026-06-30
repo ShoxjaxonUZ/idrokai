@@ -54,7 +54,7 @@ router.get('/:courseId/:lessonIndex', async (req, res) => {
   }
 })
 
-// POST /api/lesson-qa/:id/answer — javob yozish (admin/teacher yoki boshqa student)
+// POST /api/lesson-qa/:id/answer — javob yozish (admin yoki kursga yozilgan student)
 router.post('/:id/answer', auth, async (req, res) => {
   try {
     const { id } = req.params
@@ -65,14 +65,14 @@ router.post('/:id/answer', auth, async (req, res) => {
       return res.status(400).json({ message: "Javob 5-2000 belgi bo'lishi kerak" })
     }
 
-    // Faqat teacher/admin yoki kursga yozilgan student javob bera oladi
+    // Faqat admin yoki kursga yozilgan student javob bera oladi
     const q = await pool.query('SELECT user_id, course_id, lesson_index FROM lesson_questions WHERE id = $1', [id])
     if (q.rows.length === 0) {
       return res.status(404).json({ message: 'Savol topilmadi' })
     }
     const ques = q.rows[0]
 
-    const canAnswer = req.user.role === 'admin' || req.user.role === 'teacher' ||
+    const canAnswer = req.user.role === 'admin' ||
       (await pool.query('SELECT 1 FROM enrollments WHERE user_id = $1 AND course_id = $2',
         [req.user.id, ques.course_id])).rows.length > 0
 

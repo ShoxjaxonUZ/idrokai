@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   MessageCircleQuestion, Send, ThumbsUp, Trash2, CornerDownRight,
-  Loader2, CheckCircle2, Shield, GraduationCap
+  Loader2, CheckCircle2, Shield
 } from 'lucide-react'
 import { API_URL, getToken, getUser } from '../lib/api'
 import './LessonQA.css'
@@ -180,7 +180,6 @@ export default function LessonQA({ courseId, lessonIndex }) {
               {questions.map(q => {
                 const isMine = user && q.user_id === user.id
                 const isAdminAnswer = q.answered_by_role === 'admin'
-                const isTeacherAnswer = q.answered_by_role === 'teacher'
 
                 return (
                   <div key={q.id} className={`qa-item ${q.answer ? 'qa-answered' : ''}`}>
@@ -229,11 +228,6 @@ export default function LessonQA({ courseId, lessonIndex }) {
                           {isAdminAnswer && (
                             <span className="qa-role-badge qa-role-admin">
                               <Shield size={10} /> Admin
-                            </span>
-                          )}
-                          {isTeacherAnswer && (
-                            <span className="qa-role-badge qa-role-teacher">
-                              <GraduationCap size={10} /> O'qituvchi
                             </span>
                           )}
                           <span className="qa-time">{formatTime(q.answered_at)}</span>

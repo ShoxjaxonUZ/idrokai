@@ -71,7 +71,6 @@ const requireRole = (...roles) => (req, res, next) => {
 }
 
 const adminOnly = requireRole('admin')
-const teacherOrAdmin = requireRole('teacher', 'admin')
 
 // Token versiyasini ko'tarish (rol o'zgarganda chaqiriladi)
 const bumpTokenVersion = async (userId) => {
@@ -81,4 +80,4 @@ const bumpTokenVersion = async (userId) => {
   )
 }
 
-module.exports = { auth, requireRole, adminOnly, teacherOrAdmin, bumpTokenVersion }
+module.exports = { auth, requireRole, adminOnly, bumpTokenVersion }

@@ -4,8 +4,8 @@ import {
   LayoutDashboard, BookOpen, Users, Plus, Trash2, Edit3,
   Image as ImageIcon, Upload, Video, Loader2, X, Save,
   TrendingUp, GraduationCap, BarChart3, Eye, Sparkles,
-  Search, Shield, Mail, UserCheck, AlertTriangle, Check,
-  XCircle, Send, ArrowLeft, Globe, Activity, Clock,
+  Search, Shield, Mail, AlertTriangle, Check,
+  Send, ArrowLeft, Globe, Activity, Clock,
   MessageCircle, Reply, Archive, Megaphone, Wallet, Crown,
   Bot, GitPullRequest, ExternalLink
 } from 'lucide-react'
@@ -29,10 +29,6 @@ function Admin() {
   const [showCourseForm, setShowCourseForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
   const [userSearch, setUserSearch] = useState('')
-
-  // Teacher requests
-  const [teacherRequests, setTeacherRequests] = useState([])
-  const [reqAction, setReqAction] = useState({}) // {id: 'approving'|'rejecting'}
 
   // Security
   const [securityStats, setSecurityStats] = useState(null)
@@ -106,17 +102,15 @@ function Admin() {
     setLoading(true)
     const authHeaders = { Authorization: `Bearer ${token}` }
     try {
-      const [statsRes, coursesRes, usersRes, requestsRes] = await Promise.all([
+      const [statsRes, coursesRes, usersRes] = await Promise.all([
         fetch(`${API_URL}/api/admin/stats`, { headers: authHeaders }).then(r => r.ok ? r.json() : null).catch(() => null),
         fetch(`${API_URL}/api/teacher/all-courses`).then(r => r.ok ? r.json() : []).catch(() => []),
-        fetch(`${API_URL}/api/admin/users`, { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => []),
-        fetch(`${API_URL}/api/teacher/requests`, { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => [])
+        fetch(`${API_URL}/api/admin/users`, { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => [])
       ])
 
       if (statsRes) setStats(statsRes)
       if (Array.isArray(coursesRes)) setCourses(coursesRes)
       if (Array.isArray(usersRes)) setUsers(usersRes)
-      if (Array.isArray(requestsRes)) setTeacherRequests(requestsRes)
     } catch (err) {
       console.error(err)
     }
@@ -367,28 +361,6 @@ function Admin() {
 
   const fmtSom = (n) => (Number(n) || 0).toLocaleString('uz-UZ') + " so'm"
 
-  // Teacher request approve/reject
-  const handleRequest = async (id, status) => {
-    setReqAction(prev => ({ ...prev, [id]: status === 'approved' ? 'approving' : 'rejecting' }))
-    try {
-      const res = await fetch(`${API_URL}/api/teacher/requests/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status })
-      })
-      const data = await res.json()
-      if (res.ok) {
-        addNotification(status === 'approved' ? 'Tasdiqlandi!' : 'Rad etildi', 'success')
-        loadData()
-      } else {
-        addNotification(data.message || 'Xatolik', 'error')
-      }
-    } catch {
-      addNotification('Server xatosi', 'error')
-    }
-    setReqAction(prev => ({ ...prev, [id]: null }))
-  }
-
   // Email test
   const sendTestEmail = async () => {
     if (!emailTestTo.trim()) {
@@ -426,8 +398,7 @@ function Admin() {
   }, [users, userSearch])
 
   // Statistika hisobi
-  const pendingRequestsCount = teacherRequests.filter(r => r.status === 'pending').length
-  const teachersCount = users.filter(u => u.role === 'teacher').length
+  const studentsCount = users.filter(u => u.role !== 'admin').length
   const totalLessons = courses.reduce((acc, c) => acc + (c.lessons?.length || 0), 0)
 
   const resetForm = () => {
@@ -704,15 +675,6 @@ function Admin() {
               {subs.length > 0 && <span className="admin-nav-badge">{subs.length}</span>}
             </button>
             <button
-              className={`admin-nav-btn ${activeTab === 'requests' ? 'active' : ''}`}
-              onClick={() => setActiveTab('requests')}
-            >
-              <UserCheck size={18} /> O'qituvchi arizalari
-              {pendingRequestsCount > 0 && (
-                <span className="admin-nav-badge admin-nav-badge-warning">{pendingRequestsCount}</span>
-              )}
-            </button>
-            <button
               className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`}
               onClick={() => setActiveTab('messages')}
             >
@@ -773,18 +735,6 @@ function Admin() {
                 </div>
               </div>
 
-              {pendingRequestsCount > 0 && (
-                <div className="admin-alert admin-alert-warning">
-                  <AlertTriangle size={18} />
-                  <div>
-                    <strong>{pendingRequestsCount} ta o'qituvchi arizasi</strong> ko'rib chiqishni kutmoqda
-                  </div>
-                  <button className="btn-small" onClick={() => setActiveTab('requests')}>
-                    Ko'rish →
-                  </button>
-                </div>
-              )}
-
               <div className="admin-stats">
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
@@ -793,7 +743,7 @@ function Admin() {
                   <div>
                     <div className="admin-stat-value">{stats.users}</div>
                     <div className="admin-stat-label">Foydalanuvchilar</div>
-                    <div className="admin-stat-sub">{teachersCount} o'qituvchi</div>
+                    <div className="admin-stat-sub">{studentsCount} talaba</div>
                   </div>
                 </div>
 
@@ -825,12 +775,12 @@ function Admin() {
 
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
-                    <UserCheck size={22} />
+                    <BarChart3 size={22} />
                   </div>
                   <div>
-                    <div className="admin-stat-value">{pendingRequestsCount}</div>
-                    <div className="admin-stat-label">Pending arizalar</div>
-                    <div className="admin-stat-sub">{teacherRequests.length} jami</div>
+                    <div className="admin-stat-value">{totalLessons}</div>
+                    <div className="admin-stat-label">Darslar</div>
+                    <div className="admin-stat-sub">{courses.length} kursda</div>
                   </div>
                 </div>
               </div>
@@ -1357,7 +1307,7 @@ function Admin() {
                         <td>{u.email}</td>
                         <td>
                           <span className={`admin-role role-${u.role || 'student'}`}>
-                            {u.role === 'admin' ? 'Admin' : u.role === 'teacher' ? 'Teacher' : 'Student'}
+                            {u.role === 'admin' ? 'Admin' : 'Student'}
                           </span>
                         </td>
                         <td>{new Date(u.created_at).toLocaleDateString('uz-UZ')}</td>
@@ -1582,80 +1532,6 @@ function Admin() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
-
-          {/* TEACHER REQUESTS */}
-          {activeTab === 'requests' && (
-            <div className="admin-content">
-              <div className="admin-page-header">
-                <div>
-                  <h1>O'qituvchi arizalari</h1>
-                  <p>{pendingRequestsCount} pending — jami {teacherRequests.length}</p>
-                </div>
-              </div>
-
-              {teacherRequests.length === 0 ? (
-                <div className="admin-empty">
-                  <UserCheck size={48} />
-                  <h3>Hali arizalar yo'q</h3>
-                  <p>Foydalanuvchilar o'qituvchi bo'lish uchun ariza berishi mumkin</p>
-                </div>
-              ) : (
-                <div className="admin-requests-list">
-                  {teacherRequests.map(req => {
-                    const action = reqAction[req.id]
-                    return (
-                      <div key={req.id} className={`admin-request-card status-${req.status}`}>
-                        <div className="admin-request-main">
-                          <div className="admin-user-avatar" style={{
-                            background: `linear-gradient(135deg, hsl(${req.user_id * 60 % 360}, 70%, 60%), hsl(${(req.user_id * 60 + 60) % 360}, 70%, 50%))`
-                          }}>
-                            {(req.full_name || req.name)?.[0]?.toUpperCase()}
-                          </div>
-                          <div className="admin-request-info">
-                            <div className="admin-request-name">
-                              {req.full_name}
-                              <span className={`admin-request-status status-${req.status}`}>
-                                {req.status === 'pending' ? 'Kutmoqda' :
-                                  req.status === 'approved' ? 'Tasdiqlangan' : 'Rad etilgan'}
-                              </span>
-                            </div>
-                            <div className="admin-request-email">{req.email}</div>
-                            <div className="admin-request-detail">
-                              <strong>Fan:</strong> {req.subject}
-                            </div>
-                            <div className="admin-request-detail">
-                              <strong>Tajriba:</strong> {req.experience}
-                            </div>
-                            <div className="admin-request-date">
-                              <Clock size={11} /> {new Date(req.created_at).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </div>
-                          </div>
-                        </div>
-                        {req.status === 'pending' && (
-                          <div className="admin-request-actions">
-                            <button
-                              className="btn-success"
-                              onClick={() => handleRequest(req.id, 'approved')}
-                              disabled={!!action}
-                            >
-                              {action === 'approving' ? <Loader2 size={14} className="spin-icon" /> : <Check size={14} />} Tasdiqlash
-                            </button>
-                            <button
-                              className="btn-danger"
-                              onClick={() => handleRequest(req.id, 'rejected')}
-                              disabled={!!action}
-                            >
-                              {action === 'rejecting' ? <Loader2 size={14} className="spin-icon" /> : <XCircle size={14} />} Rad etish
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
             </div>
           )}
 

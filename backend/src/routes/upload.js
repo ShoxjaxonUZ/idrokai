@@ -3,7 +3,7 @@ const router = express.Router()
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const { auth, teacherOrAdmin } = require('../middleware/auth')
+const { auth, adminOnly } = require('../middleware/auth')
 const r2 = require('../lib/r2')
 
 // STRATEGIYA: R2 sozlangan bo'lsa — Cloudflare R2 ga yuklanadi (production).
@@ -88,7 +88,7 @@ const imageUpload = multer({
   }
 })
 
-router.post('/image', auth, teacherOrAdmin, imageUpload.single('image'), async (req, res) => {
+router.post('/image', auth, adminOnly, imageUpload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'Rasm yuklanmadi' })
 
@@ -146,7 +146,7 @@ const videoUpload = multer({
   }
 })
 
-router.post('/video', auth, teacherOrAdmin, videoUpload.single('video'), async (req, res) => {
+router.post('/video', auth, adminOnly, videoUpload.single('video'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'Video yuklanmadi' })
 
@@ -188,7 +188,7 @@ const materialUpload = multer({
   }
 })
 
-router.post('/material', auth, teacherOrAdmin, materialUpload.single('material'), async (req, res) => {
+router.post('/material', auth, adminOnly, materialUpload.single('material'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'Material yuklanmadi' })
 

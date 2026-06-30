@@ -32,8 +32,6 @@ import Messages from './pages/Messages'
 import Notifications from './pages/Notifications'
 import VerifyCertificate from './pages/VerifyCertificate'
 import ModuleTest from './pages/ModuleTest'
-import TeacherApply from './pages/TeacherApply'
-import TeacherDashboard from './pages/TeacherDashboard'
 import RequireAuth from './lib/RequireAuth'
 import Loading from './components/Loading'
 import InstallPrompt from './components/InstallPrompt'
@@ -81,9 +79,6 @@ function App() {
               <Route path="/battle" element={<Battle />} />
               <Route path="/daily" element={<Daily />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-
-              <Route path="/teacher/apply" element={<RequireAuth><TeacherApply /></RequireAuth>} />
-              <Route path="/teacher/dashboard" element={<RequireAuth role={['teacher', 'admin']}><TeacherDashboard /></RequireAuth>} />
 
               <Route path="/admin" element={<RequireAuth role="admin"><Admin /></RequireAuth>} />
 
