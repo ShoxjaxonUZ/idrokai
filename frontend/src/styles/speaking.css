@@ -60,6 +60,26 @@
 }
 .spk-who svg { color: #a78bfa; }
 
+.spk-level {
+  margin-left: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #8b7bff, #c084fc);
+  color: #fff;
+}
+.spk-level.detecting {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  animation: spk-blink 1.4s ease-in-out infinite;
+}
+@keyframes spk-blink { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
 .spk-langs {
   display: inline-flex;
   gap: 3px;

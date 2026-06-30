@@ -19,6 +19,7 @@ function Speaking() {
     const [started, setStarted] = useState(false)
     const [error, setError] = useState('')
     const [showLog, setShowLog] = useState(false)
+    const [level, setLevel] = useState('') // aniqlangan CEFR daraja (A1..C2)
 
     // Stale-closure'dan qochish uchun ref'lar
     const liveRef = useRef(false)       // suhbat loop faolmi
@@ -28,12 +29,14 @@ function Speaking() {
     const finalRef = useRef('')
     const speakingRef = useRef(false)
     const processingRef = useRef(false)
+    const levelRef = useRef('')
     const bodyRef = useRef(null)
 
     const token = localStorage.getItem('token')
 
     useEffect(() => { langRef.current = lang }, [lang])
     useEffect(() => { messagesRef.current = messages }, [messages])
+    useEffect(() => { levelRef.current = level }, [level])
 
     useEffect(() => {
         const el = bodyRef.current
@@ -142,6 +145,7 @@ function Speaking() {
                 body: JSON.stringify({
                     lang: langRef.current,
                     text,
+                    level: levelRef.current,
                     history: messagesRef.current.map(m => ({ role: m.role, text: m.text }))
                 })
             })
@@ -152,6 +156,7 @@ function Speaking() {
                 if (liveRef.current) startListening()
                 return
             }
+            if (data.level) setLevel(data.level)
             if (data.reply) setMessages(prev => [...prev, { role: 'ai', text: data.reply, tip: data.tip }])
             speak(data.reply)
         } catch {
@@ -166,6 +171,7 @@ function Speaking() {
         if (!SR) { setError('Brauzer jonli nutqni qo\'llamaydi. Chrome yoki Edge ishlating.'); return }
         setStarted(true)
         setMessages([])
+        setLevel('')
         liveRef.current = true
         processingRef.current = true
         setStatus('thinking')
@@ -179,6 +185,7 @@ function Speaking() {
             const data = await res.json().catch(() => ({}))
             processingRef.current = false
             if (res.ok && data.reply) {
+                if (data.level) setLevel(data.level)
                 setMessages([{ role: 'ai', text: data.reply, tip: data.tip }])
                 speak(data.reply)
             } else {
@@ -219,6 +226,7 @@ function Speaking() {
         setMessages([])
         setStarted(false)
         setError('')
+        setLevel('')
     }
 
     const L = LANGS[lang]
@@ -238,6 +246,11 @@ function Speaking() {
                 <div className="spk-top">
                     <div className="spk-who">
                         <AudioLines size={15} /> {L.persona} · {L.label}
+                        {started && (
+                            level
+                                ? <span className="spk-level" title="Sizning darajangiz (CEFR)">{level}</span>
+                                : <span className="spk-level detecting">daraja aniqlanmoqda…</span>
+                        )}
                     </div>
                     <div className="spk-langs">
                         {Object.entries(LANGS).map(([k, v]) => (
