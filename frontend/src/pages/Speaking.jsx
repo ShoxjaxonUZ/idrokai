@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
-import { Mic, Pause, Loader2, Volume2, Sparkles, RotateCcw, MessageCircle, Play } from 'lucide-react'
+import { Mic, Pause, Loader2, Volume2, Sparkles, RotateCcw, MessageCircle, Play, Lightbulb, AlertTriangle, AudioLines } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
 import '../styles/speaking.css'
 
 const LANGS = {
-    en: { label: 'English', persona: 'Eva', flag: '🇬🇧', voice: 'en-US' },
-    ru: { label: 'Русский', persona: 'Anya', flag: '🇷🇺', voice: 'ru-RU' }
+    en: { label: 'English', persona: 'Eva', code: 'EN', voice: 'en-US' },
+    ru: { label: 'Русский', persona: 'Anya', code: 'RU', voice: 'ru-RU' }
 }
 
 const SR = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
@@ -222,10 +222,10 @@ function Speaking() {
 
     const L = LANGS[lang]
     const statusText = {
-        listening: '🎙️ Tinglayapman… gapiravering',
+        listening: 'Tinglayapman… gapiravering',
         thinking: `${L.persona} o'ylayapti…`,
         speaking: `${L.persona} gapiryapti…`,
-        idle: 'Pauza'
+        idle: 'Pauza — davom etish uchun bosing'
     }[status]
 
     return (
@@ -236,7 +236,9 @@ function Speaking() {
                     {/* Header */}
                     <div className="sp-head">
                         <div className="sp-persona">
-                            <div className={`sp-avatar ${status === 'speaking' ? 'speaking' : ''}`}>{L.flag}</div>
+                            <div className={`sp-avatar ${status === 'speaking' ? 'speaking' : ''} ${status === 'listening' ? 'listening' : ''}`}>
+                                <AudioLines size={22} />
+                            </div>
                             <div>
                                 <div className="sp-name">{L.persona}</div>
                                 <div className="sp-sub">{L.label} speaking partner</div>
@@ -249,8 +251,9 @@ function Speaking() {
                                     className={`sp-lang-btn ${lang === k ? 'active' : ''}`}
                                     onClick={() => { if (status === 'idle' || !started) { stopConversation(); setLang(k); if (started) resetSession() } }}
                                     disabled={started && status !== 'idle'}
+                                    title={v.label}
                                 >
-                                    {v.flag} {v.label}
+                                    {v.code}
                                 </button>
                             ))}
                         </div>
@@ -260,13 +263,13 @@ function Speaking() {
                     <div className="sp-body" ref={bodyRef}>
                         {!started ? (
                             <div className="sp-empty">
-                                <Sparkles size={32} />
+                                <div className="sp-orb"><Sparkles size={44} /></div>
                                 <h3>{L.persona} bilan erkin gaplashing</h3>
                                 <p>Suhbatni boshlang va shunchaki <strong>gapiravering</strong> — to'xtaganingizda {L.persona} darhol javob beradi. Tugma bosib turish shart emas. Xato qilsangiz yumshoq maslahat beradi.</p>
-                                <button className="btn-primary sp-start-btn" onClick={beginSession} disabled={status === 'thinking'}>
+                                <button className="sp-start-btn" onClick={beginSession} disabled={status === 'thinking'}>
                                     {status === 'thinking' ? <><Loader2 size={16} className="spin" /> Tayyorlanmoqda…</> : <><MessageCircle size={16} /> Suhbatni boshlash</>}
                                 </button>
-                                {!SR && <p className="sp-warn">⚠️ Jonli rejim uchun Chrome yoki Edge kerak.</p>}
+                                {!SR && <p className="sp-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
                             </div>
                         ) : (
                             <>
@@ -278,7 +281,7 @@ function Speaking() {
                                             </button>
                                         )}
                                         <div className="sp-msg-text">{m.text}</div>
-                                        {m.tip && <div className="sp-tip">💡 {m.tip}</div>}
+                                        {m.tip && <div className="sp-tip"><Lightbulb size={13} /> {m.tip}</div>}
                                     </div>
                                 ))}
                                 {interim && (
