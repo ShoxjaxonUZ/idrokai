@@ -231,7 +231,7 @@ function Speaking() {
     const lastAi = [...messages].reverse().find(m => m.role === 'ai')
 
     return (
-        <div>
+        <div className="speaking-page">
             <Navbar />
             <div className="spk">
                 {/* Top bar */}

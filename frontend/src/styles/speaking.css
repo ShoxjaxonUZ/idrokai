@@ -3,15 +3,40 @@
    (mavzudan qat'i nazar har doim qorong'u)
    ============================================ */
 
+/* Immersiv fon navbar ortidan UZLUKSIZ o'tsin:
+   - frosted strip va spacer olib tashlanadi (qora tasma yo'qoladi)
+   - navbar pill shaffof qorong'u, oq matn bilan (immersivga mos) */
+.speaking-page .navbar-backdrop { display: none; }
+.speaking-page .navbar-spacer { display: none; }
+.speaking-page .navbar {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.speaking-page .nav-center span,
+.speaking-page .nav-dashboard,
+.speaking-page .theme-toggle,
+.speaking-page .logo-text,
+.speaking-page .nav-right > button,
+.speaking-page .navbar .btn-outline { color: rgba(255, 255, 255, 0.86); }
+.speaking-page .nav-center span:hover,
+.speaking-page .nav-dashboard:hover,
+.speaking-page .theme-toggle:hover,
+.speaking-page .nav-right > button:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.speaking-page .nav-dashboard { border-color: rgba(255, 255, 255, 0.2); }
+
 .spk {
   position: relative;
-  min-height: calc(100vh - 62px);
+  min-height: 100vh;
+  padding-top: calc(var(--navbar-h, 60px) + 30px);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   color: #fff;
   overflow: hidden;
   background:
-    radial-gradient(78% 48% at 50% 36%, rgba(124, 109, 240, 0.20), transparent 70%),
+    radial-gradient(78% 48% at 50% 32%, rgba(124, 109, 240, 0.20), transparent 70%),
     radial-gradient(70% 42% at 50% 104%, rgba(244, 114, 182, 0.12), transparent 70%),
     #0a0a11;
 }
