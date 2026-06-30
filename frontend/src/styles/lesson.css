@@ -672,3 +672,143 @@
   .lesson-content { padding: 16px 14px; }
   .lesson-sidebar { padding: 14px; }
 }
+
+/* ============================================
+   Uy vazifasi (AI baholaydi)
+   ============================================ */
+.lesson-hw {
+  margin-top: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+}
+
+.lesson-hw-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.lesson-hw-head svg { color: var(--primary); }
+
+.lesson-hw-ai {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--primary-bg);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.lesson-hw-task {
+  margin: 12px 0 14px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Forma */
+.lesson-hw-textarea {
+  width: 100%;
+  background: var(--bg, var(--card));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.lesson-hw-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.lesson-hw-error {
+  margin-top: 8px;
+  color: #e5484d;
+  font-size: 13px;
+}
+
+.lesson-hw-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.lesson-hw-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: auto;
+}
+
+/* Natija */
+.lesson-hw-result { margin-top: 4px; }
+
+.lesson-hw-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.lesson-hw-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.lesson-hw-score.good { color: #16a34a; background: color-mix(in srgb, #16a34a 12%, transparent); }
+.lesson-hw-score.mid  { color: #d97706; background: color-mix(in srgb, #d97706 12%, transparent); }
+.lesson-hw-score.low  { color: #e5484d; background: color-mix(in srgb, #e5484d 12%, transparent); }
+
+.lesson-hw-attempts {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.lesson-hw-feedback {
+  margin: 0 0 14px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.lesson-hw-submitted {
+  background: var(--card-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.lesson-hw-submitted-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.lesson-hw-submitted p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}

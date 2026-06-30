@@ -33,6 +33,7 @@ const subscriptionRoutes = require('./routes/subscription')
 const socialRoutes = require('./routes/social')
 const portfolioRoutes = require('./routes/portfolio')
 const messagesRoutes = require('./routes/messages')
+const homeworkRoutes = require('./routes/homework')
 const { threatDetector } = require('./middleware/threatDetector')
 const { attackShield } = require('./middleware/attackShield')
 const { csrfProtection } = require('./middleware/csrf')
@@ -158,6 +159,7 @@ app.use('/api/onboarding/chat', aiLimiter)
 app.use('/api/daily/submit', aiLimiter)
 app.use('/api/module-test/generate', aiLimiter)
 app.use('/api/battle/submit', aiLimiter)
+app.use('/api/homework/submit', aiLimiter)
 
 // Static uploads — xavfsizroq sozlamalar:
 // - dotfiles: deny (yashirin fayllar)
@@ -211,6 +213,7 @@ app.use('/api/subscription', subscriptionRoutes)
 app.use('/api/social', socialRoutes)
 app.use('/api/portfolio', portfolioRoutes)
 app.use('/api/messages', messagesRoutes)
+app.use('/api/homework', homeworkRoutes)
 
 // 404 handler
 app.use((req, res) => {

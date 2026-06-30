@@ -4,7 +4,7 @@ import {
     Check, CheckCircle2, ChevronLeft, ChevronRight,
     PlayCircle, BookOpen, Flag, Download, Paperclip,
     Lock, FileText, StickyNote, Save, Loader2,
-    Bot, Send, Sparkles
+    Bot, Send, Sparkles, ClipboardList, Award, RotateCcw
 } from 'lucide-react'
 import { API_URL, assetUrl } from '../lib/api'
 import { safeUrl } from '../lib/safeUrl'
@@ -69,6 +69,13 @@ function Lesson() {
         return currentTimeRef.current || 0
     }
 
+    // ====== Uy vazifasi ======
+    const [hwSubmission, setHwSubmission] = useState(null) // {answer, score, feedback, attempts, updated_at}
+    const [hwAnswer, setHwAnswer] = useState('')
+    const [hwSubmitting, setHwSubmitting] = useState(false)
+    const [hwError, setHwError] = useState('')
+    const [hwEditing, setHwEditing] = useState(false)
+
     // ====== AI dars yordami paneli ======
     const [aiMessages, setAiMessages] = useState([]) // {role, text}
     const [aiInput, setAiInput] = useState('')
@@ -111,6 +118,41 @@ function Lesson() {
             setAiMessages(prev => [...prev, { role: 'ai', text: 'Server bilan bog\'lanib bo\'lmadi', error: true }])
         }
         setAiSending(false)
+    }
+
+    // Uy vazifasi topshirig'ini yuklash (lesson o'zgarganda)
+    useEffect(() => {
+        if (!token || !courseId || isNaN(index)) return
+        const ctrl = new AbortController()
+        setHwSubmission(null); setHwAnswer(''); setHwError(''); setHwEditing(false)
+        fetch(`${API_URL}/api/homework/${courseId}/${index}`, {
+            headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal
+        })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data) { setHwSubmission(data); setHwAnswer(data.answer || '') }
+            })
+            .catch(() => {})
+        return () => ctrl.abort()
+    }, [courseId, index, token])
+
+    const submitHomework = async () => {
+        const a = hwAnswer.trim()
+        if (a.length < 3 || hwSubmitting) return
+        setHwSubmitting(true); setHwError('')
+        try {
+            const res = await fetch(`${API_URL}/api/homework/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ courseId, lessonIndex: index, answer: a })
+            })
+            const data = await res.json().catch(() => ({}))
+            if (res.ok) { setHwSubmission(data); setHwEditing(false) }
+            else setHwError(data.message || 'Xatolik yuz berdi')
+        } catch {
+            setHwError('Server bilan bog\'lanib bo\'lmadi')
+        }
+        setHwSubmitting(false)
     }
 
     // Load notes when lesson changes
@@ -336,7 +378,8 @@ function Lesson() {
                         videoUrl: l.videoUrl || l.video || '',
                         description: l.description || l.desc || '',
                         materialUrl: l.materialUrl || l.material || '',
-                        materialName: l.materialName || l.material_name || ''
+                        materialName: l.materialName || l.material_name || '',
+                        homework: l.homework || ''
                     }
                     return { title: `${i + 1}-dars`, videoUrl: '', description: '', materialUrl: '', materialName: '' }
                 })
@@ -687,6 +730,63 @@ function Lesson() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Uy vazifasi — AI baholaydi */}
+                        {lesson.homework && (
+                            <div className="lesson-hw">
+                                <div className="lesson-hw-head">
+                                    <ClipboardList size={18} />
+                                    <span>Uy vazifasi</span>
+                                    <span className="lesson-hw-ai">AI baholaydi</span>
+                                </div>
+                                <p className="lesson-hw-task">{lesson.homework}</p>
+
+                                {hwSubmission && !hwEditing ? (
+                                    <div className="lesson-hw-result">
+                                        <div className="lesson-hw-score-row">
+                                            <span className={`lesson-hw-score ${hwSubmission.score >= 70 ? 'good' : hwSubmission.score >= 40 ? 'mid' : 'low'}`}>
+                                                <Award size={16} /> {hwSubmission.score} / 100
+                                            </span>
+                                            {hwSubmission.attempts > 1 && (
+                                                <span className="lesson-hw-attempts">{hwSubmission.attempts}-urinish</span>
+                                            )}
+                                        </div>
+                                        {hwSubmission.feedback && (
+                                            <p className="lesson-hw-feedback">{hwSubmission.feedback}</p>
+                                        )}
+                                        <div className="lesson-hw-submitted">
+                                            <span className="lesson-hw-submitted-label">Sizning javobingiz:</span>
+                                            <p>{hwSubmission.answer}</p>
+                                        </div>
+                                        <button className="btn-outline btn-small" onClick={() => setHwEditing(true)}>
+                                            <RotateCcw size={14} /> Qayta yuborish
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="lesson-hw-form">
+                                        <textarea
+                                            className="lesson-hw-textarea"
+                                            value={hwAnswer}
+                                            onChange={e => setHwAnswer(e.target.value.slice(0, 8000))}
+                                            placeholder="Javobingizni shu yerga yozing..."
+                                            rows={6}
+                                        />
+                                        {hwError && <div className="lesson-hw-error">{hwError}</div>}
+                                        <div className="lesson-hw-actions">
+                                            <span className="lesson-hw-count">{hwAnswer.length} / 8000</span>
+                                            {hwEditing && hwSubmission && (
+                                                <button className="btn-outline btn-small" onClick={() => { setHwEditing(false); setHwAnswer(hwSubmission.answer || ''); setHwError('') }} disabled={hwSubmitting}>
+                                                    Bekor qilish
+                                                </button>
+                                            )}
+                                            <button className="btn-primary btn-small" onClick={submitHomework} disabled={hwSubmitting || hwAnswer.trim().length < 3}>
+                                                {hwSubmitting ? (<><Loader2 size={14} className="spin" /> Baholanmoqda…</>) : (<><Send size={14} /> Yuborish</>)}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Lesson Q&A — savol javob */}
                         <LessonQA courseId={courseId} lessonIndex={index} />

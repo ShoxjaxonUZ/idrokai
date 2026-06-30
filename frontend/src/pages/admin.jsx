@@ -1187,6 +1187,21 @@ function Admin() {
                               />
                             </div>
 
+                            {/* UY VAZIFASI — AI baholaydi */}
+                            <div className="form-group">
+                              <label>Uy vazifasi (ixtiyoriy — AI avtomatik baholaydi)</label>
+                              <textarea
+                                value={lesson.homework || ''}
+                                onChange={e => {
+                                  const newLessons = [...form.lessons]
+                                  newLessons[idx] = { ...newLessons[idx], homework: e.target.value }
+                                  setForm({ ...form, lessons: newLessons })
+                                }}
+                                placeholder="Masalan: Shu darsda o'rgangan funksiyaga misol yozing va nima qilishini tushuntiring."
+                                rows={2}
+                              />
+                            </div>
+
                             {/* MATERIAL UPLOAD */}
                             <div className="form-group">
                               <label>Material fayl (ZIP/PDF — ixtiyoriy)</label>
