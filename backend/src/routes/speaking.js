@@ -55,7 +55,7 @@ CALIBRATION BY LEVEL:
 - B1/B2: natural everyday ${p.langName}, moderate vocabulary.
 - C1/C2: rich, natural, idiomatic ${p.langName}.
 
-SPEAKING SUPPORT: If the learner's level is LOW (A1/A2) OR they are clearly struggling (very short answers, many mistakes, hesitation, wrong words), actively HELP them speak: in the "help" field, give ONE short, natural example sentence in ${p.langName} that they can simply copy and say next. For confident higher-level learners who speak fine, leave "help" empty. Match the help to the current question.
+SPEAKING SUPPORT: In the "help" field, ALWAYS provide ONE short, natural example answer in ${p.langName} that the learner could simply say next in reply to your question. Keep it at their level and make it a ready-to-say sentence (NOT a translation or instruction). This nudge is shown ONLY if the learner stays silent for a few seconds, so it must directly fit the question you just asked.
 
 RULES:
 - Reply ONLY in ${p.langName}, SHORT (1-2 sentences max — it will be spoken aloud).
@@ -64,7 +64,7 @@ RULES:
 - If the learner made a clear language mistake, give ONE short, gentle correction tip (with the correct form), but never interrupt the flow.
 
 Return ONLY JSON, nothing else:
-{"reply": "<your short spoken reply in ${p.langName}>", "tip": "<optional one short gentle correction written in Uzbek, or empty>", "level": "<CEFR band A1/A2/B1/B2/C1/C2 if known or just estimated, else empty>", "help": "<a short example answer in ${p.langName} the learner can say next, ONLY when they need help (low level or struggling), else empty>"}`
+{"reply": "<your short spoken reply in ${p.langName}>", "tip": "<optional one short gentle correction written in Uzbek, or empty>", "level": "<CEFR band A1/A2/B1/B2/C1/C2 if known or just estimated, else empty>", "help": "<a short, ready-to-say example answer in ${p.langName} that fits your question, so a stuck learner can just say it>"}`
 }
 
 // LLM suhbat — userText (yoki start) → {reply, tip, level}. /talk va /chat shuni ishlatadi.

@@ -11,6 +11,9 @@ const LANGS = {
 
 const SR = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
 
+// Foydalanuvchi shuncha ms jim tursa — yordamchi gapni ko'rsatamiz
+const HINT_AFTER_MS = 5000
+
 // MediaRecorder uchun eng mos audio mime
 const pickMime = () => {
     if (typeof MediaRecorder === 'undefined') return ''
@@ -31,6 +34,7 @@ function Speaking() {
     const [error, setError] = useState('')
     const [showLog, setShowLog] = useState(false)
     const [level, setLevel] = useState('') // aniqlangan CEFR daraja (A1..C2)
+    const [hintVisible, setHintVisible] = useState(false) // jim turganda yordamchi ko'rinadi
 
     // Hamroh ismi (bir marta sozlanadi)
     const [partnerName, setPartnerName] = useState('')
@@ -75,6 +79,16 @@ function Speaking() {
         const el = bodyRef.current
         if (el) el.scrollTop = el.scrollHeight
     }, [messages, interim, status])
+
+    // Jimlik taymeri: tinglash paytida foydalanuvchi HINT_AFTER_MS jim tursa —
+    // yordamchi gapni ko'rsatamiz. Gapira boshlashi (interim) yoki holat o'zgarishi darrov yashiradi.
+    useEffect(() => {
+        if (status === 'listening' && !interim) {
+            const t = setTimeout(() => setHintVisible(true), HINT_AFTER_MS)
+            return () => clearTimeout(t)
+        }
+        setHintVisible(false)
+    }, [status, interim])
 
     // Brauzer ovozlarini oldindan yuklash
     useEffect(() => {
@@ -514,7 +528,7 @@ function Speaking() {
                                     </p>
                                 )}
                                 {lastAi?.tip && <p className="spk-cap-tip"><Lightbulb size={13} /> {lastAi.tip}</p>}
-                                {lastAi?.help && (
+                                {lastAi?.help && hintVisible && (
                                     <button className="spk-help" onClick={() => speak(lastAi.help)} title="Tinglash uchun bosing">
                                         <span className="spk-help-label"><Sparkles size={12} /> Shunday ayting</span>
                                         <span className="spk-help-text">"{lastAi.help}"</span>
