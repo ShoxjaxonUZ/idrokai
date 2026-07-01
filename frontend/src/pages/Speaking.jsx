@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Mic, Pause, Loader2, Volume2, Sparkles, RotateCcw, MessageCircle, Play, Lightbulb, AlertTriangle, AudioLines } from 'lucide-react'
+import { Mic, Pause, Loader2, Volume2, Sparkles, RotateCcw, MessageCircle, Play, Lightbulb, AlertTriangle, AudioLines, Flag, TrendingUp, Trophy, X, Pencil, Clock } from 'lucide-react'
 import { API_URL } from '../lib/api'
 import Navbar from '../components/Navbar'
 import '../styles/speaking.css'
@@ -11,15 +11,38 @@ const LANGS = {
 
 const SR = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null
 
+// MediaRecorder uchun eng mos audio mime
+const pickMime = () => {
+    if (typeof MediaRecorder === 'undefined') return ''
+    const list = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']
+    return list.find(m => { try { return MediaRecorder.isTypeSupported(m) } catch { return false } }) || ''
+}
+
+const fmtDate = (d) => {
+    try { return new Date(d).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' }) } catch { return '' }
+}
+
 function Speaking() {
     const [lang, setLang] = useState('en')
-    const [messages, setMessages] = useState([]) // {role, text, tip?}
+    const [messages, setMessages] = useState([]) // {role, text, tip?, help?}
     const [status, setStatus] = useState('idle') // idle | listening | thinking | speaking
     const [interim, setInterim] = useState('')
     const [started, setStarted] = useState(false)
     const [error, setError] = useState('')
     const [showLog, setShowLog] = useState(false)
     const [level, setLevel] = useState('') // aniqlangan CEFR daraja (A1..C2)
+
+    // Hamroh ismi (bir marta sozlanadi)
+    const [partnerName, setPartnerName] = useState('')
+    const [nameInput, setNameInput] = useState('')
+    const [savingName, setSavingName] = useState(false)
+    const [editingName, setEditingName] = useState(false)
+
+    // Natija / progress
+    const [finalizing, setFinalizing] = useState(false)
+    const [result, setResult] = useState(null)   // yakuniy sessiya natijasi (karta)
+    const [progress, setProgress] = useState(null) // {last, prev, progress, sessions}
+    const [showHistory, setShowHistory] = useState(false)
 
     // Stale-closure'dan qochish uchun ref'lar
     const liveRef = useRef(false)       // suhbat loop faolmi
@@ -31,12 +54,22 @@ function Speaking() {
     const processingRef = useRef(false)
     const levelRef = useRef('')
     const bodyRef = useRef(null)
+    const partnerRef = useRef('')
+
+    // Audio yozish (MediaRecorder)
+    const recorderRef = useRef(null)
+    const mediaStreamRef = useRef(null)
+    const chunksRef = useRef([])
+    const mimeRef = useRef('audio/webm')
+    const savedRef = useRef(false) // sessiya saqlandimi (ikki marta saqlamaslik)
 
     const token = localStorage.getItem('token')
+    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
 
     useEffect(() => { langRef.current = lang }, [lang])
     useEffect(() => { messagesRef.current = messages }, [messages])
     useEffect(() => { levelRef.current = level }, [level])
+    useEffect(() => { partnerRef.current = partnerName }, [partnerName])
 
     useEffect(() => {
         const el = bodyRef.current
@@ -48,12 +81,61 @@ function Speaking() {
         try { window.speechSynthesis?.getVoices() } catch {}
     }, [])
 
+    // Boshlang'ich yuklash: hamroh ismi + oxirgi natija
+    useEffect(() => {
+        loadPrefs()
+        loadProgress()
+    }, [])
+
     // Tozalash
     useEffect(() => () => {
         liveRef.current = false
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
+        stopStream()
     }, [])
+
+    const loadPrefs = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/speaking/prefs`, { headers: authHeaders })
+            const data = await res.json().catch(() => ({}))
+            if (res.ok && data.partnerName) setPartnerName(data.partnerName)
+        } catch {}
+    }
+
+    const loadProgress = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/speaking/progress`, { headers: authHeaders })
+            const data = await res.json().catch(() => ({}))
+            if (res.ok) setProgress(data)
+        } catch {}
+    }
+
+    const saveName = async () => {
+        const name = nameInput.trim()
+        if (!name) return
+        setSavingName(true)
+        setError('')
+        try {
+            const res = await fetch(`${API_URL}/api/speaking/prefs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ partnerName: name })
+            })
+            const data = await res.json().catch(() => ({}))
+            if (res.ok) {
+                setPartnerName(data.partnerName || name)
+                setEditingName(false)
+                setNameInput('')
+            } else {
+                setError(data.message || 'Ismni saqlab bo\'lmadi')
+            }
+        } catch {
+            setError('Server bilan bog\'lanib bo\'lmadi')
+        } finally {
+            setSavingName(false)
+        }
+    }
 
     // ---- TTS: AI javobini ovozli aytish ----
     const speak = (text) => {
@@ -82,6 +164,40 @@ function Speaking() {
         if (liveRef.current) startListening()
         else setStatus('idle')
     }
+
+    // ---- Audio yozish ----
+    const startRecording = async () => {
+        chunksRef.current = []
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+            mediaStreamRef.current = stream
+            const mime = pickMime()
+            mimeRef.current = mime || 'audio/webm'
+            const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
+            rec.ondataavailable = (e) => { if (e.data && e.data.size) chunksRef.current.push(e.data) }
+            recorderRef.current = rec
+            rec.start(1000) // har soniyada chunk yig'ish
+        } catch {
+            // Audio yozib bo'lmasa — suhbat baribir davom etadi (audio ixtiyoriy)
+            recorderRef.current = null
+        }
+    }
+
+    const stopStream = () => {
+        try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
+        mediaStreamRef.current = null
+    }
+
+    const stopRecording = () => new Promise((resolve) => {
+        const rec = recorderRef.current
+        const makeBlob = () => {
+            const parts = chunksRef.current
+            return parts.length ? new Blob(parts, { type: mimeRef.current }) : null
+        }
+        if (!rec || rec.state === 'inactive') { stopStream(); resolve(makeBlob()); return }
+        rec.onstop = () => { const b = makeBlob(); stopStream(); recorderRef.current = null; resolve(b) }
+        try { rec.stop() } catch { stopStream(); resolve(makeBlob()) }
+    })
 
     // ---- Tinglash (jonli STT) ----
     const startListening = () => {
@@ -141,11 +257,12 @@ function Speaking() {
         try {
             const res = await fetch(`${API_URL}/api/speaking/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({
                     lang: langRef.current,
                     text,
                     level: levelRef.current,
+                    partnerName: partnerRef.current,
                     history: messagesRef.current.map(m => ({ role: m.role, text: m.text }))
                 })
             })
@@ -157,7 +274,7 @@ function Speaking() {
                 return
             }
             if (data.level) setLevel(data.level)
-            if (data.reply) setMessages(prev => [...prev, { role: 'ai', text: data.reply, tip: data.tip }])
+            if (data.reply) setMessages(prev => [...prev, { role: 'ai', text: data.reply, tip: data.tip, help: data.help }])
             speak(data.reply)
         } catch {
             processingRef.current = false
@@ -172,21 +289,24 @@ function Speaking() {
         setStarted(true)
         setMessages([])
         setLevel('')
+        setResult(null)
+        savedRef.current = false
         liveRef.current = true
         processingRef.current = true
         setStatus('thinking')
         setError('')
+        startRecording() // audio yozishni boshlash (best-effort)
         try {
             const res = await fetch(`${API_URL}/api/speaking/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                body: JSON.stringify({ lang: langRef.current, start: true, history: [] })
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ lang: langRef.current, start: true, partnerName: partnerRef.current, history: [] })
             })
             const data = await res.json().catch(() => ({}))
             processingRef.current = false
             if (res.ok && data.reply) {
                 if (data.level) setLevel(data.level)
-                setMessages([{ role: 'ai', text: data.reply, tip: data.tip }])
+                setMessages([{ role: 'ai', text: data.reply, tip: data.tip, help: data.help }])
                 speak(data.reply)
             } else {
                 setError(data.message || 'Boshlab bo\'lmadi')
@@ -221,22 +341,67 @@ function Speaking() {
         setInterim('')
     }
 
+    // ---- Sessiyani yakunlash: audio + matnni saqlash va baholash ----
+    const finishSession = async () => {
+        if (savedRef.current || finalizing) return
+        const msgs = messagesRef.current.filter(m => m.role === 'user' || m.role === 'ai')
+        if (!msgs.some(m => m.role === 'user')) {
+            setError('Baholash uchun avval biroz gaplashing.')
+            return
+        }
+        savedRef.current = true
+        stopConversation()
+        setFinalizing(true)
+        setError('')
+        const blob = await stopRecording()
+        try {
+            const fd = new FormData()
+            fd.append('lang', langRef.current)
+            fd.append('transcript', JSON.stringify(msgs.map(m => ({ role: m.role, text: m.text }))))
+            if (blob && blob.size > 0) fd.append('audio', blob, 'session.webm')
+            const res = await fetch(`${API_URL}/api/speaking/session`, {
+                method: 'POST',
+                headers: { ...authHeaders },
+                body: fd
+            })
+            const data = await res.json().catch(() => ({}))
+            if (res.ok) {
+                setResult(data)
+                loadProgress()
+            } else {
+                savedRef.current = false
+                setError(data.message || 'Sessiyani saqlab bo\'lmadi')
+            }
+        } catch {
+            savedRef.current = false
+            setError('Server bilan bog\'lanib bo\'lmadi')
+        } finally {
+            setFinalizing(false)
+        }
+    }
+
     const resetSession = () => {
         stopConversation()
+        stopRecording()
         setMessages([])
         setStarted(false)
         setError('')
         setLevel('')
+        setResult(null)
+        savedRef.current = false
     }
 
     const L = LANGS[lang]
+    const displayName = partnerName || L.persona
     const statusText = {
         listening: 'Tinglayapman… gapiravering',
-        thinking: `${L.persona} o'ylayapti…`,
-        speaking: `${L.persona} gapiryapti…`,
+        thinking: `${displayName} o'ylayapti…`,
+        speaking: `${displayName} gapiryapti…`,
         idle: 'Pauza'
     }[status]
     const lastAi = [...messages].reverse().find(m => m.role === 'ai')
+    const needName = !partnerName || editingName
+    const lastSession = progress?.last
 
     return (
         <div className="speaking-page">
@@ -245,11 +410,16 @@ function Speaking() {
                 {/* Top bar */}
                 <div className="spk-top">
                     <div className="spk-who">
-                        <AudioLines size={15} /> {L.persona} · {L.label}
+                        <AudioLines size={15} /> {displayName} · {L.label}
                         {started && (
                             level
                                 ? <span className="spk-level" title="Sizning darajangiz (CEFR)">{level}</span>
                                 : <span className="spk-level detecting">daraja aniqlanmoqda…</span>
+                        )}
+                        {!started && partnerName && (
+                            <button className="spk-rename" title="Hamroh ismini o'zgartirish" onClick={() => { setNameInput(partnerName); setEditingName(true) }}>
+                                <Pencil size={12} />
+                            </button>
                         )}
                     </div>
                     <div className="spk-langs">
@@ -271,15 +441,59 @@ function Speaking() {
                 <div className="spk-stage">
                     {!started ? (
                         <div className="spk-intro">
-                            <div className="spk-orb spk-orb--idle">
-                                <div className="spk-orb-core" />
-                            </div>
-                            <h2>{L.persona} bilan erkin gaplashing</h2>
-                            <p>Suhbatni boshlang va shunchaki <strong>gapiravering</strong> — to'xtaganingizda {L.persona} darhol javob beradi. Tugma bosib turish shart emas.</p>
-                            <button className="spk-start" onClick={beginSession} disabled={status === 'thinking'}>
-                                {status === 'thinking' ? <><Loader2 size={17} className="spin" /> Tayyorlanmoqda…</> : <><Mic size={17} /> Suhbatni boshlash</>}
-                            </button>
-                            {!SR && <p className="spk-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
+                            {needName ? (
+                                /* Hamroh ismini sozlash (bir marta) */
+                                <div className="spk-name-setup">
+                                    <div className="spk-orb spk-orb--idle"><div className="spk-orb-core" /></div>
+                                    <h2>Suhbatdoshingizga ism bering</h2>
+                                    <p>Bu sizning shaxsiy AI suhbatdoshingiz. Unga yoqadigan ism qo'ying — {L.label} tilida siz bilan shu nom bilan gaplashadi.</p>
+                                    <div className="spk-name-row">
+                                        <input
+                                            className="spk-name-input"
+                                            value={nameInput}
+                                            onChange={e => setNameInput(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') saveName() }}
+                                            placeholder="Masalan: Alex, Nigora, Max…"
+                                            maxLength={24}
+                                            autoFocus
+                                        />
+                                        <button className="spk-start" onClick={saveName} disabled={savingName || !nameInput.trim()}>
+                                            {savingName ? <><Loader2 size={16} className="spin" /> Saqlanmoqda…</> : 'Saqlash'}
+                                        </button>
+                                    </div>
+                                    {editingName && partnerName && (
+                                        <button className="spk-name-cancel" onClick={() => { setEditingName(false); setNameInput('') }}>Bekor qilish</button>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Oxirgi natija banneri (kecha vs bugun) */}
+                                    {lastSession && progress?.progress && (
+                                        <div className={`spk-progress-banner ${progress.progress.levelUp ? 'up' : ''}`}>
+                                            {progress.progress.levelUp ? <Trophy size={18} /> : <TrendingUp size={16} />}
+                                            <div>
+                                                <div className="spk-pb-head">
+                                                    O'tgan safar: <b>{lastSession.level || '—'}</b> · {lastSession.score} ball
+                                                </div>
+                                                <div className="spk-pb-msg">{progress.progress.message}</div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="spk-orb spk-orb--idle"><div className="spk-orb-core" /></div>
+                                    <h2>{displayName} bilan erkin gaplashing</h2>
+                                    <p>Suhbatni boshlang va shunchaki <strong>gapiravering</strong> — to'xtaganingizda {displayName} darhol javob beradi. Yakunlaganingizda darajangiz baholanadi.</p>
+                                    <button className="spk-start" onClick={beginSession} disabled={status === 'thinking'}>
+                                        {status === 'thinking' ? <><Loader2 size={17} className="spin" /> Tayyorlanmoqda…</> : <><Mic size={17} /> Suhbatni boshlash</>}
+                                    </button>
+                                    {progress?.sessions?.length > 0 && (
+                                        <button className="spk-history-link" onClick={() => setShowHistory(true)}>
+                                            <Clock size={14} /> Natijalarim tarixi ({progress.sessions.length})
+                                        </button>
+                                    )}
+                                    {!SR && <p className="spk-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
+                                </>
+                            )}
                         </div>
                     ) : (
                         <div className="spk-live">
@@ -300,6 +514,13 @@ function Speaking() {
                                     </p>
                                 )}
                                 {lastAi?.tip && <p className="spk-cap-tip"><Lightbulb size={13} /> {lastAi.tip}</p>}
+                                {lastAi?.help && (
+                                    <button className="spk-help" onClick={() => speak(lastAi.help)} title="Tinglash uchun bosing">
+                                        <span className="spk-help-label"><Sparkles size={12} /> Shunday ayting</span>
+                                        <span className="spk-help-text">"{lastAi.help}"</span>
+                                        <Volume2 size={14} />
+                                    </button>
+                                )}
                                 {interim && <p className="spk-cap-user">{interim}…</p>}
                             </div>
                         </div>
@@ -322,6 +543,14 @@ function Speaking() {
                             {liveRef.current && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
                         </button>
                         <button
+                            className="spk-ctrl spk-ctrl--finish"
+                            onClick={finishSession}
+                            disabled={finalizing}
+                            title="Yakunlash va baholash"
+                        >
+                            {finalizing ? <Loader2 size={18} className="spin" /> : <Flag size={18} />}
+                        </button>
+                        <button
                             className={`spk-ctrl ${showLog ? 'active' : ''}`}
                             onClick={() => setShowLog(s => !s)}
                             title="Suhbat tarixi"
@@ -340,8 +569,69 @@ function Speaking() {
                                 <p className="spk-log-empty">Hali xabar yo'q</p>
                             ) : messages.map((m, i) => (
                                 <div key={i} className={`spk-log-msg ${m.role}`}>
-                                    <span className="spk-log-who">{m.role === 'ai' ? L.persona : 'Siz'}</span>
+                                    <span className="spk-log-who">{m.role === 'ai' ? displayName : 'Siz'}</span>
                                     <span>{m.text}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Yakuniy natija kartasi */}
+                {result && (
+                    <div className="spk-result" onClick={() => setResult(null)}>
+                        <div className="spk-result-card" onClick={e => e.stopPropagation()}>
+                            <button className="spk-result-close" onClick={() => setResult(null)}><X size={18} /></button>
+                            <div className={`spk-result-badge ${result.progress?.levelUp ? 'up' : ''}`}>
+                                {result.progress?.levelUp ? <Trophy size={30} /> : <Sparkles size={28} />}
+                            </div>
+                            <div className="spk-result-level">{result.level || '—'}</div>
+                            <div className="spk-result-sub">Bugungi darajangiz · {result.score} ball</div>
+
+                            {result.progress?.message && (
+                                <div className={`spk-result-msg ${result.progress.levelUp ? 'up' : ''}`}>{result.progress.message}</div>
+                            )}
+
+                            <div className="spk-result-stats">
+                                <div><span>{result.wordCount}</span>so'z</div>
+                                <div><span>{result.turns}</span>marta gapirdingiz</div>
+                                <div><span>{result.fluency}</span>ravonlik</div>
+                                <div><span>{result.mistakes}</span>xato</div>
+                            </div>
+
+                            {result.summary && <p className="spk-result-summary">{result.summary}</p>}
+
+                            {result.audioUrl && (
+                                <audio className="spk-result-audio" controls src={result.audioUrl} preload="none" />
+                            )}
+
+                            <div className="spk-result-actions">
+                                <button className="spk-start" onClick={() => { setResult(null); resetSession(); }}>
+                                    <Mic size={16} /> Yana gaplashish
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Natijalar tarixi */}
+                {showHistory && (
+                    <div className="spk-log" onClick={() => setShowHistory(false)}>
+                        <div className="spk-log-panel" onClick={e => e.stopPropagation()}>
+                            <div className="spk-log-head"><Clock size={15} /> Natijalarim tarixi</div>
+                            {!progress?.sessions?.length ? (
+                                <p className="spk-log-empty">Hali natija yo'q</p>
+                            ) : progress.sessions.map(s => (
+                                <div key={s.id} className="spk-hist-item">
+                                    <div className="spk-hist-top">
+                                        <span className="spk-hist-lang">{(LANGS[s.lang] || LANGS.en).code}</span>
+                                        <span className="spk-hist-level">{s.level || '—'}</span>
+                                        <span className="spk-hist-score">{s.score} ball</span>
+                                        <span className="spk-hist-date">{fmtDate(s.createdAt)}</span>
+                                    </div>
+                                    {s.summary && <p className="spk-hist-summary">{s.summary}</p>}
+                                    <div className="spk-hist-meta">{s.wordCount} so'z · {s.fluency} ravonlik · {s.mistakes} xato</div>
+                                    {s.audioUrl && <audio className="spk-result-audio" controls src={s.audioUrl} preload="none" />}
                                 </div>
                             ))}
                         </div>

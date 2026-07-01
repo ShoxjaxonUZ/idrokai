@@ -240,6 +240,51 @@
   color: #fbbf24;
 }
 
+.spk-help {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 16px auto 0;
+  max-width: 460px;
+  padding: 12px 16px;
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  border-radius: 16px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #e0e7ff;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.spk-help:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(129, 140, 248, 0.6);
+  transform: translateY(-1px);
+}
+
+.spk-help .spk-help-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a5b4fc;
+}
+
+.spk-help .spk-help-text {
+  font-size: 15.5px;
+  line-height: 1.4;
+  color: #eef2ff;
+}
+
+.spk-help > svg {
+  align-self: flex-end;
+  color: #a5b4fc;
+}
+
 .spk-cap-user {
   margin: 16px 0 0;
   font-size: 15.5px;
@@ -393,3 +438,250 @@
   .spk-cap-ai { font-size: 18px; }
   .spk-intro h2 { font-size: 21px; }
 }
+
+/* ============ Hamroh ismini sozlash ============ */
+.spk-name-setup { text-align: center; }
+.spk-name-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.spk-name-input {
+  flex: 1;
+  min-width: 180px;
+  padding: 13px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.spk-name-input:focus {
+  border-color: rgba(139, 123, 255, 0.7);
+  background: rgba(255, 255, 255, 0.09);
+}
+.spk-name-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+.spk-name-cancel {
+  margin-top: 16px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.spk-name-cancel:hover { color: #fff; }
+
+.spk-rename {
+  margin-left: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.spk-rename:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
+
+/* ============ Oxirgi natija banneri ============ */
+.spk-progress-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  margin: 0 auto 26px;
+  max-width: 420px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+.spk-progress-banner.up {
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(34, 197, 94, 0.1);
+}
+.spk-progress-banner > svg { flex-shrink: 0; margin-top: 2px; color: #a5b4fc; }
+.spk-progress-banner.up > svg { color: #4ade80; }
+.spk-pb-head { font-size: 12.5px; color: rgba(255, 255, 255, 0.6); }
+.spk-pb-head b { color: #fff; }
+.spk-pb-msg { margin-top: 3px; font-size: 13.5px; line-height: 1.5; color: #eef2ff; }
+
+.spk-history-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.spk-history-link:hover { color: #fff; }
+
+/* ============ Yakunlash tugmasi ============ */
+.spk-ctrl--finish {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+.spk-ctrl--finish:hover { background: rgba(34, 197, 94, 0.22); color: #86efac; }
+.spk-ctrl--finish:disabled { opacity: 0.6; cursor: default; }
+
+/* ============ Yakuniy natija kartasi ============ */
+.spk-result {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 6, 16, 0.72);
+  backdrop-filter: blur(6px);
+}
+.spk-result-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 88vh;
+  overflow-y: auto;
+  text-align: center;
+  padding: 30px 24px 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #15131f;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+.spk-result-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.65);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.spk-result-close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.spk-result-badge {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #8b7bff, #c084fc);
+  box-shadow: 0 10px 30px rgba(124, 109, 240, 0.5);
+}
+.spk-result-badge.up {
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.5);
+}
+.spk-result-level {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, #c4b5fd, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.spk-result-sub { margin-top: 6px; font-size: 13.5px; color: rgba(255, 255, 255, 0.6); }
+.spk-result-msg {
+  margin: 18px 0 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #eef2ff;
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+}
+.spk-result-msg.up {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(74, 222, 128, 0.4);
+}
+.spk-result-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 20px 0 4px;
+}
+.spk-result-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+.spk-result-stats > div span {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+.spk-result-summary {
+  margin: 18px 0 4px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: left;
+}
+.spk-result-audio {
+  width: 100%;
+  margin-top: 18px;
+  height: 40px;
+}
+.spk-result-actions { margin-top: 22px; }
+
+/* ============ Natijalar tarixi ============ */
+.spk-hist-item {
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.spk-hist-item:last-child { border-bottom: none; }
+.spk-hist-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.spk-hist-lang {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 700;
+}
+.spk-hist-level {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #8b7bff, #c084fc);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+}
+.spk-hist-score { color: #fff; font-weight: 700; }
+.spk-hist-date { margin-left: auto; color: rgba(255, 255, 255, 0.45); font-size: 12px; }
+.spk-hist-summary { margin: 8px 0 4px; font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, 0.72); }
+.spk-hist-meta { font-size: 12px; color: rgba(255, 255, 255, 0.45); }
+.spk-hist-item .spk-result-audio { margin-top: 10px; height: 34px; }
