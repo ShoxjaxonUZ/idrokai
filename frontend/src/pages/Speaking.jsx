@@ -20,6 +20,7 @@ function Speaking() {
     const [error, setError] = useState('')
     const [showLog, setShowLog] = useState(false)
     const [level, setLevel] = useState('') // aniqlangan CEFR daraja (A1..C2)
+    const [live, setLive] = useState(false) // suhbat loop faolmi (render uchun)
 
     // Stale-closure'dan qochish uchun ref'lar
     const liveRef = useRef(false)       // suhbat loop faolmi
@@ -173,6 +174,7 @@ function Speaking() {
         setMessages([])
         setLevel('')
         liveRef.current = true
+        setLive(true)
         processingRef.current = true
         setStatus('thinking')
         setError('')
@@ -201,6 +203,7 @@ function Speaking() {
     const toggleLive = () => {
         if (liveRef.current) {
             liveRef.current = false
+            setLive(false)
             try { recRef.current?.abort() } catch {}
             try { window.speechSynthesis?.cancel() } catch {}
             speakingRef.current = false
@@ -208,12 +211,14 @@ function Speaking() {
             setInterim('')
         } else {
             liveRef.current = true
+            setLive(true)
             startListening()
         }
     }
 
     const stopConversation = () => {
         liveRef.current = false
+        setLive(false)
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
         speakingRef.current = false
@@ -315,11 +320,11 @@ function Speaking() {
                             <RotateCcw size={18} />
                         </button>
                         <button
-                            className={`spk-ctrl spk-ctrl--main ${liveRef.current && status !== 'idle' ? 'live' : ''}`}
+                            className={`spk-ctrl spk-ctrl--main ${live && status !== 'idle' ? 'live' : ''}`}
                             onClick={toggleLive}
-                            title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
+                            title={live ? 'Pauza' : 'Davom ettirish'}
                         >
-                            {liveRef.current && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
+                            {live && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
                         </button>
                         <button
                             className={`spk-ctrl ${showLog ? 'active' : ''}`}
