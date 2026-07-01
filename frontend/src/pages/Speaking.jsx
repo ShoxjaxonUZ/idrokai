@@ -60,12 +60,16 @@ function Speaking() {
     const bodyRef = useRef(null)
     const partnerRef = useRef('')
 
-    // Audio yozish (MediaRecorder)
+    // Audio yozish (MediaRecorder + Web Audio miks: mikrofon + AI ovozi)
     const recorderRef = useRef(null)
     const mediaStreamRef = useRef(null)
     const chunksRef = useRef([])
     const mimeRef = useRef('audio/webm')
     const savedRef = useRef(false) // sessiya saqlandimi (ikki marta saqlamaslik)
+    const audioCtxRef = useRef(null)   // Web Audio konteksti
+    const mixDestRef = useRef(null)    // aralash oqim (mikrofon + AI) → yozuvga
+    const micSourceRef = useRef(null)
+    const ttsSrcRef = useRef(null)     // joriy AI ovozi manbasi
 
     const token = localStorage.getItem('token')
     const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
@@ -152,7 +156,65 @@ function Speaking() {
     }
 
     // ---- TTS: AI javobini ovozli aytish ----
-    const speak = (text) => {
+    // Avval server TTS (Web Audio orqali — mikrofon bilan birga YOZILADI, ikkala ovoz saqlanadi).
+    // TTS mavjud bo'lmasa (ruscha yoki terms qabul qilinmagan) — brauzer TTS'ga qaytamiz (yozilmaydi).
+    const speak = async (text) => {
+        if (!text) { afterSpeak(); return }
+        try { window.speechSynthesis?.cancel() } catch {}
+        try {
+            const res = await fetch(`${API_URL}/api/speaking/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
+                body: JSON.stringify({ text, lang: langRef.current })
+            })
+            if (res.status === 200) {
+                const buf = await res.arrayBuffer()
+                const ok = await playBuffer(buf)
+                if (ok) return
+            }
+            // 204 (TTS yo'q) yoki xato → fallback
+        } catch {}
+        speakBrowser(text)
+    }
+
+    // Server TTS audiosini o'ynatish. Yozuv ctx bo'lsa — Web Audio orqali (yoziladi),
+    // aks holda oddiy <audio> (tarixdan tinglash uchun). true = muvaffaqiyatli.
+    const playBuffer = async (arrayBuffer) => {
+        const ctx = audioCtxRef.current
+        try {
+            if (ctx && mixDestRef.current) {
+                const audioBuf = await ctx.decodeAudioData(arrayBuffer.slice(0))
+                const src = ctx.createBufferSource()
+                src.buffer = audioBuf
+                src.connect(ctx.destination)    // foydalanuvchi eshitadi
+                src.connect(mixDestRef.current) // yozuvga tushadi
+                ttsSrcRef.current = src
+                speakingRef.current = true
+                setStatus('speaking')
+                try { if (ctx.state === 'suspended') await ctx.resume() } catch {}
+                return await new Promise(resolve => {
+                    src.onended = () => { speakingRef.current = false; ttsSrcRef.current = null; afterSpeak(); resolve(true) }
+                    try { src.start() } catch { speakingRef.current = false; resolve(false) }
+                })
+            }
+            // Yozuv konteksti yo'q — oddiy audio (masalan tarixdan tinglash)
+            const url = URL.createObjectURL(new Blob([arrayBuffer], { type: 'audio/wav' }))
+            const a = new Audio(url)
+            speakingRef.current = true
+            setStatus('speaking')
+            return await new Promise(resolve => {
+                a.onended = () => { speakingRef.current = false; URL.revokeObjectURL(url); afterSpeak(); resolve(true) }
+                a.onerror = () => { speakingRef.current = false; URL.revokeObjectURL(url); resolve(false) }
+                a.play().catch(() => { speakingRef.current = false; resolve(false) })
+            })
+        } catch {
+            speakingRef.current = false
+            return false
+        }
+    }
+
+    // Fallback: brauzer TTS (Web Audio grafiga ulanmaydi → yozilmaydi)
+    const speakBrowser = (text) => {
         if (!text || !window.speechSynthesis) { afterSpeak(); return }
         try {
             window.speechSynthesis.cancel()
@@ -179,27 +241,45 @@ function Speaking() {
         else setStatus('idle')
     }
 
-    // ---- Audio yozish ----
+    // ---- Audio yozish (mikrofon + AI ovozi bitta oqimga) ----
     const startRecording = async () => {
         chunksRef.current = []
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
             mediaStreamRef.current = stream
+
+            // Web Audio: mikrofon + AI ovozini bitta destination'ga aralashtiramiz
+            const Ctx = window.AudioContext || window.webkitAudioContext
+            const ctx = new Ctx()
+            audioCtxRef.current = ctx
+            const mixDest = ctx.createMediaStreamDestination()
+            mixDestRef.current = mixDest
+            const micSrc = ctx.createMediaStreamSource(stream)
+            micSrc.connect(mixDest) // faqat yozuvga (dinamikка emas — echo bo'lmasin)
+            micSourceRef.current = micSrc
+
             const mime = pickMime()
             mimeRef.current = mime || 'audio/webm'
-            const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
+            const rec = new MediaRecorder(mixDest.stream, mime ? { mimeType: mime } : undefined)
             rec.ondataavailable = (e) => { if (e.data && e.data.size) chunksRef.current.push(e.data) }
             recorderRef.current = rec
             rec.start(1000) // har soniyada chunk yig'ish
         } catch {
             // Audio yozib bo'lmasa — suhbat baribir davom etadi (audio ixtiyoriy)
             recorderRef.current = null
+            audioCtxRef.current = null
+            mixDestRef.current = null
         }
     }
 
     const stopStream = () => {
         try { mediaStreamRef.current?.getTracks().forEach(t => t.stop()) } catch {}
         mediaStreamRef.current = null
+        try { audioCtxRef.current?.close() } catch {}
+        audioCtxRef.current = null
+        mixDestRef.current = null
+        micSourceRef.current = null
+        ttsSrcRef.current = null
     }
 
     const stopRecording = () => new Promise((resolve) => {
@@ -337,6 +417,7 @@ function Speaking() {
             liveRef.current = false
             try { recRef.current?.abort() } catch {}
             try { window.speechSynthesis?.cancel() } catch {}
+            try { ttsSrcRef.current?.stop() } catch {}
             speakingRef.current = false
             setStatus('idle')
             setInterim('')
@@ -350,6 +431,7 @@ function Speaking() {
         liveRef.current = false
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
+        try { ttsSrcRef.current?.stop() } catch {}
         speakingRef.current = false
         setStatus('idle')
         setInterim('')
@@ -500,12 +582,16 @@ function Speaking() {
                                     <button className="spk-start" onClick={beginSession} disabled={status === 'thinking'}>
                                         {status === 'thinking' ? <><Loader2 size={17} className="spin" /> Tayyorlanmoqda…</> : <><Mic size={17} /> Suhbatni boshlash</>}
                                     </button>
+                                    {!SR && <p className="spk-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
+
                                     {progress?.sessions?.length > 0 && (
-                                        <button className="spk-history-link" onClick={() => setShowHistory(true)}>
-                                            <Clock size={14} /> Natijalarim tarixi ({progress.sessions.length})
+                                        <div className="spk-intro-sep"><span>yoki</span></div>
+                                    )}
+                                    {progress?.sessions?.length > 0 && (
+                                        <button className="spk-history-btn" onClick={() => setShowHistory(true)}>
+                                            <Clock size={15} /> Natijalar tarixi ({progress.sessions.length})
                                         </button>
                                     )}
-                                    {!SR && <p className="spk-warn"><AlertTriangle size={14} /> Jonli rejim uchun Chrome yoki Edge kerak.</p>}
                                 </>
                             )}
                         </div>

@@ -10,6 +10,7 @@ const { auth } = require('../middleware/auth')
 const { groqFetch } = require('../lib/groq')
 const { extractAndParseJson } = require('../lib/jsonParse')
 const { transcribe } = require('../lib/whisper')
+const { synthesize } = require('../lib/tts')
 const r2 = require('../lib/r2')
 
 const upload = multer({
@@ -159,6 +160,29 @@ router.post('/talk', auth, upload.single('audio'), async (req, res) => {
     if (err.status === 502) return res.status(502).json({ message: 'AI band — qayta urinib ko\'ring.' })
     console.error('[speaking] error:', err.message)
     res.status(500).json({ message: 'Server xatosi' })
+  }
+})
+
+// ============ AI ovozi (TTS) ============
+
+// POST /api/speaking/tts — matnni AI ovoziga aylantiradi (WAV).
+// TTS mavjud bo'lmasa (ruscha yoki terms qabul qilinmagan) 204 qaytaradi →
+// frontend brauzer TTS'ga qaytadi.
+router.post('/tts', auth, async (req, res) => {
+  try {
+    const lang = req.body.lang === 'ru' ? 'ru' : 'en'
+    const text = String(req.body.text || '').trim().slice(0, 600)
+    if (!text) return res.status(400).json({ message: 'Matn yo\'q' })
+
+    const audio = await synthesize(text, { lang })
+    if (!audio) return res.status(204).end()
+
+    res.set('Content-Type', 'audio/wav')
+    res.set('Cache-Control', 'no-store')
+    res.send(audio)
+  } catch (err) {
+    console.error('[speaking] tts:', err.message)
+    res.status(502).json({ message: 'Ovoz yaratib bo\'lmadi' })
   }
 })
 

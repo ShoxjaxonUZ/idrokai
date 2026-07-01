@@ -533,19 +533,47 @@
 .spk-pb-head b { color: #fff; }
 .spk-pb-msg { margin-top: 3px; font-size: 13.5px; line-height: 1.5; color: #eef2ff; }
 
-.spk-history-link {
+/* Boshlash / tarix ajratuvchisi */
+.spk-intro-sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px auto 18px;
+  max-width: 260px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.spk-intro-sep::before,
+.spk-intro-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.spk-history-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 18px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 13px;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.14s ease;
 }
-.spk-history-link:hover { color: #fff; }
+.spk-history-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+.spk-history-btn svg { color: #a5b4fc; }
 
 /* ============ Yakunlash tugmasi ============ */
 .spk-ctrl--finish {
