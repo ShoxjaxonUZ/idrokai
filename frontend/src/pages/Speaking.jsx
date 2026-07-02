@@ -389,7 +389,7 @@ function Speaking() {
         processingRef.current = true
         setStatus('thinking')
         setError('')
-        startRecording() // audio yozishni boshlash (best-effort)
+        await startRecording() // audio yozishni boshlash (best-effort) — AI salomi ham yozilsin
         try {
             const res = await fetch(`${API_URL}/api/speaking/chat`, {
                 method: 'POST',
