@@ -107,9 +107,10 @@ function Navbar() {
             <span onClick={() => goTo('/battle')}>Battle</span>
             <span onClick={() => goTo('/ai-teacher')}>AI Teacher</span>
             <span onClick={() => goTo('/speaking')}>Speaking</span>
-            <span onClick={() => goTo('/leaderboard')}>Reyting</span>
-            {user && <span onClick={() => goTo('/friends')}>Do'stlar</span>}
-            <span onClick={() => goTo('/pricing')}>Tariflar</span>
+            {/* Reyting/Do'stlar/Tariflar login bo'lganlar uchun Profil menyusiga ko'chdi.
+                Mehmonlar dropdown ko'rmagani uchun ularga shu yerda ko'rsatamiz. */}
+            {!user && <span onClick={() => goTo('/leaderboard')}>Reyting</span>}
+            {!user && <span onClick={() => goTo('/pricing')}>Tariflar</span>}
           </div>
 
           {/* Right */}
@@ -158,6 +159,15 @@ function Navbar() {
                       <div className="dropdown-divider"></div>
                       <button className="dropdown-item" onClick={() => goTo('/profile')}>
                         <User size={16} /> Profil
+                      </button>
+                      <button className="dropdown-item" onClick={() => goTo('/leaderboard')}>
+                        <Trophy size={16} /> Reyting
+                      </button>
+                      <button className="dropdown-item" onClick={() => goTo('/friends')}>
+                        <Users size={16} /> Do'stlar
+                      </button>
+                      <button className="dropdown-item" onClick={() => goTo('/pricing')}>
+                        <Crown size={16} /> Tariflar
                       </button>
                       <button className="dropdown-item" onClick={() => goTo('/portfolio')}>
                         <Briefcase size={16} /> Portfelim
