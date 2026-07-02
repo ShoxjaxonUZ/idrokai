@@ -70,11 +70,14 @@ const DECOY_BODY = {
 const tarpitDelay = () => 1500 + Math.floor(Math.random() * 2500)
 
 const attackShield = (req, res, next) => {
+  // /health har doim ochiq — uptime monitor ban qilingan IP'dan kelsa ham haqiqiy
+  // javob olsin (aks holda soxta 200 monitorni chalg'itadi).
+  if (req.path === '/health') return next()
+
   const ip = req.ip || req.socket?.remoteAddress
   if (!isBanned(ip)) return next()
 
-  // /health'ni ochiq qoldiramiz (uptime monitor uchun) — lekin baribir IP ban
-  // bo'lsa monitor emas, demak xavfsiz. Soxta javob beramiz.
+  // Ban qilingan IP — haqiqiy route o'rniga soxta (decoy) javob + tarpit.
   const timer = setTimeout(() => {
     if (res.headersSent) return
     res.status(200).json(DECOY_BODY)

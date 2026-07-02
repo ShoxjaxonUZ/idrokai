@@ -46,13 +46,25 @@ require('./db')
 const app = express()
 const PORT = process.env.PORT || 5000
 
-// Kutilmagan xatolar serverni jim o'ldirib qo'ymasligi uchun — loglaymiz, lekin
-// process'ni tirik qoldiramiz (fire-and-forget promise'lar va stray xatolar uchun).
+let server = null
+
+// unhandledRejection — fire-and-forget promise'lar (telegram/geoip va h.k.) uchun
+// log qilib davom etamiz (har rad etishда o'chirish juda tajovuzkor bo'lardi).
 process.on('unhandledRejection', (reason) => {
   console.error('UnhandledRejection:', reason instanceof Error ? reason.stack : reason)
 })
+
+// uncaughtException — Node'да bundan keyin process holati ISHONCHSIZ. Loglab,
+// serverni yumshoq yopamiz va chiqamiz; Render/orkestrator qayta ko'taradi
+// (buzuq holatda davom etishдан ko'ra toza restart xavfsizroq).
 process.on('uncaughtException', (err) => {
   console.error('UncaughtException:', err.stack || err.message)
+  try {
+    if (server) server.close(() => process.exit(1))
+    else process.exit(1)
+  } catch { process.exit(1) }
+  // close osilib qolsa — majburiy chiqish
+  setTimeout(() => process.exit(1), 3000).unref?.()
 })
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
@@ -250,7 +262,7 @@ const start = async () => {
     process.exit(1)
   }
 
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portda ishlamoqda`)
     const alertsOn = String(process.env.TELEGRAM_SECURITY_ALERTS || '').toLowerCase() === 'on'
     if (telegram.isConfigured() && alertsOn) {

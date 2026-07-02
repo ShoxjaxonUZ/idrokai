@@ -39,6 +39,12 @@ const verifyMagicBytesBuffer = (buf, declaredMime, ext) => {
   if (declaredMime === 'video/mp4') {
     return matchesMagic(buf, MAGIC_BYTES['video/mp4'], 4)
   }
+  // WEBP = RIFF (0..3) + "WEBP" (8..11). Faqat RIFF tekshirish yetarli emas —
+  // har qanday RIFF fayl (.avi/.wav) o'tib ketardi. Ikkala qismni tekshiramiz.
+  if (declaredMime === 'image/webp') {
+    return matchesMagic(buf, [[0x52, 0x49, 0x46, 0x46]], 0) &&
+           matchesMagic(buf, [[0x57, 0x45, 0x42, 0x50]], 8)
+  }
   if (ZIP_BASED.includes(ext)) {
     return matchesMagic(buf, MAGIC_BYTES['application/zip'])
   }

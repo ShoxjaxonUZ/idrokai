@@ -31,10 +31,22 @@ const stabilityOpts = {
   query_timeout: 20000            // 20s dan uzoq so'rovni uzish (klient tomonida)
 }
 
+// SSL sozlamasi. Xavfsiz yo'l: PG_CA_CERT (Neon/provayder CA sertifikati, PEM)
+// berilsa — sertifikat TO'LIQ tekshiriladi (MITM'dan himoya). Berilmasa — eski
+// xatti-harakat (rejectUnauthorized:false) saqlanadi, ya'ni deploy buzilmaydi.
+// Neon CA'ni olish: https://neon.tech/docs → "Connect securely" (yoki Render env'ga qo'ying).
+const sslConfig = () => {
+  const ca = process.env.PG_CA_CERT
+  if (ca && ca.trim()) {
+    return { rejectUnauthorized: true, ca: ca.replace(/\\n/g, '\n') }
+  }
+  return { rejectUnauthorized: false }
+}
+
 const pool = useDatabaseUrl
   ? new Pool({
       connectionString: stripSslMode(process.env.DATABASE_URL),
-      ssl: { rejectUnauthorized: false },
+      ssl: sslConfig(),
       ...stabilityOpts
     })
   : new Pool({
