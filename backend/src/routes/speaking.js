@@ -43,8 +43,8 @@ function sanitizeName(raw) {
 
 function systemPrompt(p, level) {
   const levelBlock = level
-    ? `The learner's level is about ${level} (CEFR). Calibrate ALL your language to this level — vocabulary, grammar and sentence length.`
-    : `You DON'T know the learner's level yet. In your first 1-2 turns, gently gauge it with simple, natural questions (NEVER call it a test or exam). As soon as you can estimate it, set "level" to a CEFR band and, in your reply, warmly tell them their approximate level in one short friendly phrase, then continue at that level.`
+    ? `The learner's CURRENT estimated level is ${level} (CEFR). Calibrate your language to this level. BUT keep re-assessing every turn: if the learner clearly speaks BELOW or ABOVE ${level} (richer vocabulary, complex grammar, long fluent sentences → higher; or lots of mistakes and very short answers → lower), UPDATE the "level" field to the more accurate CEFR band (up to C2) and gently calibrate to it. Never keep them stuck at one level — reflect their real ability.`
+    : `You DON'T know the learner's level yet. In your first 1-2 turns, gently gauge it with simple, natural questions (NEVER call it a test or exam). As soon as you can estimate it, set "level" to a CEFR band (A1 up to C2) and, in your reply, warmly tell them their approximate level in one short friendly phrase, then continue at that level. Keep re-assessing and raise it if they show they can do more.`
 
   return `You are ${p.name}, a warm and encouraging ${p.langName} speaking partner for an Uzbek learner.
 GOAL: keep the learner TALKING and feeling HAPPY and confident. This is free conversation practice, NOT an exam.
