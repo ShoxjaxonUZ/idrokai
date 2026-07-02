@@ -101,6 +101,22 @@ const PROBE_PATHS = [
   { re: /\/(adminer|phpinfo)/i,        name: 'adminer/phpinfo' }
 ]
 
+// Kod/kontent tashuvchi endpointlar — bu yo'llarda foydalanuvchi (yoki admin)
+// QONUNIY ravishda kod, HTML, backtick, <script>, SQL kalit so'z yozishi mumkin
+// (bu kod o'rgatadigan platforma). Shu sabab bunday yo'llarda BODY skanerlanmaydi —
+// aks holda halol kod-submit XSS/CMD "hujum" deb belgilanib, foydalanuvchi
+// attackShield tomonidan noto'g'ri banlanadi (2 submit = 10 ball >= 6 chegara).
+// URL/query/User-Agent/probe/traversal tekshiruvi baribir ishlaydi, va SQLi'dan
+// parametrli so'rovlar himoya qiladi.
+const BODY_SCAN_SKIP = [
+  '/api/battle', '/api/daily', '/api/homework', '/api/lesson-qa',
+  '/api/lesson-notes', '/api/module-test', '/api/ai', '/api/teacher',
+  '/api/onboarding', '/api/speaking', '/api/messages', '/api/social',
+  '/api/portfolio', '/api/contact', '/api/course-ratings', '/api/courses',
+  '/api/admin'
+]
+const skipBodyScan = (url) => BODY_SCAN_SKIP.some(p => url.startsWith(p))
+
 // Tekshirish funksiyasi — naqsh ro'yxatidan birinchi mosini qaytaradi yoki null
 const matchAny = (text, list) => {
   if (!text) return null
@@ -116,13 +132,16 @@ const detect = (req) => {
   const ua = req.headers['user-agent'] || ''
   const referer = req.headers.referer || ''
 
-  // Body'ni string'ga aylantirib tekshiramiz (chuqur scan emas — payload katta bo'lsa kesiladi)
+  // Body'ni string'ga aylantirib tekshiramiz (chuqur scan emas — payload katta bo'lsa kesiladi).
+  // Kod/kontent yo'llarida body skanerlanmaydi (false-positive ban oldini olish).
   let bodyStr = ''
-  try {
-    if (req.body && typeof req.body === 'object') {
-      bodyStr = JSON.stringify(req.body).slice(0, 8000)
-    }
-  } catch {}
+  if (!skipBodyScan(url)) {
+    try {
+      if (req.body && typeof req.body === 'object') {
+        bodyStr = JSON.stringify(req.body).slice(0, 8000)
+      }
+    } catch {}
+  }
 
   // Query string ham
   const queryStr = url.includes('?') ? url.slice(url.indexOf('?')) : ''
