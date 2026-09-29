@@ -42,7 +42,8 @@ function Messages() {
 
   const bottomRef = useRef(null)
   const activeRef = useRef(activeId)
-  activeRef.current = activeId
+  // render tashqarisida ref ni yangilaymiz (react-hooks/refs qoidasiga muvofiq)
+  useEffect(() => { activeRef.current = activeId }, [activeId])
 
   const loadConversations = useCallback(async () => {
     try {
