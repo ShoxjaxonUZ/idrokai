@@ -48,6 +48,8 @@ function Speaking() {
     const [progress, setProgress] = useState(null) // {last, prev, progress, sessions}
     const [showHistory, setShowHistory] = useState(false)
 
+    const [live, setLive] = useState(false) // render uchun liveRef oynasi
+
     // Stale-closure'dan qochish uchun ref'lar
     const liveRef = useRef(false)       // suhbat loop faolmi
     const langRef = useRef('en')
@@ -108,6 +110,7 @@ function Speaking() {
     // Tozalash
     useEffect(() => () => {
         liveRef.current = false
+        setLive(false)
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
         stopStream()
@@ -386,6 +389,7 @@ function Speaking() {
         setResult(null)
         savedRef.current = false
         liveRef.current = true
+        setLive(true)
         processingRef.current = true
         setStatus('thinking')
         setError('')
@@ -415,6 +419,7 @@ function Speaking() {
     const toggleLive = () => {
         if (liveRef.current) {
             liveRef.current = false
+            setLive(false)
             try { recRef.current?.abort() } catch {}
             try { window.speechSynthesis?.cancel() } catch {}
             try { ttsSrcRef.current?.stop() } catch {}
@@ -423,12 +428,14 @@ function Speaking() {
             setInterim('')
         } else {
             liveRef.current = true
+            setLive(true)
             startListening()
         }
     }
 
     const stopConversation = () => {
         liveRef.current = false
+        setLive(false)
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
         try { ttsSrcRef.current?.stop() } catch {}
@@ -636,11 +643,11 @@ function Speaking() {
                             <RotateCcw size={18} />
                         </button>
                         <button
-                            className={`spk-ctrl spk-ctrl--main ${liveRef.current && status !== 'idle' ? 'live' : ''}`}
+                            className={`spk-ctrl spk-ctrl--main ${live && status !== 'idle' ? 'live' : ''}`}
                             onClick={toggleLive}
-                            title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
+                            title={live ? 'Pauza' : 'Davom ettirish'}
                         >
-                            {liveRef.current && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
+                            {live && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
                         </button>
                         <button
                             className="spk-ctrl spk-ctrl--finish"
