@@ -42,7 +42,8 @@ function Messages() {
 
   const bottomRef = useRef(null)
   const activeRef = useRef(activeId)
-  activeRef.current = activeId
+  // Render paytida o'qish emas, effect orqali sinxronlash
+  useEffect(() => { activeRef.current = activeId }, [activeId])
 
   const loadConversations = useCallback(async () => {
     try {
