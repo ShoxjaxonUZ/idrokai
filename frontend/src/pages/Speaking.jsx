@@ -636,11 +636,11 @@ function Speaking() {
                             <RotateCcw size={18} />
                         </button>
                         <button
-                            className={`spk-ctrl spk-ctrl--main ${liveRef.current && status !== 'idle' ? 'live' : ''}`}
+                            className={`spk-ctrl spk-ctrl--main ${status !== 'idle' ? 'live' : ''}`}
                             onClick={toggleLive}
-                            title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
+                            title={status !== 'idle' ? 'Pauza' : 'Davom ettirish'}
                         >
-                            {liveRef.current && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
+                            {status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
                         </button>
                         <button
                             className="spk-ctrl spk-ctrl--finish"
