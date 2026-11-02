@@ -42,7 +42,8 @@ function Messages() {
 
   const bottomRef = useRef(null)
   const activeRef = useRef(activeId)
-  activeRef.current = activeId
+  // stale-closureni oldini olish: activeId o'zgarganda refni yangilaymiz
+  useEffect(() => { activeRef.current = activeId }, [activeId])
 
   const loadConversations = useCallback(async () => {
     try {
