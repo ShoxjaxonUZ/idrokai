@@ -49,7 +49,8 @@ function Speaking() {
     const [showHistory, setShowHistory] = useState(false)
 
     // Stale-closure'dan qochish uchun ref'lar
-    const liveRef = useRef(false)       // suhbat loop faolmi
+    const liveRef = useRef(false)       // suhbat loop faolmi (async callback ichida)
+    const [isLive, setIsLive] = useState(false) // liveRef ning render uchun ko'zgusi
     const langRef = useRef('en')
     const messagesRef = useRef([])
     const recRef = useRef(null)
@@ -107,7 +108,7 @@ function Speaking() {
 
     // Tozalash
     useEffect(() => () => {
-        liveRef.current = false
+        liveRef.current = false; setIsLive(false)
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
         stopStream()
@@ -385,7 +386,7 @@ function Speaking() {
         setLevel('')
         setResult(null)
         savedRef.current = false
-        liveRef.current = true
+        liveRef.current = true; setIsLive(true)
         processingRef.current = true
         setStatus('thinking')
         setError('')
@@ -414,7 +415,7 @@ function Speaking() {
     // Pauza / davom
     const toggleLive = () => {
         if (liveRef.current) {
-            liveRef.current = false
+            liveRef.current = false; setIsLive(false)
             try { recRef.current?.abort() } catch {}
             try { window.speechSynthesis?.cancel() } catch {}
             try { ttsSrcRef.current?.stop() } catch {}
@@ -422,13 +423,13 @@ function Speaking() {
             setStatus('idle')
             setInterim('')
         } else {
-            liveRef.current = true
+            liveRef.current = true; setIsLive(true)
             startListening()
         }
     }
 
     const stopConversation = () => {
-        liveRef.current = false
+        liveRef.current = false; setIsLive(false)
         try { recRef.current?.abort() } catch {}
         try { window.speechSynthesis?.cancel() } catch {}
         try { ttsSrcRef.current?.stop() } catch {}
@@ -636,11 +637,11 @@ function Speaking() {
                             <RotateCcw size={18} />
                         </button>
                         <button
-                            className={`spk-ctrl spk-ctrl--main ${liveRef.current && status !== 'idle' ? 'live' : ''}`}
+                            className={`spk-ctrl spk-ctrl--main ${isLive && status !== 'idle' ? 'live' : ''}`}
                             onClick={toggleLive}
-                            title={liveRef.current ? 'Pauza' : 'Davom ettirish'}
+                            title={isLive ? 'Pauza' : 'Davom ettirish'}
                         >
-                            {liveRef.current && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
+                            {isLive && status !== 'idle' ? <Pause size={22} /> : <Play size={22} />}
                         </button>
                         <button
                             className="spk-ctrl spk-ctrl--finish"
