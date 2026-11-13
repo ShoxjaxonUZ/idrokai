@@ -42,7 +42,8 @@ function Messages() {
 
   const bottomRef = useRef(null)
   const activeRef = useRef(activeId)
-  activeRef.current = activeId
+  // Stale-closure'dan qochish: ref'ni har render keyin sinxronlash
+  useEffect(() => { activeRef.current = activeId }, [activeId])
 
   const loadConversations = useCallback(async () => {
     try {
